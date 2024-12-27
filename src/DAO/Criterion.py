@@ -1,0 +1,254 @@
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field
+from datetime import datetime
+import psycopg2
+from psycopg2.pool import SimpleConnectionPool
+from typing import Optional
+import os
+import logging
+from contextlib import contextmanager
+from dotenv import load_dotenv
+import uvicorn
+from app.DAO.DB_Utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
+from app.DAO.Exceptions import CriterionNotFoundException
+# Logging Configuration
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Pydantic Models for request and response validation
+class CriteriaResponse(BaseModel):
+    """
+    Response model for criteria data.
+
+    Attributes:
+        criterion_id (int): Unique indentifier for criteria
+         (str): Name of the criteria
+        question_type_id (int): ID of the question_type associated with the criteria
+    """
+    criterion_id: int  # Unique identifier for the criterion
+    criterion: str = Field(..., min_length=2)  # Name of the criterion
+    question_type_id: int  # ID of the associated question type
+
+class CriteriaRequest(BaseModel):
+    """
+    Request model for creating or updating criterion.
+
+    Attributes:
+         (str):Name of the criteria
+    """
+    criterion: str = Field(..., min_length=2)  # Name of the criterion
+
+app = FastAPI()
+
+@app.get("/criteria/{criterion_id}", response_model=CriteriaResponse)
+async def fetch_criterion(criterion_id: int):
+    """
+    Retrieves a criteria by ID
+
+    Args:
+        criterion_id (int): ID of the criteria to retrieve
+    
+    Returns:
+        CriteriaResponse:criteria Details
+    
+    Raises:
+        HTTPException: 404 if criteria not found, 503 for connection issues,
+                      400 for invalid data, 500 for other errors
+    """
+    try:
+        with get_db_connection() as conn:
+            try:
+                # Query to fetch the criteria by ID
+                criteria = execute_query(
+                    conn,
+                    "SELECT criterion_id, criterion, question_type_id FROM criteria WHERE criterion_id = %s",
+                    (criterion_id,)
+                )
+                if not criteria:
+                    raise CriterionNotFoundException('criterion_id',criterion_id)  # Handle not found
+                # Return the criteria details
+                return {"criterion_id": criteria[0], "": criteria[1], "question_type_id": criteria[2]}
+            except Exception as e:
+                logger.error(f"Error retrieving criteria: {e}")  # Log errors
+                raise e
+    except DatabaseConnectionError as e:
+        raise e
+    except DatabaseQueryError as e:
+        raise e
+    except DatabaseOperationError as e:
+        raise e
+
+@app.get("/criteria")
+async def fetch_criteria(question_type_id: int):
+    """
+    Retrieve all criteria for a given question type ID.
+    
+    Args:
+        question_type_id (int): ID of the question type to retrieve criteria for
+        
+    Returns:
+        List of criteria with their 
+        
+    Raises:
+        HTTPException: 404 if no criteria found, 503 for connection issues,
+                      400 for invalid data, 500 for other errors
+    """
+    try:
+        with get_db_connection() as conn:
+            try:
+                # Query to fetch all criteria associated with the question type
+                query = """
+                    SELECT criterion_id, criterion, question_type_id 
+                    FROM criteria 
+                    WHERE question_type_id = %s
+                """
+                criteria = execute_query(
+                    conn,
+                    query,
+                    (question_type_id,),
+                    fetch_one=False
+                )
+                if not criteria:
+                    raise CriterionNotFoundException('question_type_id',question_type_id)
+                criteria = {criteria[0]:criteria[1] for criteria in criteria}
+                return criteria
+            except Exception as e:
+                logger.error(f"Error retrieving criteria for question_type_id {question_type_id}: {e}")
+                raise Exception(f"Error retrieving criteria for question_type_id {question_type_id}: {e}")
+
+    except DatabaseConnectionError as e:
+        raise e
+    except DatabaseQueryError as e:
+        raise e
+    except DatabaseOperationError as e:
+        raise e
+
+@app.post("/criteria", response_model=CriteriaResponse)
+async def add_criteria(criterion: CriteriaRequest, question_type_id: int):
+    """
+    Add a new metric criteria to the database.
+    
+    Args:
+        criterion (CriteriaRequest) : New data for criteria
+        question_type_id (int): ID of the question type to add criteria for
+    Returns: 
+        CriteriaResponse:Added criteria details
+
+    Raises: 
+        HTTPException: 400 for validation errors, 503 for connection issues,
+                      500 for other database errors
+    """
+    try:
+        with get_db_connection() as conn:
+            try:
+                # Insert the new criteria into the database
+                cur_query = """
+                    INSERT INTO criteria (criterion, question_type_id) 
+                    VALUES (%s, %s) 
+                    RETURNING criterion_id, criterion, question_type_id
+                """
+                criteria = execute_query(
+                    conn,
+                    cur_query,
+                    (criterion.criterion, question_type_id),
+                    commit=True
+                )
+                # Return the newly created criteria details
+                return {
+                    "criterion_id": criteria[0],
+                    "criterion": criteria[1],
+                    "question_type_id": criteria[2]
+                }
+            except Exception as e:
+                logger.error(f"Error adding criteria: {e}")  # Log errors
+                raise
+    except DatabaseConnectionError as e:
+        raise e
+    except DatabaseQueryError as e:
+        raise e
+    except DatabaseOperationError as e:
+        raise e
+
+@app.put("/criteria/{criterion_id}", response_model=CriteriaResponse)
+async def update_criteria(criterion_id: int, criteria: CriteriaRequest):
+    """
+    Update an existing criteria.
+    
+    Args:
+        criterion_id (int): ID of the criteria to update
+        criteria (CriteriaRequest): New data for the criteria
+        
+    Returns:
+        criteriaResponse: Updated criteria details
+        
+    Raises:
+        HTTPException: 404 if criteria not found, 503 for connection issues,
+                      400 for invalid data, 500 for other errors
+    """
+    try:
+        with get_db_connection() as conn:
+            try:
+                # Update the metric criteria in the database
+                update_query = "UPDATE criteria SET criterion = %s WHERE criterion_id = %s RETURNING criterion_id, criterion, question_type_id"
+                updated_criteria = execute_query(
+                    conn,
+                    update_query,
+                    (criteria.criterion, criterion_id),
+                    commit=True
+                )
+                if not updated_criteria:
+                    raise CriterionNotFoundException('criterion_id',criterion_id)
+                # Return the updated criteria details
+                return {"criterion_id": updated_criteria[0], "criterion": updated_criteria[1], "question_type_id": updated_criteria[2]}
+            except Exception as e:
+                logger.error(f"Error updating metric criteria: {e}")  # Log errors
+                raise e
+    except DatabaseConnectionError as e:
+        raise e
+    except DatabaseQueryError as e:
+        raise e
+    except DatabaseOperationError as e:
+        raise e
+
+@app.delete("/criteria/{criterion_id}", response_model=dict)
+async def delete_criteria(criterion_id: int):
+    """
+    Delete a subcriteria by ID.
+    
+    Args:
+        criterion_id (int): ID of the subcriteria to delete
+        
+    Returns:
+        dict: Success message
+        
+    Raises:
+        HTTPException: 404 if criteria not found, 503 for connection issues,
+                      400 for invalid data, 500 for other errors
+    """
+    try: 
+        with get_db_connection() as conn:
+            try:
+                # Delete the criteria from the database
+                delete_query = "DELETE FROM criteria WHERE criterion_id = %s RETURNING criterion_id"
+                deleted_criteria = execute_query(
+                    conn,
+                    delete_query,
+                    (criterion_id,),
+                    commit=True
+                )
+                if not deleted_criteria:
+                    raise CriterionNotFoundException('criterion_id',criterion_id)
+                # Return success message
+                return {"message": "criteria deleted successfully"}
+            except Exception as e:
+                logger.error(f"Error deleting criteria: {e}")  # Log errors
+                raise
+    except DatabaseConnectionError as e:
+        raise e
+    except DatabaseQueryError as e:
+        raise e
+    except DatabaseOperationError as e:
+        raise e
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="127.0.0.1", port=9091)
