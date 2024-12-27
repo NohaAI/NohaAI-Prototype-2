@@ -9,42 +9,11 @@ from contextlib import contextmanager
 from dotenv import load_dotenv
 import uvicorn
 import json
-
+from app.DAO.Exceptions import QuestionEvaluationNotFoundException,QuestionNotFoundException,InterviewNotFoundException
+from DB_Utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# Database Connection Configuration
-load_dotenv()  # Load environment variables from a .env file
-
-# Custom Exceptions
-class DatabaseConnectionError(Exception):
-    """Raised when database connection fails"""
-    pass
-
-class DatabaseQueryError(Exception):
-    """Raised when query execution fails"""
-    pass
-
-class DatabaseOperationError(Exception):
-    """Raised for general database operations failures"""
-    pass
-
-
-DB_CONFIG = {
-    'host': os.getenv('DB_HOST', 'localhost'),
-    'dbname': os.getenv('DB_NAME', 'postgres'),
-    'user': os.getenv('DB_USER', 'postgres'),
-    'password': os.getenv('DB_PASSWORD'),
-    'port': int(os.getenv('DB_PORT', 5432))
-}
-
-# Create a connection pool for PostgreSQL database
-connection_pool = SimpleConnectionPool(
-    minconn=1,
-    maxconn=10,
-    **DB_CONFIG
-)
 
 # Define the schema for update requests
 class QuestionEvaluationUpdateRequest(BaseModel):
@@ -88,89 +57,6 @@ class QuestionEvaluationResponse(BaseModel):
     score: Optional[float]
     question_evaluation_json: Optional[str]
 
-# Context manager to manage database connections
-@contextmanager
-def get_db_connection():
-    """
-    Database connection management with error handling.
-    
-    Yields:
-        connection: Database connection from the connection pool
-        
-    Raises:
-        DatabaseConnectionError: If connection cannot be established
-    """
-    connection = None
-    try:
-        connection = connection_pool.getconn()
-        yield connection
-    except psycopg2.OperationalError as e:
-        logger.error(f"Failed to get database connection: {e}")
-        raise DatabaseConnectionError(f"Cannot establish database connection: {str(e)}")
-    finally:
-        if connection is not None:
-            try:
-                connection_pool.putconn(connection)
-            except Exception as e:
-                logger.error(f"Failed to return connection to pool: {e}")
-
-def execute_query(connection, query, params=None, fetch_one=True, commit=False):
-    """
-    Execute database queries with enhanced error handling.
-    
-    Args:
-        connection: Database connection
-        query (str): SQL query to execute
-        params (tuple, optional): Query parameters
-        fetch_one (bool): If True, fetch single row
-        commit (bool): If True, commit transaction
-        
-    Returns:
-        Query results
-        
-    Raises:
-        DatabaseConnectionError: For connection issues
-        DatabaseQueryError: For query execution issues
-        DatabaseOperationError: For other database operations issues
-    """
-    cursor = None
-    try:
-        cursor = connection.cursor()
-        cursor.execute(query, params or ())
-        
-        if commit:
-            try:
-                connection.commit()
-            except psycopg2.Error as e:
-                connection.rollback()
-                logger.error(f"Transaction commit failed: {e}")
-                raise DatabaseOperationError(f"Failed to commit transaction: {str(e)}")
-        
-        result = cursor.fetchone() if fetch_one else cursor.fetchall()
-        if result is None and fetch_one:
-            return None
-        return result
-
-    except psycopg2.OperationalError as e:
-        logger.error(f"Database connection error: {e}")
-        raise DatabaseConnectionError(f"Database connection failed: {str(e)}")
-    
-    except psycopg2.DataError as e:
-        logger.error(f"Invalid data format: {e}")
-        raise DatabaseQueryError(f"Invalid data format: {str(e)}")
-    
-    except psycopg2.IntegrityError as e:
-        logger.error(f"Database integrity error: {e}")
-        raise DatabaseOperationError(f"Database constraint violation: {str(e)}")
-    
-    except Exception as e:
-        logger.error(f"Unexpected database error: {e}")
-        raise DatabaseOperationError(f"Unexpected error: {str(e)}")
-    
-    finally:
-        if cursor is not None:
-            cursor.close()
-
 app = FastAPI()
 
 # API endpoint to fetch question evaluation details by ID
@@ -194,12 +80,12 @@ async def get_question_evaluation(question_evaluation_id: int):
             try:
                 query = """
                     SELECT question_evaluation_id, interview_id, question_id, score, question_evaluation_json
-                    FROM interview_question_evaluations
+                    FROM Interview_Question_Evaluation
                     WHERE question_evaluation_id = %s
                 """
                 result = execute_query(conn, query, (question_evaluation_id,), fetch_one=True)
                 if not result:
-                    raise HTTPException(status_code=404, detail="Evaluation not found")
+                    raise QuestionEvaluationNotFoundException(question_evaluation_id)
                 return QuestionEvaluationResponse(
                     question_evaluation_id=result[0],
                     interview_id=result[1],
@@ -238,12 +124,12 @@ async def update_question_evaluation(question_evaluation_id: int,evaluation_requ
             try:
                 # Check if evaluation exists
                 check_query = """
-                    SELECT question_evaluation_id FROM interview_question_evaluations 
+                    SELECT question_evaluation_id FROM Interview_Question_Evaluation 
                     WHERE question_evaluation_id = %s
                 """
                 exists = execute_query(conn, check_query, (question_evaluation_id,), fetch_one=True)
                 if not exists:
-                    raise HTTPException(status_code=404, detail="Evaluation not found")
+                    raise QuestionEvaluationNotFoundException(question_evaluation_id)
                 
                 # Prepare update query with optional fields
                 update_fields = []
@@ -255,12 +141,12 @@ async def update_question_evaluation(question_evaluation_id: int,evaluation_requ
                     update_fields.append("question_evaluation_json = %s")
                     update_params.append(evaluation_request.question_evaluation_json)
                 if not update_fields:
-                    raise HTTPException(status_code=400, detail="No update fields provided")
+                    raise Exception("No update fields provided")
                 update_params.append(question_evaluation_id)
 
                 # Execute the update query
                 update_query = f"""
-                    UPDATE interview_question_evaluations
+                    UPDATE Interview_Question_Evaluation
                     SET {', '.join(update_fields)}
                     WHERE question_evaluation_id = %s
                     RETURNING question_evaluation_id, interview_id, question_id, score, question_evaluation_json
@@ -317,26 +203,26 @@ async def add_question_evaluation(interview_id: int, question_id: int, score: fl
                 })
                 # Validate interview existence
                 interview_check_query = """
-                    SELECT interview_id FROM interviews 
+                    SELECT interview_id FROM Interview 
                     WHERE interview_id = %s
                 """
                 interview_exists = execute_query(conn, interview_check_query, (interview_id,), fetch_one=True)
                 if not interview_exists:
                     logger.error(f"Interview")
-                    raise HTTPException(status_code=404, detail="Interview not found")
+                    raise InterviewNotFoundException(interview_id)
                 
                 # Validate question existence
                 question_check_query = """
-                    SELECT question_id FROM questions 
+                    SELECT question_id FROM Question 
                     WHERE question_id = %s
                 """
                 question_exists = execute_query(conn, question_check_query, (question_id,), fetch_one=True)
                 if not question_exists:
-                    raise HTTPException(status_code=404, detail="Question not found")
+                    raise QuestionNotFoundException(question_id)
                 
                 # Insert the new evaluation
                 insert_query = """
-                    INSERT INTO interview_question_evaluations (
+                    INSERT INTO Interview_Question_Evaluation (
                         interview_id, 
                         question_id, 
                         score, 
@@ -389,7 +275,7 @@ async def delete_question_evaluation(question_evaluation_id: int):
             try:
                 # Delete the evaluation and return its ID
                 delete_query = """
-                    DELETE FROM interview_question_evaluations 
+                    DELETE FROM Interview_Question_Evaluation 
                     WHERE question_evaluation_id = %s 
                     RETURNING question_evaluation_id
                 """
@@ -402,7 +288,7 @@ async def delete_question_evaluation(question_evaluation_id: int):
                 )
                 if not deleted_evaluation:
                     logger.error(f"Question evaluation with ID {question_evaluation_id} not found in the database")
-                    raise HTTPException(status_code=404, detail="Evaluation not found")
+                    raise QuestionEvaluationNotFoundException(question_evaluation_id)
                 return {"message": "Evaluation deleted successfully"}
             except Exception as e:
                 logger.error(f"Error deleting evaluation: {e}")

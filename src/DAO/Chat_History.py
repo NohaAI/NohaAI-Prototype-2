@@ -13,7 +13,7 @@ import httpx
 from typing import List, Optional
 from app.DAO.Questions import get_question
 from app.DAO.DB_Utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
-
+from app.DAO.Exceptions import ChatHistoryNotFoundException,InterviewNotFoundException
 # Configure application-wide logging to track and record application events and errors
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -82,37 +82,33 @@ async def get_all_candidate_answers(interview_id: int):
     """
     try:
         with get_db_connection() as conn:
-            try:
-                # First, verify that the interview exists
-                interview_check_query = "SELECT user_id FROM interviews WHERE interview_id = %s"
-                interview_exists = execute_query(conn, interview_check_query, (interview_id,))
+            # First, verify that the interview exists
+            interview_check_query = "SELECT user_id FROM interviews WHERE interview_id = %s"
+            interview_exists = execute_query(conn, interview_check_query, (interview_id,))
 
-                if not interview_exists or interview_exists[0] == 0:
-                    raise HTTPException(status_code=404, detail=f"No interview found with interview_id: {interview_id}")
+            if not interview_exists or interview_exists[0] == 0:
+                raise InterviewNotFoundException(interview_id)
 
-                # Query to fetch all chat history entries for the interview
-                query = """
-                    SELECT candidate_answer
-                    FROM chat_history 
-                    WHERE interview_id = %s
-                    ORDER BY chat_history_id
-                """
-                chat_history = execute_query(
-                    conn,
-                    query,
-                    (interview_id,),
-                    fetch_one=False
-                )
-                
-                if not chat_history:
-                    raise HTTPException(status_code=404, detail=f"No chat history found for interview_id: {interview_id}")
-                
-                # Extract and return only the candidate answers
-                candidate_answers = [record[0] for record in chat_history]
-                return candidate_answers
-            except Exception as e:
-                logger.error(f"Error retrieving chat history for interview_id {interview_id}: {e}")
-                raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+            # Query to fetch all chat history entries for the interview
+            query = """
+                SELECT candidate_answer
+                FROM chat_history 
+                WHERE interview_id = %s
+                ORDER BY chat_history_id
+            """
+            chat_history = execute_query(
+                conn,
+                query,
+                (interview_id,),
+                fetch_one=False
+            )
+            
+            if not chat_history:
+                raise InterviewNotFoundException(interview_id)
+            
+            # Extract and return only the candidate answers
+            candidate_answers = [record[0] for record in chat_history]
+            return candidate_answers
     except DatabaseConnectionError as e:
         raise e
     except DatabaseQueryError as e:
@@ -150,7 +146,7 @@ async def get_candidate_answer(chat_history_id: int):
                 
                 # Raise 404 error if no matching record is found
                 if not result:
-                    raise HTTPException(status_code=404, detail="Evaluation_JSON not found")
+                    raise ChatHistoryNotFoundException(chat_history_id)
                 
                 # Return the candidate answer response with retrieved details
                 return CandidateAnswerResponse(
@@ -250,7 +246,7 @@ async def update_candidate_answer(chat_history_id: int, candidate_answer_request
                 )
                 
                 if not updated_record:
-                    raise HTTPException(status_code=404, detail="Chat history id not found")
+                    raise ChatHistoryNotFoundException(chat_history_id)
                 
                 return CandidateAnswerResponse(
                     chat_history_id=updated_record[0],
@@ -358,7 +354,7 @@ async def delete_candidate_answer(chat_history_id: int):
                 )
                 
                 if not deleted_feedback:
-                    raise HTTPException(status_code=404, detail="Chat History not found")
+                    raise ChatHistoryNotFoundException(chat_history_id)
                 
                 return {"message": "Candidate Answer deleted successfully"}
             except Exception as e:

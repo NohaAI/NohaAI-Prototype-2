@@ -37,11 +37,11 @@ async def add_interview_question(interview_id: int, question_id: int):
         with get_db_connection() as conn:
             try:
                 # Check if the interview exists
-                interview_check_query = "SELECT user_id FROM Interviews WHERE interview_id = %s"
+                interview_check_query = "SELECT user_id FROM Interview WHERE interview_id = %s"
                 interview_exists = execute_query(conn, interview_check_query, (interview_id,))[0]
                 
                 # Check if the question exists
-                question_check_query = "SELECT question FROM Questions WHERE question_id = %s"
+                question_check_query = "SELECT question FROM Question WHERE question_id = %s"
                 question_exists = execute_query(conn, question_check_query, (question_id,))[0]
                 
                 if not interview_exists:
@@ -52,7 +52,7 @@ async def add_interview_question(interview_id: int, question_id: int):
                 
                 # Insert the interview question into the database
                 insert_query = """
-                    INSERT INTO interview_questions (interview_id, question_id) 
+                    INSERT INTO Interview_Question (interview_id, question_id) 
                     VALUES (%s, %s)
                 """
                 execute_query(
@@ -92,7 +92,7 @@ async def get_interview_questions(interview_id: int):
         with get_db_connection() as conn:
             try:
                 # Check if the interview exists
-                interview_check_query = "SELECT user_id FROM Interviews WHERE interview_id = %s"
+                interview_check_query = "SELECT user_id FROM Interview WHERE interview_id = %s"
                 interview_exists = execute_query(conn, interview_check_query, (interview_id,))[0]
                 
                 if not interview_exists:
@@ -101,7 +101,7 @@ async def get_interview_questions(interview_id: int):
                 # Retrieve all associated questions
                 query = """
                     SELECT question_id 
-                    FROM interview_questions 
+                    FROM Interview_Question 
                     WHERE interview_id = %s
                 """
                 questions = execute_query(
@@ -142,7 +142,7 @@ async def update_interview_question(current_interview_id: int,current_question_i
         with get_db_connection() as conn:
             try:
                 # Check if the new question exists
-                question_check_query = "SELECT question FROM Questions WHERE question_id = %s"
+                question_check_query = "SELECT question FROM Question WHERE question_id = %s"
                 question_exists = execute_query(conn, question_check_query, (new_question_id,))[0]
                 
                 if not question_exists:
@@ -151,7 +151,7 @@ async def update_interview_question(current_interview_id: int,current_question_i
                 
                 # Update the question in the database
                 update_query = """
-                    UPDATE interview_questions 
+                    UPDATE Interview_Question 
                     SET question_id = %s 
                     WHERE interview_id = %s AND question_id = %s
                 """
@@ -194,7 +194,7 @@ async def delete_interview_question(interview_id: int, question_id: int):
             try:
                 # Delete the specific question from the interview
                 delete_query = """
-                    DELETE FROM interview_questions 
+                    DELETE FROM Interview_Question 
                     WHERE interview_id = %s AND question_id = %s
                     RETURNING interview_id, question_id
                 """

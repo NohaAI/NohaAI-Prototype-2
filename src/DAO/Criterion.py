@@ -61,7 +61,7 @@ async def fetch_criterion(criterion_id: int):
                 # Query to fetch the criteria by ID
                 criteria = execute_query(
                     conn,
-                    "SELECT criterion_id, criterion, question_type_id FROM criteria WHERE criterion_id = %s",
+                    "SELECT criterion_id, criterion, question_type_id FROM Criterion WHERE criterion_id = %s",
                     (criterion_id,)
                 )
                 if not criteria:
@@ -99,7 +99,7 @@ async def fetch_criteria(question_type_id: int):
                 # Query to fetch all criteria associated with the question type
                 query = """
                     SELECT criterion_id, criterion, question_type_id 
-                    FROM criteria 
+                    FROM Criterion 
                     WHERE question_type_id = %s
                 """
                 criteria = execute_query(
@@ -143,7 +143,7 @@ async def add_criteria(criterion: CriteriaRequest, question_type_id: int):
             try:
                 # Insert the new criteria into the database
                 cur_query = """
-                    INSERT INTO criteria (criterion, question_type_id) 
+                    INSERT INTO Criterion (criterion, question_type_id) 
                     VALUES (%s, %s) 
                     RETURNING criterion_id, criterion, question_type_id
                 """
@@ -189,7 +189,7 @@ async def update_criteria(criterion_id: int, criteria: CriteriaRequest):
         with get_db_connection() as conn:
             try:
                 # Update the metric criteria in the database
-                update_query = "UPDATE criteria SET criterion = %s WHERE criterion_id = %s RETURNING criterion_id, criterion, question_type_id"
+                update_query = "UPDATE Criterion SET criterion = %s WHERE criterion_id = %s RETURNING criterion_id, criterion, question_type_id"
                 updated_criteria = execute_query(
                     conn,
                     update_query,
@@ -229,7 +229,7 @@ async def delete_criteria(criterion_id: int):
         with get_db_connection() as conn:
             try:
                 # Delete the criteria from the database
-                delete_query = "DELETE FROM criteria WHERE criterion_id = %s RETURNING criterion_id"
+                delete_query = "DELETE FROM Criterion WHERE criterion_id = %s RETURNING criterion_id"
                 deleted_criteria = execute_query(
                     conn,
                     delete_query,

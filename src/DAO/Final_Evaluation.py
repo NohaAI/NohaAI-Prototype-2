@@ -8,28 +8,12 @@ import os
 import logging
 from contextlib import contextmanager
 from dotenv import load_dotenv
+from DB_Utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
+from app.DAO.Exceptions import FinalEvaluationNotFoundException
 
 # Configure application-wide logging to track and record application events and errors
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# Load environment variables to securely configure database connection parameters
-load_dotenv()
-
-# Define database configuration using environment variables with fallback default values
-DB_CONFIG = {
-    'host': os.getenv('DB_HOST', 'localhost'),
-    'dbname': os.getenv('DB_NAME', 'postgres'),
-    'user': os.getenv('DB_USER', 'postgres'),
-    'password': os.getenv('DB_PASSWORD'),
-    'port': int(os.getenv('DB_PORT', 5432))
-}
-# Create a connection pool to manage database connections efficiently and reduce connection overhead
-connection_pool = SimpleConnectionPool(
-    minconn=1,
-    maxconn=10,
-    **DB_CONFIG
-)
 
 # Pydantic model to define the response structure for final evaluation JSON with input validation
 class FinalEvaluationJSONResponse(BaseModel):
@@ -54,89 +38,6 @@ class FinalEvaluationJSONRequest(BaseModel):
         final_evaluation_json (str): JSON string containing the evaluation details
     """
     final_evaluation_json : str = Field(...,min_length=2,max_length=500)
-
-# Context manager to manage database connections
-@contextmanager
-def get_db_connection():
-    """
-    Database connection management with error handling.
-    
-    Yields:
-        connection: Database connection from the connection pool
-        
-    Raises:
-        DatabaseConnectionError: If connection cannot be established
-    """
-    connection = None
-    try:
-        connection = connection_pool.getconn()
-        yield connection
-    except psycopg2.OperationalError as e:
-        logger.error(f"Failed to get database connection: {e}")
-        raise DatabaseConnectionError(f"Cannot establish database connection: {str(e)}")
-    finally:
-        if connection is not None:
-            try:
-                connection_pool.putconn(connection)
-            except Exception as e:
-                logger.error(f"Failed to return connection to pool: {e}")
-
-def execute_query(connection, query, params=None, fetch_one=True, commit=False):
-    """
-    Execute database queries with enhanced error handling.
-    
-    Args:
-        connection: Database connection
-        query (str): SQL query to execute
-        params (tuple, optional): Query parameters
-        fetch_one (bool): If True, fetch single row
-        commit (bool): If True, commit transaction
-        
-    Returns:
-        Query results
-        
-    Raises:
-        DatabaseConnectionError: For connection issues
-        DatabaseQueryError: For query execution issues
-        DatabaseOperationError: For other database operations issues
-    """
-    cursor = None
-    try:
-        cursor = connection.cursor()
-        cursor.execute(query, params or ())
-        
-        if commit:
-            try:
-                connection.commit()
-            except psycopg2.Error as e:
-                connection.rollback()
-                logger.error(f"Transaction commit failed: {e}")
-                raise DatabaseOperationError(f"Failed to commit transaction: {str(e)}")
-        
-        result = cursor.fetchone() if fetch_one else cursor.fetchall()
-        if result is None and fetch_one:
-            return None
-        return result
-
-    except psycopg2.OperationalError as e:
-        logger.error(f"Database connection error: {e}")
-        raise DatabaseConnectionError(f"Database connection failed: {str(e)}")
-    
-    except psycopg2.DataError as e:
-        logger.error(f"Invalid data format: {e}")
-        raise DatabaseQueryError(f"Invalid data format: {str(e)}")
-    
-    except psycopg2.IntegrityError as e:
-        logger.error(f"Database integrity error: {e}")
-        raise DatabaseOperationError(f"Database constraint violation: {str(e)}")
-    
-    except Exception as e:
-        logger.error(f"Unexpected database error: {e}")
-        raise DatabaseOperationError(f"Unexpected error: {str(e)}")
-    
-    finally:
-        if cursor is not None:
-            cursor.close()
 
 app = FastAPI()
 
@@ -169,7 +70,7 @@ async def get_evaluationJSON(final_evaluation_id: int):
                 
                 # Raise 404 error if no matching record is found
                 if not result:
-                    raise HTTPException(status_code=404, detail="Evaluation_JSON not found")
+                    raise FinalEvaluationNotFoundException(final_evaluation_id)
                 
                 # Return the final evaluation JSON response with retrieved details
                 return FinalEvaluationJSONResponse(
@@ -225,7 +126,7 @@ async def update_evaluationJSON(final_evaluation_id: int, evaluation_json_reques
                 
                 # Raise 404 error if no record was updated
                 if not updated_record:
-                    raise HTTPException(status_code=404, detail="Evaluation JSON not found")
+                    raise FinalEvaluationNotFoundException(final_evaluation_id)
                 
                 # Return the updated final evaluation JSON response
                 return FinalEvaluationJSONResponse(
@@ -315,7 +216,7 @@ async def add_evaluationJSON(interview_id: int, evaluation_json_request: FinalEv
             except Exception as e:
                 # Log any unexpected errors during evaluation JSON addition
                 logger.error(f"Error adding feedback: {e}")
-                raise HTTPException(status_code=500, detail="Internal server error")
+                raise Exception("Internal server error")
 
     except DatabaseConnectionError as e:
         raise e
@@ -358,7 +259,7 @@ async def delete_evaluationJSON(final_evaluation_id: int):
                 
                 # Raise 404 error if no record was deleted
                 if not deleted_feedback:
-                    raise HTTPException(status_code=404, detail="Evaluation_JSON not found")
+                    raise FinalEvaluationNotFoundException(final_evaluation_id)
                 
                 # Return success message
                 return {"message": "Final Evaluation JSON deleted successfully"}

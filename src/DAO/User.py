@@ -8,31 +8,13 @@ import logging
 from contextlib import contextmanager
 from dotenv import load_dotenv
 import uvicorn
-from DB_Utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
-from app.DAO.Exceptions import UserNotFoundException
+from src.dao.utils.DB_Utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
+from src.dao.Exceptions import UserNotFoundException
+from src.schemas.dao.schema import UserRequest,UserResponse
+
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-class UserResponse(BaseModel):
-    """
-    Pydantic model for user response structure.
-    
-    Attributes:
-        user_id (int): Unique identifier for the user
-        name (str): User's name, must be between 2 and 50 characters
-    """
-    user_id: int
-    name: str = Field(..., min_length=2, max_length=50)
-
-class UserRequest(BaseModel):
-    """
-    Pydantic model for user creation/update requests.
-    
-    Attributes:
-        name (str): User's name, must be between 2 and 50 characters
-    """
-    name: str = Field(..., min_length=2, max_length=50)
 
 app = FastAPI()
 

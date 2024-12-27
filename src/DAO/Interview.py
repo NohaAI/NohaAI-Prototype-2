@@ -71,7 +71,7 @@ async def add_interview(user_id: int, interview_date: datetime, interview_record
 
             # Insert the new interview into the database
             insert_query = """
-                INSERT INTO Interviews ( user_id, interview_date, interview_recording_url)
+                INSERT INTO Interview ( user_id, interview_date, interview_recording_url)
                 VALUES (%s, %s, %s)
                 RETURNING interview_id, user_id, interview_date, interview_recording_url
             """
@@ -97,7 +97,7 @@ async def add_interview(user_id: int, interview_date: datetime, interview_record
         raise e
 
 @app.get("/interviews/{interview_id}", response_model=InterviewResponse)
-async def get_interview(interview_id: int):
+async def get_interview_metadata(interview_id: int):
     """
     Retrieves interview details by ID
 
@@ -116,7 +116,7 @@ async def get_interview(interview_id: int):
             # Query to fetch interview details by ID
             query = """
                 SELECT interview_id, user_id, interview_date, interview_recording_url
-                FROM Interviews
+                FROM Interview
                 WHERE interview_id = %s
             """
             interview = execute_query(conn, query, (interview_id,))
@@ -173,7 +173,7 @@ async def update_interview(interview_id: int, interview: InterviewRequest):
 
             # Update the interview in the database
             update_query = f"""
-                UPDATE Interviews
+                UPDATE Interview
                 SET {', '.join(update_fields)}
                 WHERE interview_id = %s
                 RETURNING interview_id, user_id, interview_date, interview_recording_url
@@ -216,7 +216,7 @@ async def delete_interview(interview_id: int):
         with get_db_connection() as conn:
             # Delete query to remove the interview from the database
             delete_query = """
-                DELETE FROM Interviews
+                DELETE FROM Interview
                 WHERE interview_id = %s
                 RETURNING interview_id
             """

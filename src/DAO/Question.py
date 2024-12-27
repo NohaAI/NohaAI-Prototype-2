@@ -8,8 +8,8 @@ import logging
 from contextlib import contextmanager
 from dotenv import load_dotenv
 import uvicorn
-from app.DAO.DB_Utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
-from app.DAO.Exceptions import QuestionNotFoundException,QuestionTypeNotFoundException
+from src.dao.utils.DB_Utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
+from src.dao.Exceptions import QuestionNotFoundException,QuestionTypeNotFoundException
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ class QuestionRequest(BaseModel):
 app = FastAPI()
 
 @app.get("/question-service/{question_id}", response_model=QuestionResponse)
-async def get_question(question_id: int):
+async def get_question_metadata(question_id: int):
     """
     Retrieve a question by its ID.
     
@@ -62,7 +62,7 @@ async def get_question(question_id: int):
         with get_db_connection() as conn:
             question_query = """
                 SELECT question_id, question, question_type, question_type_id 
-                FROM Questions
+                FROM Question
                 WHERE question_id = %s
             """
             question = execute_query(conn, question_query, (question_id,))
@@ -102,7 +102,7 @@ async def add_question(question: QuestionRequest):
     try:
         with get_db_connection() as conn:      
             insert_query = """
-                INSERT INTO Questions (question, question_type, question_type_id)
+                INSERT INTO Question (question, question_type, question_type_id)
                 VALUES (%s, %s, %s)
                 RETURNING question_id, question, question_type, question_type_id
             """
@@ -145,7 +145,7 @@ async def update_question(question_id: int, question: QuestionRequest, question_
     """
     try:
         with get_db_connection() as conn:
-            verify_type_query = "SELECT question_type FROM Questions WHERE question_type_id = %s LIMIT 1"
+            verify_type_query = "SELECT question_type FROM Question WHERE question_type_id = %s LIMIT 1"
             existing_type = execute_query(conn, verify_type_query, (question_type_id,))
             
             if not existing_type:
@@ -171,7 +171,7 @@ async def update_question(question_id: int, question: QuestionRequest, question_
                 raise Exception("No update fields provided")
             
             update_query = f"""
-                UPDATE Questions
+                UPDATE Question
                 SET {', '.join(update_fields)}
                 WHERE question_id = %s
                 RETURNING question_id, question, question_type, question_type_id
@@ -218,7 +218,7 @@ async def delete_question(question_id: int):
     """
     try:
         with get_db_connection() as conn:
-            delete_query = "DELETE FROM Questions WHERE question_id = %s RETURNING question_id"
+            delete_query = "DELETE FROM Question WHERE question_id = %s RETURNING question_id"
             deleted_question = execute_query(
                 conn, 
                 delete_query, 

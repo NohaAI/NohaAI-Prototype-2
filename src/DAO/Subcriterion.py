@@ -76,7 +76,7 @@ async def get_subcriterion(subcriterion_id: int):
         with get_db_connection() as conn:
             query = """
                 SELECT subcriterion_id, subcriteria, criterion_id, question_id
-                FROM Subcriteria
+                FROM Subcriterion
                 WHERE subcriterion_id = %s
             """
             category = execute_query(conn, query, (subcriterion_id,))
@@ -101,12 +101,12 @@ async def fetch_subcriteria(question_id: int):
         with get_db_connection() as conn:
             query = """
                 SELECT 
-                    criteria.criterion,
-                    subcriteria.subcriterion,
-                    subcriteria.weight
-                FROM subcriteria
-                JOIN criteria ON criteria.criterion_id = subcriteria.criterion_id
-                WHERE subcriteria.question_id = %s
+                    Criterion.criterion,
+                    Subcriterion.subcriterion,
+                    Subcriterion.weight
+                FROM Subcriterion
+                JOIN Criterion ON Criterion.criterion_id = Subcriterion.criterion_id
+                WHERE Subcriterion.question_id = %s
             """
             
             results = execute_query(conn, query, (question_id,), fetch_one=False)
@@ -164,7 +164,7 @@ async def batch_insert_subcriteria(
         if len(data["subcriteria"]) != len(data["weight"]):
             return False, f"Mismatched subcriteria and weight lengths for criterion_id {criterion_id}"
     query = """
-        INSERT INTO Subcriteria (subcriterion, criterion_id, question_id, weight)
+        INSERT INTO Subcriterion (subcriterion, criterion_id, question_id, weight)
         VALUES (%s, %s, %s, %s)
     """
 
@@ -252,10 +252,10 @@ async def update_subcriterion(subcriterion_id: int, update_data: SubcriteriaUpda
     try:
         with get_db_connection() as conn:
             update_query = """
-                UPDATE Subcriteria
-                SET subcriteria = %s
+                UPDATE Subcriterion
+                SET subcriterion = %s
                 WHERE subcriterion_id = %s
-                RETURNING subcriterion_id, subcriteria, criterion_id, question_id
+                RETURNING subcriterion_id, subcriterion, criterion_id, question_id
             """
             updated_category = execute_query(
                 conn,
@@ -292,7 +292,7 @@ async def delete_subcriterion(subcriterion_id: int):
     try:
         with get_db_connection() as conn:
             delete_query = """
-                DELETE FROM Subcriteria
+                DELETE FROM Subcriterion
                 WHERE subcriterion_id = %s
                 RETURNING subcriterion_id
             """
