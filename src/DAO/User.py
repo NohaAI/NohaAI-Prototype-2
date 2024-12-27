@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 
 @app.get("/user-service/{user_id}", response_model=UserResponse)
-async def get_user(user_id: int):
+async def get_user_metadata(user_id: int):
     """
     Retrieve user information by ID.
     

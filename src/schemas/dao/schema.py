@@ -1,3 +1,5 @@
+from pydantic import BaseModel,Field
+
 class UserResponse(BaseModel):
     """
     Pydantic model for user response structure.

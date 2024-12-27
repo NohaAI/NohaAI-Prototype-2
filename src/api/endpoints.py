@@ -3,31 +3,41 @@
 This module provides FastAPI router endpoints for generating sub-criteria and
 evaluating answers in the interview process.
 """
-
+import uvicorn
+from fastapi import FastAPI
 from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
-from app.schema import GenerateSubCriteriaRequest,EvaluateAnswerRequest
-from app.interactors import subcriteria_generator,answer_evaluator
-from app.utils.logger import get_logger
-from app.utils.response_helper import decorate_response
+from src.schemas.endpoints.schema import GenerateSubCriteriaRequest,EvaluateAnswerRequest
+from src.services.workflows import subcriteria_generator,answer_evaluator
+from src.utils.logger import get_logger
+from src.utils.response_helper import decorate_response
 from src.dao.utils.DB_Utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
-from src.dao.Question import get_question
+from src.dao.Question import get_question_metadata
 from src.dao.Exceptions import QuestionNotFoundException,InterviewNotFoundException
 from src.dao.Query import get_user_query
-from src.services.workflows import generate_greeting
+from src.services.workflows.candidate_greeter import generate_greeting
 # Initialize logger
 logger = get_logger(__name__)
 
 # Initialize the router
 router = APIRouter(tags=["Execute Interview"])
 
+app=FastAPI()
 
 @app.get("/greeter-service")
 async def greet_candidate(user_id: int):
     question_id=2
-    #generate a question_id based on candidates past performance and question complexity
-    greeting_response=generate_greeting(user_id,question_id)
-    return greeting_response
+    try:
+        greeting_response=await generate_greeting(user_id,question_id)
+        logger.info(f"generate_greeting ran {greeting_response}")
+        return decorate_response(True,greeting_response)
+    except Exception as e:
+        logger.critical("Failed to generate candidate greeting: %s", e)
+        return decorate_response(
+            False,
+            "Failed to generate candidate greeting",
+            status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 @router.post("/generate_subcriteria", status_code=status.HTTP_200_OK)
 async def generate_subcriteria(input_request: GenerateSubCriteriaRequest) -> JSONResponse:
@@ -81,3 +91,6 @@ async def evaluate_answer(input_request: EvaluateAnswerRequest) -> JSONResponse:
     except Exception as ex:
         logger.critical("Failed to evaluate answer: %s", ex)
         return decorate_response(False,"Failed to evaluate answer",status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="127.0.0.1", port=9030)

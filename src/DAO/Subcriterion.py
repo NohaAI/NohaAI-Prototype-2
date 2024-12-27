@@ -10,9 +10,9 @@ from contextlib import contextmanager
 from dotenv import load_dotenv
 from psycopg2.extras import execute_values
 import uvicorn
-from app.DAO.DB_Utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
-from app.DAO.Exceptions import QuestionNotFoundException,SubcriterionNotFoundException
-from app.DataObjects.CriterionPayload import Criterion,SubCriterion
+from src.dao.utils.DB_Utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
+from src.dao.Exceptions import QuestionNotFoundException,SubcriterionNotFoundException
+from src.dao.CriterionPayload import Criterion,SubCriterion
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

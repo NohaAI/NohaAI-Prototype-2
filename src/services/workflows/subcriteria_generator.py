@@ -1,13 +1,15 @@
 from typing import Any, Dict, List
-from app.llm import llm
-from app.DAO.Criteria import fetch_criteria
-from app.DAO.Subcriteria import batch_insert_subcriteria, fetch_subcriteria
-from app.schema import GenerateSubCriteriaRequest
-from app.utils.logger import get_logger
-import app.llm as llm
+from src.dao.Criterion import fetch_criteria
+from src.dao.Subcriterion import batch_insert_subcriteria, fetch_subcriteria
+from src.schemas.endpoints.schema import GenerateSubCriteriaRequest
+from src.utils.logger import get_logger
+#from src.services.llm.llm_service import llm as llm
+
+from src.services.llm import llm_service
+
 import json
 # from app.llm.subcriteria import generate_subcriteria_using_llm
-from app.utils.response_helper import transform_subcriteria
+from src.utils.response_helper import transform_subcriteria
 
 # Initialize logger using get_logger
 logger = get_logger(__name__)

@@ -1,0 +1,28 @@
+2024-12-27 18:32:01,027:__main__:CRITICAL:Failed to generate sub-criteria: Object of type coroutine is not JSON serializable
+2024-12-27 18:32:54,247:__main__:CRITICAL:Failed to generate sub-criteria: Object of type coroutine is not JSON serializable
+2024-12-27 18:33:32,616:__main__:CRITICAL:Failed to generate greeting: Object of type coroutine is not JSON serializable
+2024-12-27 18:34:03,477:__main__:CRITICAL:Failed to generate greeting: Object of type coroutine is not JSON serializable
+2024-12-27 18:34:23,115:__main__:CRITICAL:Failed to candidate greeting: Object of type coroutine is not JSON serializable
+2024-12-27 18:35:01,845:__main__:CRITICAL:Failed to candidate greeting: Object of type coroutine is not JSON serializable
+2024-12-27 18:35:18,037:__main__:CRITICAL:Failed to candidate greeting: Object of type coroutine is not JSON serializable
+2024-12-27 18:37:54,418:__main__:CRITICAL:Failed to generate candidate greeting: Object of type coroutine is not JSON serializable
+2024-12-27 18:40:25,650:__main__:CRITICAL:Failed to generate candidate greeting: Object of type coroutine is not JSON serializable
+2024-12-27 18:45:44,493:__main__:INFO:generate_greeting ran
+2024-12-27 18:45:44,494:__main__:CRITICAL:Failed to generate candidate greeting: Object of type coroutine is not JSON serializable
+2024-12-27 18:47:34,859:__main__:INFO:generate_greeting ran <coroutine object generate_greeting at 0x000001E2B6496020>
+2024-12-27 18:47:34,860:__main__:CRITICAL:Failed to generate candidate greeting: Object of type coroutine is not JSON serializable
+2024-12-27 18:52:32,007:__main__:INFO:-------------------------------------------------------
+2024-12-27 18:52:32,008:__main__:INFO:generate_greeting ran <coroutine object generate_greeting at 0x0000017812536020>
+2024-12-27 18:52:32,008:__main__:CRITICAL:Failed to generate candidate greeting: Object of type coroutine is not JSON serializable
+2024-12-27 18:56:18,686:__main__:INFO:-------------------------------------------------------
+2024-12-27 18:56:18,687:__main__:INFO:generate_greeting ran <coroutine object generate_greeting at 0x00000297F2876020>
+2024-12-27 18:56:18,687:__main__:CRITICAL:Failed to generate candidate greeting: Object of type coroutine is not JSON serializable
+2024-12-27 19:05:29,728:__main__:INFO:-------------------------------------------------------
+2024-12-27 19:05:29,729:src.services.workflows.candidate_greeter:INFO:======================================================
+2024-12-27 19:05:29,912:src.services.workflows.candidate_greeter:INFO:question_metadata : {'question_id': 2, 'question': 'What will be the approach  to check if a string is a palindrome.', 'question_type': 'Data structures and algorithm', 'question_type_id': 1}
+2024-12-27 19:05:29,913:__main__:CRITICAL:Failed to generate candidate greeting: 1
+2024-12-27 19:08:11,873:__main__:INFO:-------------------------------------------------------
+2024-12-27 19:08:11,874:src.services.workflows.candidate_greeter:INFO:======================================================
+2024-12-27 19:08:11,986:src.services.workflows.candidate_greeter:INFO:{'user_id': 1, 'name': 'Toyesh'}
+2024-12-27 19:08:12,094:src.services.workflows.candidate_greeter:INFO:question_metadata : {'question_id': 2, 'question': 'What will be the approach  to check if a string is a palindrome.', 'question_type': 'Data structures and algorithm', 'question_type_id': 1}
+2024-12-27 19:08:12,094:__main__:CRITICAL:Failed to generate candidate greeting: 1
