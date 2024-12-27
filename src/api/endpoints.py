@@ -16,6 +16,8 @@ from src.dao.Question import get_question_metadata
 from src.dao.Exceptions import QuestionNotFoundException,InterviewNotFoundException
 from src.dao.Query import get_user_query
 from src.services.workflows.candidate_greeter import generate_greeting
+import src.services.workflows as workflows
+
 # Initialize logger
 logger = get_logger(__name__)
 
@@ -24,7 +26,7 @@ router = APIRouter(tags=["Execute Interview"])
 
 app=FastAPI()
 
-@app.get("/greeter-service")
+@router.get("/greeter-service")
 async def greet_candidate(user_id: int):
     question_id=2
     try:
@@ -84,9 +86,10 @@ async def evaluate_answer(input_request: EvaluateAnswerRequest) -> JSONResponse:
             - httpStatusCode: HTTP status code
     """
     try:
-        response = await answer_evaluator.evaluate_answer(input_request)
+        response = await workflows.evaluate_answer(input_request)
         logger.info("Successfully evaluated answer")
-        return decorate_response(True, response)
+        # return decorate_response(True, response)
+        return response
     
     except Exception as ex:
         logger.critical("Failed to evaluate answer: %s", ex)

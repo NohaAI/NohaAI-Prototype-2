@@ -11,9 +11,9 @@ from dotenv import load_dotenv
 import uvicorn
 import httpx
 from typing import List, Optional
-from app.DAO.Questions import get_question
-from app.DAO.DB_Utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
-from app.DAO.Exceptions import ChatHistoryNotFoundException,InterviewNotFoundException
+from src.dao.Question import get_question_metadata
+from src.dao.utils.DB_Utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
+from src.dao.Exceptions import ChatHistoryNotFoundException,InterviewNotFoundException
 # Configure application-wide logging to track and record application events and errors
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -47,7 +47,7 @@ async def refine_chat_history(chat_history):
     chat_history = []
     for row in chat_history:
         question_id = row[0]  # Get question_id from the database row
-        question_data = await get_question(question_id)
+        question_data = await get_question_metadata(question_id)
 
         # Add the question and answer to the chat_history
         chat_history.append({

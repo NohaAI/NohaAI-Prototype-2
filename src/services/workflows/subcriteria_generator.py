@@ -4,12 +4,15 @@ from src.dao.Subcriterion import batch_insert_subcriteria, fetch_subcriteria
 from src.schemas.endpoints.schema import GenerateSubCriteriaRequest
 from src.utils.logger import get_logger
 #from src.services.llm.llm_service import llm as llm
+# import src.services.llm.prompts as prompts
+from src.services.llm.prompts.subcriteria import make_prompt_from_template
+
 
 from src.services.llm import llm_service
 
 import json
 # from app.llm.subcriteria import generate_subcriteria_using_llm
-from src.utils.response_helper import transform_subcriteria
+import src.utils as utils
 
 # Initialize logger using get_logger
 logger = get_logger(__name__)
@@ -43,8 +46,8 @@ async def generate_subcriteria(input_request: GenerateSubCriteriaRequest) -> Dic
         raise Exception(f"Input object missing required attributes: {attr_err}") from attr_err
 
     # Fetch existing sub-criteria from the database
-    sub_criteria = await fetch_subcriteria(question_id)
-    if sub_criteria:
+    subcriteria = await fetch_subcriteria(question_id)
+    if subcriteria:
         logger.info("Sub-criteria found in the database for question ID: %s", question_id)
 
     # If no sub-criteria found, generate them using LLM
@@ -56,10 +59,10 @@ async def generate_subcriteria(input_request: GenerateSubCriteriaRequest) -> Dic
 
     try:
         subcriteria_prompt = make_prompt_from_template()
-        llm_model = get_openai_model(model = "gpt-4o-mini")
-        sub_criteria = (subcriteria_prompt | llm_model)
-        sub_criteria = await subcriteria_generator_chain.ainvoke({'question': question, 'criteria': criteria })
-        sub_criteria = json.loads(clean_response(subcriteria.content))
+        llm_model = llm_service.get_openai_model(model = "gpt-4o-mini")
+        subcriteria_generator_chain = (subcriteria_prompt | llm_model)
+        subcriteria = await subcriteria_generator_chain.ainvoke({'question': question, 'criteria': criteria })
+        subcriteria = json.loads(utils.clean_response(subcriteria.content))
         logger.info("")
 
     except (json.JSONDecodeError, AttributeError) as parse_err:
@@ -69,11 +72,11 @@ async def generate_subcriteria(input_request: GenerateSubCriteriaRequest) -> Dic
         logger.critical("Chain invocation failed: %s", ex)
         raise ex
 
-    await batch_insert_subcriteria(question_id, sub_criteria)
+    await batch_insert_subcriteria(question_id, subcriteria)
     logger.info("Sub-criteria inserted into the database for question ID: %s", question_id)
 
 
-    return sub_criteria
+    return subcriteria
 
 
 

@@ -1,4 +1,4 @@
-# Request Model
+# Schema classes for endpoints
 from pydantic import BaseModel
 
 class GenerateSubCriteriaRequest(BaseModel):
@@ -20,3 +20,4 @@ class EvaluateAnswerRequest(BaseModel):
     question: str
     interview_id: int
     answer: str
+

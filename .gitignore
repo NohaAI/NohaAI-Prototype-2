@@ -1,3 +1,4 @@
-.env
+*.env
 _personal
-__pycache__
+*__pycache__*
+*.log
