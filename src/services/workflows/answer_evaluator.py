@@ -5,7 +5,8 @@ including calculating scores using weighted averages, and storing results in a d
 
 import json
 import src.utils as utils
-import src.services.llm.prompts as prompts
+import src.services.llm.prompts.answer_evaluator_prompt as make_prompt_from_template
+import src.services.llm.prompts.answer_evaluator_prompt as prompts
 import src.services.llm as llm
 import src.dao as DAO
 
