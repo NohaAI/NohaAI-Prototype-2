@@ -135,61 +135,66 @@ async def fetch_subcriteria(question_id: int):
         raise e
     except DatabaseOperationError as e:
         raise e
-@app.post("/subcriteria/batch_insert", response_model=List)
-async def batch_insert_subcriteria(
-    question_id: int,
-    subcriteria_data: Dict[str, Dict[str, Union[List[str], List[int]]]]
-    ) -> tuple[bool, str]:
-    """
-    Batch insert subcriteria into the database with question_id.
-    Args:
-        question_id (int): The ID of the question associated with the subcriteria.
-        subcriteria_data (dict): Input data containing subcriteria and weights keyed by criterion_id.
-            Format: {
-                "criterion_id": {
-                    "subcriteria": ["subcriterion1", "subcriterion2", ...],
-                    "weight": [weight1, weight2, ...]
-                }
-            }
-    Returns:
-        tuple[bool, str]: (Success status, Message describing the result)
-    """
-    # Input validation
-    if not isinstance(question_id, int) or question_id <= 0:
-        return False, "Invalid question_id"
-    # Validate subcriteria data structure
-    for criterion_id, data in subcriteria_data.items():
-        if not all(key in data for key in ["subcriteria", "weight"]):
-            return False, f"Missing required keys for criterion_id {criterion_id}"
-        if len(data["subcriteria"]) != len(data["weight"]):
-            return False, f"Mismatched subcriteria and weight lengths for criterion_id {criterion_id}"
-    query = """
-        INSERT INTO Subcriterion (subcriterion, criterion_id, question_id, weight)
-        VALUES (%s, %s, %s, %s)
-    """
+@app.post("/subcriteria/batch_insert")
+async def batch_insert_subcriteria(question_id: int, criteria_subcriteria_weight_map):
+    ds_criterion_to_id_map = {
+        "Are the assumptions clarified?": 1,
+        "Does the candidate account for corner cases ?": 2,
+        "Does the candidate choose the appropriate data structure for the problem?": 3,
+        "Does the candidate select a suitable algorithm for the task?": 4,
+        "Does the solution proposed by the candidate have optimal time complexity?": 5,
+        "Does the solution proposed by the candidate have optimal space complexity?": 6,
+        "Does the proposed solution handle generic use cases?": 7
+    }
+    
+    try:
+        with get_db_connection() as conn:
+            # Check if question exists
+            check_question_query = "SELECT question FROM Question WHERE question_id = %s"
+            question = execute_query(conn, check_question_query, (question_id,))
+            
+            if not question:
+                raise QuestionNotFoundException(question_id)
 
-    with get_db_connection() as connection:
-        for criterion_id, criterion_data in subcriteria_data.items():
-            subcriteria = criterion_data["subcriteria"]
-            weights = criterion_data["weight"]
-            for subcriterion, weight in zip(subcriteria, weights):
-                params = (
-                    subcriterion,
-                    int(criterion_id),
-                    question_id,
-                    weight
+            values_to_insert = []
+            
+            # Iterate through each criterion and its subcriteria
+            for criterion, subcriteria_weight_list in criteria_subcriteria_weight_map.items():
+                criterion_id = ds_criterion_to_id_map.get(criterion)
+                
+                for subcriterion_weight in subcriteria_weight_list:
+                    values_to_insert.append((
+                        subcriterion_weight['subcriteria'],
+                        criterion_id,
+                        question_id,
+                        float(subcriterion_weight['weight'])  # Convert string weight to float
+                    ))
+            if values_to_insert:
+                # Use execute_values for batch insert
+                insert_query = """
+                    INSERT INTO subcriterion (subcriterion, criterion_id, question_id, weight)
+                    VALUES %s
+                    RETURNING subcriterion_id
+                """
+                
+                cursor = conn.cursor()
+                execute_values(
+                    cursor,
+                    insert_query,
+                    values_to_insert,
+                    template="(%s, %s, %s, %s)"
                 )
-                execute_query(
-                    connection=connection,
-                    query=query,
-                    params=params,
-                    fetch_one=False,
-                    commit=False
-                )
-        # Final commit after all inserts
-        connection.commit()
-    return True, "Successfully inserted subcriteria"
-        
+                conn.commit()
+                cursor.close()
+                
+                return {"status": "success", "message": f"Successfully inserted {len(values_to_insert)} subcriteria"}
+
+    except DatabaseConnectionError as e:
+        raise e
+    except DatabaseQueryError as e:
+        raise e
+    except DatabaseOperationError as e:
+        raise e
 
 # async def batch_insert_subcriteria(input_payload: ParsedMetrics):
 #     """

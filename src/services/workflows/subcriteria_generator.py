@@ -71,7 +71,6 @@ async def generate_subcriteria(input_request: GenerateSubCriteriaRequest) -> Dic
     except Exception as ex:
         logger.critical("Chain invocation failed: %s", ex)
         raise ex
-
     await batch_insert_subcriteria(question_id, subcriteria)
     logger.info("Sub-criteria inserted into the database for question ID: %s", question_id)
 

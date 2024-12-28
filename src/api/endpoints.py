@@ -31,7 +31,6 @@ async def greet_candidate(user_id: int):
     question_id=2
     try:
         greeting_response=await generate_greeting(user_id,question_id)
-        logger.info(f"generate_greeting ran {greeting_response}")
         return decorate_response(True,greeting_response)
     except Exception as e:
         logger.critical("Failed to generate candidate greeting: %s", e)
