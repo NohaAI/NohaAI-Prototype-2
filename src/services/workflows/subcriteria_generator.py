@@ -49,7 +49,6 @@ async def generate_subcriteria(input_request: GenerateSubCriteriaRequest) -> Dic
     subcriteria = await fetch_subcriteria(question_id)
     if subcriteria:
         logger.info("Sub-criteria found in the database for question ID: %s", question_id)
-
     # If no sub-criteria found, generate them using LLM
     else:
 
@@ -57,22 +56,22 @@ async def generate_subcriteria(input_request: GenerateSubCriteriaRequest) -> Dic
         criteria = await fetch_criteria(question_type_id)
         logger.info("Retrieved criteria for question type ID: %s", question_type_id)
 
-    try:
-        subcriteria_prompt = make_prompt_from_template()
-        llm_model = llm_service.get_openai_model(model = "gpt-4o-mini")
-        subcriteria_generator_chain = (subcriteria_prompt | llm_model)
-        subcriteria = await subcriteria_generator_chain.ainvoke({'question': question, 'criteria': criteria })
-        subcriteria = json.loads(utils.clean_response(subcriteria.content))
-        logger.info("")
+        try:
+            subcriteria_prompt = make_prompt_from_template()
+            llm_model = llm_service.get_openai_model(model = "gpt-4o-mini")
+            subcriteria_generator_chain = (subcriteria_prompt | llm_model)
+            subcriteria = await subcriteria_generator_chain.ainvoke({'question': question, 'criteria': criteria })
+            subcriteria = json.loads(utils.clean_response(subcriteria.content))
+            logger.info("")
 
-    except (json.JSONDecodeError, AttributeError) as parse_err:
-        logger.critical("Failed to parse LLM response: %s", parse_err)
-        raise ValueError(f"Error parsing LLM response: {parse_err}") from parse_err
-    except Exception as ex:
-        logger.critical("Chain invocation failed: %s", ex)
-        raise ex
-    await batch_insert_subcriteria(question_id, subcriteria)
-    logger.info("Sub-criteria inserted into the database for question ID: %s", question_id)
+        except (json.JSONDecodeError, AttributeError) as parse_err:
+            logger.critical("Failed to parse LLM response: %s", parse_err)
+            raise ValueError(f"Error parsing LLM response: {parse_err}") from parse_err
+        except Exception as ex:
+            logger.critical("Chain invocation failed: %s", ex)
+            raise ex
+        await batch_insert_subcriteria(question_id, subcriteria)
+        logger.info("Sub-criteria inserted into the database for question ID: %s", question_id)
 
 
     return subcriteria
