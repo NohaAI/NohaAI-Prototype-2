@@ -48,16 +48,7 @@ class SubcriteriaUpdate(BaseModel):
         subcriteria (str): New name for the subcriterion, between 2 and 100 characters
     """
     subcriteria: str = Field(..., min_length=2, max_length=100)
-class ParsedMetrics(BaseModel):
-    """
-    Model for batch inserting metrics data.
-    Attributes:
-        question_id (int): ID of the question these metrics belong to
-        input_data (Dict[str, Dict[str, List[str]]]): Nested dictionary containing criteria,
-            their submetrics, and corresponding weights
-    """
-    question_id: int
-    input_data: Dict[str, Dict[str, List[str]]]
+
 app = FastAPI()
 
 @app.get("/subcriteria/{subcriterion_id}", response_model=SubcriteriaResponse)
@@ -196,51 +187,6 @@ async def batch_insert_subcriteria(question_id: int, criteria_subcriteria_weight
     except DatabaseOperationError as e:
         raise e
 
-# async def batch_insert_subcriteria(input_payload: ParsedMetrics):
-#     """
-#     Batch insert subcriteria.
-#     Args:
-#         input (ParsedMetrics): Object containing question_id and input_data with
-#             criteria, submetrics, and weights
-#     Returns:
-#         List: The inserted subcriteria
-#     Raises:
-#         HTTPException: 400 for validation errors, 503 for connection issues,
-#                       500 for other database errors
-#     """
-#     try:
-#         with get_db_connection() as conn:
-#             subcriteria = []
-#             for criterion_id, data in input_payload.input_data.items():
-#                 if len(data['subcriteria']) != len(data['weight']):
-#                     raise HTTPException(
-#                         status_code=400,
-#                         detail=f"Mismatch in number of subcriteria and weights for category {criterion_id}"
-#                     )
-#                 subcriteria.extend([
-#                     (int(criterion_id), str(subcriteria), input_payload.question_id, int(weight))
-#                     for subcriteria, weight in zip(data['subcriteria'], data['weight'])
-#                 ])
-#             cursor = conn.cursor()
-#             try:
-#                 insert_query = """
-#                     INSERT INTO Subcriteria
-#                         (criterion_id, subcriterion, question_id, weight)
-#                     VALUES %s
-#                     RETURNING subcriterion_id, criterion_id, subcriterion,
-#                         question_id, weight
-#                 """
-#                 execute_values(cursor, insert_query, subcriteria)
-#                 conn.commit()
-#                 return subcriteria
-#             finally:
-#                 cursor.close()
-#     except DatabaseConnectionError as e:
-#         raise e
-#     except DatabaseQueryError as e:
-#         raise e
-#     except DatabaseOperationError as e:
-        # raise e
 @app.put("/subcriteria/{subcriterion_id}", response_model=SubcriteriaResponse)
 async def update_subcriterion(subcriterion_id: int, update_data: SubcriteriaUpdate):
     """
