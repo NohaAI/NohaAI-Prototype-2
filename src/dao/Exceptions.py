@@ -70,3 +70,24 @@ class CriterionNotFoundException(Exception):
         self.identifier_value = identifier_value
         self.message = f"{message}: {identifier_name}={identifier_value}"
         super().__init__(self.message)
+
+class RoleProfileNotFoundException(Exception):
+    """Exception raised when a role_profile is not found in the database.""" 
+    def __init__(self, role_profile_id):
+        self.user_id = role_profile_id
+        self.message = f"No role_profile found with role_profile_id: {self.role_profile_id}"
+        super().__init__(self.message)
+
+class RoleProfileCriterionWeightNotFoundException(Exception):
+    """Exception raised when a role_profile_criterion_weight is not found in the database.""" 
+    def __init__(self, role_profile_id):
+        self.user_id = role_profile_id
+        self.message = f"No role_profile_criterion_weight found with role_profile_id: {self.role_profile_id}"
+        super().__init__(self.message)
+
+class OrganizationNotFoundException(Exception):
+    """Exception raised when a organization is not found in the database.""" 
+    def __init__(self, organization_id):
+        self.user_id = organization_id
+        self.message = f"No organization found with organization_id: {self.organization_id}"
+        super().__init__(self.message)

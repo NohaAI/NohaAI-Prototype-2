@@ -18,7 +18,7 @@ from src.dao.Query import get_user_query
 from src.services.workflows.candidate_greeter import generate_greeting
 import src.services.workflows as workflows
 from src.services.workflows.solution_hint_generator import generate_hint
-
+from src.services.workflows.approach_hint_generator import approach_hint_generator
 # Initialize logger
 logger = get_logger(__name__)
 
@@ -94,8 +94,21 @@ async def evaluate_answer(input_request: EvaluateAnswerRequest) -> JSONResponse:
     except Exception as ex:
         logger.critical("Failed to evaluate answer: %s", ex)
         return decorate_response(False,"Failed to evaluate answer",status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-@router.post("/generate_hint", status_code=status.HTTP_200_OK)
+
+@router.post("/generate_approach_hint")
+async def generate_approach_hint(interview_id,question,chat_history,answer_evaluation,criterion_weight_json):
+    try:
+        approach_hint = await approach_hint_generator(interview_id,question,chat_history,answer_evaluation,criterion_weight_json)
+        return decorate_response(True,approach_hint)
+    except Exception as e:
+        logger.critical("Failed to generate followup question: %s", e)
+        return decorate_response(
+            False,
+            "Failed to generate followup questions",
+            status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@router.post("/generate_solution_hint", status_code=status.HTTP_200_OK)
 async def generate_solution_hint(input_request: GenerateHintRequest) -> JSONResponse:
     """Evaluates an answer based on provided criteria.
 
