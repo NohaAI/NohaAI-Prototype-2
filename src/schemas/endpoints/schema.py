@@ -1,5 +1,7 @@
 # Schema classes for endpoints
 from pydantic import BaseModel
+from typing import List
+
 
 class GenerateSubCriteriaRequest(BaseModel):
     """
@@ -20,4 +22,10 @@ class EvaluateAnswerRequest(BaseModel):
     question: str
     interview_id: int
     answer: str
+
+
+class GenerateHintRequest(BaseModel):
+    question : str
+    chat_history: List[str]
+    evaluation_results: List[dict]
 

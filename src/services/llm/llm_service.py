@@ -9,6 +9,12 @@ def get_openai_model(model):
     llm = ChatOpenAI(model=model, openai_api_key=OPENAI_API_KEY)
     return llm
 
+
+def get_chain(prompt):
+    llm = get_openai_model(model="gpt-4o-mini")
+    chain = prompt | llm
+
+    return chain
   
 
   

@@ -7,7 +7,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
-from src.schemas.endpoints.schema import GenerateSubCriteriaRequest,EvaluateAnswerRequest
+from src.schemas.endpoints.schema import GenerateSubCriteriaRequest,EvaluateAnswerRequest, GenerateHintRequest
 from src.services.workflows import subcriteria_generator,answer_evaluator
 from src.utils.logger import get_logger
 from src.utils.response_helper import decorate_response
@@ -17,6 +17,7 @@ from src.dao.Exceptions import QuestionNotFoundException,InterviewNotFoundExcept
 from src.dao.Query import get_user_query
 from src.services.workflows.candidate_greeter import generate_greeting
 import src.services.workflows as workflows
+from src.services.workflows.solution_hint_generator import generate_hint
 
 # Initialize logger
 logger = get_logger(__name__)
@@ -93,6 +94,29 @@ async def evaluate_answer(input_request: EvaluateAnswerRequest) -> JSONResponse:
     except Exception as ex:
         logger.critical("Failed to evaluate answer: %s", ex)
         return decorate_response(False,"Failed to evaluate answer",status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+@router.post("/generate_hint", status_code=status.HTTP_200_OK)
+async def generate_solution_hint(input_request: GenerateHintRequest) -> JSONResponse:
+    """Evaluates an answer based on provided criteria.
+
+    Args:
+        evaluation_request_input: Request object containing evaluation details
+
+    Returns:
+        JSONResponse containing:
+            - succeeded: Operation success status
+            - message: Evaluation results or error message
+            - httpStatusCode: HTTP status code
+    """
+    try:
+        response = await generate_hint(input_request)
+        logger.info("Successfully generated hint")
+        return decorate_response(True, response)
+    
+    except Exception as ex:
+        logger.critical("Failed to generate hint: %s", ex)
+        return decorate_response(False,"Failed to generate hint",status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=9030)
