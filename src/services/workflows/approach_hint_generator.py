@@ -8,8 +8,8 @@ import os
 import logging
 from dotenv import load_dotenv
 from src.utils.logger import get_logger
-from src.dao.Interview import get_interview_metadata
-from src.dao.Exceptions import InterviewNotFoundException
+from src.dao.interview import get_interview_metadata
+from src.dao.exceptions import InterviewNotFoundException
 from src.services.llm import llm_service
 
 from src.services.llm.prompts.approach_hint_prompt import approach_hint_prompt_template

@@ -11,10 +11,10 @@ from src.schemas.endpoints.schema import GenerateSubCriteriaRequest,EvaluateAnsw
 from src.services.workflows import subcriteria_generator,answer_evaluator
 from src.utils.logger import get_logger
 from src.utils.response_helper import decorate_response
-from src.dao.utils.DB_Utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
-from src.dao.Question import get_question_metadata
-from src.dao.Exceptions import QuestionNotFoundException,InterviewNotFoundException
-from src.dao.Query import get_user_query
+from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
+from src.dao.question import get_question_metadata
+from src.dao.exceptions import QuestionNotFoundException,InterviewNotFoundException
+from src.dao.query import get_user_query
 from src.services.workflows.candidate_greeter import generate_greeting
 import src.services.workflows as workflows
 from src.services.workflows.solution_hint_generator import generate_hint

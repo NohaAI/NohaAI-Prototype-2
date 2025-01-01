@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, Depends
 from pydantic import BaseModel, Field
 import psycopg2
 from psycopg2.pool import SimpleConnectionPool
@@ -8,8 +8,8 @@ import logging
 from contextlib import contextmanager
 from dotenv import load_dotenv
 import uvicorn
-from src.dao.utils.DB_Utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
-from src.dao.Exceptions import UserNotFoundException
+from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
+from src.dao.exceptions import UserNotFoundException
 from src.schemas.dao.schema import UserRequest,UserResponse
 
 # Logging Configuration
@@ -30,7 +30,7 @@ async def get_user_metadata(user_id: int):
         UserResponse: User details
         
     Raises:
-        HTTPException: 404 if user not found, 503 for connection issues,
+        Exception: 404 if user not found, 503 for connection issues,
                       400 for invalid data, 500 for other errors
     """
     try:
@@ -66,19 +66,17 @@ async def add_user(name: str):
         UserResponse: Created user details
         
     Raises:
-        HTTPException: 503 for connection issues, 400 for invalid data,
+        Exception: 503 for connection issues, 400 for invalid data,
                       500 for other errors
     """
     try:
         with get_db_connection() as conn:
-            max_id_query = "SELECT COALESCE(MAX(user_id), 0) + 1 FROM Users"
-            new_id = execute_query(conn, max_id_query)[0]
             
-            cur_query = "INSERT INTO Users (user_id, name) VALUES (%s, %s) RETURNING user_id, name"
+            cur_query = "INSERT INTO Users ( name) VALUES ( %s) RETURNING user_id, name"
             user = execute_query(
                 conn,
                 cur_query,
-                (new_id, name),
+                (name,),
                 commit=True
             )
             
@@ -104,7 +102,7 @@ async def update_user(user_id: int, user: UserRequest):
         UserResponse: Updated user details
         
     Raises:
-        HTTPException: 404 if user not found, 503 for connection issues,
+        Exception: 404 if user not found, 503 for connection issues,
                       400 for invalid data, 500 for other errors
     """
     try:
@@ -141,7 +139,7 @@ async def delete_user(user_id: int):
         dict: Success message
         
     Raises:
-        HTTPException: 404 if user not found, 503 for connection issues,
+        Exception: 404 if user not found, 503 for connection issues,
                       400 for invalid data, 500 for other errors
     """
     try:

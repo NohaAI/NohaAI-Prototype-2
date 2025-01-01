@@ -8,9 +8,9 @@ import logging
 from contextlib import contextmanager
 from dotenv import load_dotenv
 import uvicorn
-from src.dao.utils.DB_Utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
-from src.dao.Exceptions import RoleProfileNotFoundException,OrganizationNotFoundException
-from src.schemas.dao.schema import RoleProfileResponse,RoleProfileRequest
+from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
+from src.dao.exceptions import RoleProfileNotFoundException,OrganizationNotFoundException
+from src.schemas.dao.schema import RoleProfileResponse,RoleProfileRequest,RoleProfileUpdateRequest
 
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)
@@ -61,7 +61,7 @@ async def add_role_profile(role_profile: str, organization_id: int, level: str):
         RoleProfileResponse: Created role_profile details
         
     Raises:
-        Exception: 503 for connection issues, 400 for invalid data,
+        Exception: 404 for organization not found 503 for connection issues, 400 for invalid data,
                       500 for other errors
     """
     try:
@@ -81,7 +81,7 @@ async def add_role_profile(role_profile: str, organization_id: int, level: str):
         raise e
 
 @app.put("/role_profile/{role_profile_id}", response_model=RoleProfileResponse)
-async def update_role_profile(role_profile_id: int, role_profile: RoleProfileRequest):
+async def update_role_profile(role_profile_id: int, role_profile: RoleProfileUpdateRequest):
     """
     Update an existing role_profile's information.
     
@@ -98,11 +98,54 @@ async def update_role_profile(role_profile_id: int, role_profile: RoleProfileReq
     """
     try:
         with get_db_connection() as conn:
-            update_query = "UPDATE role_profile SET role_profile = %s,level=%s WHERE role_profile_id = %s RETURNING role_profile_id, role_profile, level, organization_id"
-            updated_role_profile = execute_query(conn,update_query,(role_profile.role_profile, role_profile.level,role_profile_id),commit=True)
-            if not updated_role_profile:
-                raise RoleProfileNotFoundException(role_profile_id)         
-            return {"role_profile_id": updated_role_profile[0], "role_profile": updated_role_profile[1],"level":updated_role_profile[2],"organization_id":updated_role_profile[3]} 
+            # Check if role profile exists
+                check_query = """
+                    SELECT role_profile_id FROM role_profile 
+                    WHERE role_profile_id = %s
+                """
+                exists = execute_query(conn, check_query, (role_profile_id,), fetch_one=True)
+                if not exists:
+                    raise RoleProfileNotFoundException(role_profile_id)
+                
+                # Prepare update query with optional fields
+                update_fields = []
+                update_params = []
+                if role_profile.role_profile is not None:
+                    update_fields.append("role_profile = %s")
+                    update_params.append(role_profile.role_profile)
+                if role_profile.level is not None:
+                    update_fields.append("level = %s")
+                    update_params.append(role_profile.level)
+                if role_profile.organization_id is not None:
+                    update_fields.append("organization_id = %s")
+                    update_params.append(role_profile.organization_id)
+                
+                if not update_fields:
+                    raise Exception("No update fields provided")
+                
+                update_params.append(role_profile_id)
+
+                # Execute the update query
+                update_query = f"""
+                    UPDATE role_profile
+                    SET {', '.join(update_fields)}
+                    WHERE role_profile_id = %s
+                    RETURNING role_profile_id, role_profile, level, organization_id
+                """
+                updated_record = execute_query(
+                    conn, 
+                    update_query, 
+                    update_params, 
+                    fetch_one=True,
+                    commit=True
+                )
+                
+                return RoleProfileResponse(
+                    role_profile_id=updated_record[0],
+                    role_profile=updated_record[1],
+                    level=updated_record[2],
+                    organization_id=updated_record[3]
+                )
     except DatabaseConnectionError as e:
         raise e
     except DatabaseQueryError as e:

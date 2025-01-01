@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from pydantic import BaseModel, Field
 from datetime import datetime
 import psycopg2
@@ -9,34 +9,12 @@ import logging
 from contextlib import contextmanager
 from dotenv import load_dotenv
 import uvicorn
-from src.dao.utils.DB_Utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
-from src.dao.Exceptions import CriterionNotFoundException
+from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
+from src.dao.exceptions import CriterionNotFoundException
+from src.schemas.dao.schema import CriteriaRequest,CriteriaResponse
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# Pydantic Models for request and response validation
-class CriteriaResponse(BaseModel):
-    """
-    Response model for criteria data.
-
-    Attributes:
-        criterion_id (int): Unique indentifier for criteria
-         (str): Name of the criteria
-        question_type_id (int): ID of the question_type associated with the criteria
-    """
-    criterion_id: int  # Unique identifier for the criterion
-    criterion: str = Field(..., min_length=2)  # Name of the criterion
-    question_type_id: int  # ID of the associated question type
-
-class CriteriaRequest(BaseModel):
-    """
-    Request model for creating or updating criterion.
-
-    Attributes:
-         (str):Name of the criteria
-    """
-    criterion: str = Field(..., min_length=2)  # Name of the criterion
 
 app = FastAPI()
 
@@ -52,7 +30,7 @@ async def fetch_criterion(criterion_id: int):
         CriteriaResponse:criteria Details
     
     Raises:
-        HTTPException: 404 if criteria not found, 503 for connection issues,
+        Exception: 404 if criteria not found, 503 for connection issues,
                       400 for invalid data, 500 for other errors
     """
     try:
@@ -90,7 +68,7 @@ async def fetch_criteria(question_type_id: int):
         List of criteria with their 
         
     Raises:
-        HTTPException: 404 if no criteria found, 503 for connection issues,
+        Exception: 404 if no criteria found, 503 for connection issues,
                       400 for invalid data, 500 for other errors
     """
     try:
@@ -135,7 +113,7 @@ async def add_criteria(criterion: CriteriaRequest, question_type_id: int):
         CriteriaResponse:Added criteria details
 
     Raises: 
-        HTTPException: 400 for validation errors, 503 for connection issues,
+        Exception: 400 for validation errors, 503 for connection issues,
                       500 for other database errors
     """
     try:
@@ -182,7 +160,7 @@ async def update_criteria(criterion_id: int, criteria: CriteriaRequest):
         criteriaResponse: Updated criteria details
         
     Raises:
-        HTTPException: 404 if criteria not found, 503 for connection issues,
+        Exception: 404 if criteria not found, 503 for connection issues,
                       400 for invalid data, 500 for other errors
     """
     try:
@@ -222,7 +200,7 @@ async def delete_criteria(criterion_id: int):
         dict: Success message
         
     Raises:
-        HTTPException: 404 if criteria not found, 503 for connection issues,
+        Exception: 404 if criteria not found, 503 for connection issues,
                       400 for invalid data, 500 for other errors
     """
     try: 

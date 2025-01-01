@@ -8,8 +8,8 @@ import logging
 from contextlib import contextmanager
 from dotenv import load_dotenv
 import uvicorn
-from src.dao.utils.DB_Utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
-from src.dao.Exceptions import RoleProfileCriterionWeightNotFoundException
+from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
+from src.dao.exceptions import RoleProfileCriterionWeightNotFoundException,RoleProfileNotFoundException
 from src.schemas.dao.schema import RoleProfileCriterionWeightRequest,RoleProfileCriterionWeightResponse
 
 # Logging Configuration
@@ -24,7 +24,7 @@ async def get_role_profile_criterion_weight_metadata(role_profile_id: int):
     Retrieve role_profile_criterion_weight information by ID.
     
     Args:
-        role_profile_id (int): ID of the organization to retrieve
+        role_profile_id (int): ID of the role_profile_criterion_weight to retrieve
         
     Returns:
         RoleProfileCriterionWeightResponse: role_profile_criterion_weight details
@@ -55,17 +55,22 @@ async def add_role_profile_criterion_weight(role_profile_id:int, criterion_weigh
     Create a new organization.
     
     Args:
-        organization (str): Name of the organization to create
+        role_profile_id (int): ID of role_profile
+        criterion_weight_json: Value of the criterion_weight_json to be stored for a role_profile_id
         
     Returns:
         RoleProfileCriterionWeightResponse: Created role_profile_criterion_weight details
         
     Raises:
-        Exception: 503 for connection issues, 400 for invalid data,
+        Exception: 404 for role_profile not found 503 for connection issues, 400 for invalid data,
                       500 for other errors
     """
     try:
         with get_db_connection() as conn:
+            role_profile_query="SELECT role_profile FROM role_profile WHERE role_profile_id = %s"
+            role_profile=execute_query(conn,role_profile_query,(role_profile_id,))
+            if not role_profile:
+                raise RoleProfileNotFoundException(role_profile_id)
             cur_query = "INSERT INTO role_profile_criterion_weight (role_profile_id,criterion_weight_json) VALUES ( %s, %s) RETURNING role_profile_id, criterion_weight_json"
             role_profile_criterion_weight = execute_query(conn,cur_query,(role_profile_id,criterion_weight_json,),commit=True)
             return {"role_profile_id": role_profile_criterion_weight[0], "criterion_weight_json": role_profile_criterion_weight[1]}    
@@ -79,17 +84,17 @@ async def add_role_profile_criterion_weight(role_profile_id:int, criterion_weigh
 @app.put("/role_profile-service/{role_profile_id}", response_model=RoleProfileCriterionWeightResponse)
 async def update_role_profile_criterion_weight(role_profile_id: int, role_profile_criterion_weight_request: RoleProfileCriterionWeightRequest):
     """
-    Update an existing organization's information.
+    Update an existing role_profile_criterion_weight's information.
     
     Args:
-        role_profile_id (int): ID of the organization to update
-        organization (RoleProfileCriterionWeightRequest): Updated organization information
+        role_profile_id (int): ID of the role_profile to update
+        role_profile_criterion_weight_request (RoleProfileCriterionWeightRequest): Updated role_profile_criterion_weight information
         
     Returns:
-        RoleProfileCriterionWeightResponse: Updated organization details
+        RoleProfileCriterionWeightResponse: Updated role_profile_criterion_weight details
         
     Raises:
-        Exception: 404 if organization not found, 503 for connection issues,
+        Exception: 404 if role_profile_criterion_weight not found, 503 for connection issues,
                       400 for invalid data, 500 for other errors
     """
     try:
@@ -109,16 +114,16 @@ async def update_role_profile_criterion_weight(role_profile_id: int, role_profil
 @app.delete("/role_profile-service/{role_profile_id}", response_model=dict)
 async def delete_role_profile_criterion_weight(role_profile_id: int):
     """
-    Delete a organization by ID.
+    Delete a role_profile_criterion_weight by ID.
     
     Args:
-        role_profile_id (int): ID of the organization to delete
+        role_profile_id (int): ID of the role_profile_criterion_weight to delete
         
     Returns:
         dict: Success message
         
     Raises:
-        Exception: 404 if organization not found, 503 for connection issues,
+        Exception: 404 if role_profile_criterion_weight not found, 503 for connection issues,
                       400 for invalid data, 500 for other errors
     """
     try:

@@ -1,7 +1,7 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from pydantic import BaseModel, Field
-from datetime import datetime
 import psycopg2
+from datetime import datetime
 from psycopg2.pool import SimpleConnectionPool
 from typing import Optional
 import os
@@ -9,38 +9,13 @@ import logging
 from contextlib import contextmanager
 from dotenv import load_dotenv
 import uvicorn
-from src.dao.utils.DB_Utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
-from src.dao.Exceptions import UserNotFoundException,InterviewNotFoundException
+from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
+from src.dao.exceptions import UserNotFoundException,InterviewNotFoundException
+from src.schemas.dao.schema import InterviewRequest,InterviewResponse
+
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# Pydantic models for request and response validation
-class InterviewResponse(BaseModel):
-    """
-    Response model for interview data.
-
-    Attributes:
-        interview_id (int): Unique indentifier for interviews
-        user_id (int): ID of the user giving the interview
-        interview_date(datetime): Date at which the interview is scheduled
-        interview_recording_url(str): Link to the interview recording url
-    """
-    interview_id: int
-    user_id: int
-    interview_date: datetime
-    interview_recording_url: str
-
-class InterviewRequest(BaseModel):
-    """
-    Request model for creating or updating Interview data.
-
-    Attributes:
-        interview_date(datetime): Date at the which is the interview is scheduled
-        interview_recording_url(str): Link to the interview recording url
-    """
-    interview_date: Optional[datetime] = None
-    interview_recording_url: Optional[str] = None
 
 app = FastAPI()
 
@@ -57,7 +32,7 @@ async def add_interview(user_id: int, interview_date: datetime, interview_record
         InterviewResponse:Added interview details
 
     Raises: 
-        HTTPException: 400 for validation errors, 503 for connection issues,
+        Exception: 404 for user not found 400 for validation errors, 503 for connection issues,
                       500 for other database errors
     """
     try: 
@@ -108,7 +83,7 @@ async def get_interview_metadata(interview_id: int):
         InterviewResponse:Interview Details
     
     Raises:
-        HTTPException: 404 if interview not found, 503 for connection issues,
+        Exception: 404 if interview not found, 503 for connection issues,
                       400 for invalid data, 500 for other errors
     """
     try:
@@ -151,7 +126,7 @@ async def update_interview(interview_id: int, interview: InterviewRequest):
         InterviewResponse: Updated interview details
         
     Raises:
-        HTTPException: 404 if interview not found, 503 for connection issues,
+        Exception: 404 if interview not found, 503 for connection issues,
                       400 for invalid data, 500 for other errors
     """
     try:
@@ -209,7 +184,7 @@ async def delete_interview(interview_id: int):
         dict: Success message
         
     Raises:
-        HTTPException: 404 if interview not found, 503 for connection issues,
+        Exception: 404 if interview not found, 503 for connection issues,
                       400 for invalid data, 500 for other errors
     """
     try:

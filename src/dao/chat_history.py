@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from pydantic import BaseModel, Field
 from datetime import datetime
 import psycopg2
@@ -11,37 +11,15 @@ from dotenv import load_dotenv
 import uvicorn
 import httpx
 from typing import List, Optional
-from src.dao.Question import get_question_metadata
-from src.dao.utils.DB_Utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
-from src.dao.Exceptions import ChatHistoryNotFoundException,InterviewNotFoundException
+from src.dao.question import get_question_metadata
+from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
+from src.dao.exceptions import ChatHistoryNotFoundException,InterviewNotFoundException
+from src.schemas.dao.schema import CandidateAnswerRequest,CandidateAnswerResponse
+
 # Configure application-wide logging to track and record application events and errors
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Pydantic Models Documentation
-class CandidateAnswerResponse(BaseModel):
-    """
-    Response model for candidate answer operations with length validation.
-    
-    Attributes:
-        chat_history_id (int): Unique identifier for the chat history entry.
-        question_id (int): Reference to the question being answered.
-        interview_id (int): Reference to the interview session.
-        candidate_answer (str): The answer provided by the candidate, must be between 2 and 500 characters.
-    """
-    chat_history_id: int
-    question_id: int
-    interview_id: int
-    candidate_answer: str = Field(..., min_length=2, max_length=500)
-
-class CandidateAnswerRequest(BaseModel):
-    """
-    Request model for candidate answer submissions with length validation.
-    
-    Attributes:
-        candidate_answer (str): The answer provided by the candidate, must be between 2 and 500 characters.
-    """
-    candidate_answer: str = Field(..., min_length=2, max_length=500)
 
 async def refine_chat_history(chat_history):
     chat_history = []
@@ -72,10 +50,9 @@ async def get_all_candidate_answers(interview_id: int):
         List[str]: A list of all candidate answers for the specified interview.
     
     Raises:
-        HTTPException (404): 
+        Exception (404): 
             - If no interview is found with the specified ID
             - If no chat history exists for the specified interview
-        HTTPException (500): If there's an internal server error
         DatabaseConnectionError: If database connection fails
         DatabaseQueryError: If there's an error executing the query
         DatabaseOperationError: If there's an error with database operations
@@ -83,7 +60,7 @@ async def get_all_candidate_answers(interview_id: int):
     try:
         with get_db_connection() as conn:
             # First, verify that the interview exists
-            interview_check_query = "SELECT user_id FROM interviews WHERE interview_id = %s"
+            interview_check_query = "SELECT user_id FROM interview WHERE interview_id = %s"
             interview_exists = execute_query(conn, interview_check_query, (interview_id,))
 
             if not interview_exists or interview_exists[0] == 0:
@@ -128,7 +105,7 @@ async def get_candidate_answer(chat_history_id: int):
         CandidateAnswerResponse: The candidate answer details including question and interview context.
     
     Raises:
-        HTTPException (404): If no chat history entry is found with the specified ID
+        Exception (404): If no chat history entry is found with the specified ID
         DatabaseConnectionError: If database connection fails
         DatabaseQueryError: If there's an error executing the query
         DatabaseOperationError: If there's an error with database operations
@@ -223,7 +200,7 @@ async def update_candidate_answer(chat_history_id: int, candidate_answer_request
         CandidateAnswerResponse: The updated candidate answer details.
     
     Raises:
-        HTTPException (404): If no chat history entry is found with the specified ID
+        Exception (404): If no chat history entry is found with the specified ID
         DatabaseConnectionError: If database connection fails
         DatabaseQueryError: If there's an error executing the query
         DatabaseOperationError: If there's an error with database operations
@@ -332,7 +309,7 @@ async def delete_candidate_answer(chat_history_id: int):
             {"message": "Candidate Answer deleted successfully"}
     
     Raises:
-        HTTPException (404): If no chat history entry is found with the specified ID
+        Exception (404): If no chat history entry is found with the specified ID
         DatabaseConnectionError: If database connection fails
         DatabaseQueryError: If there's an error executing the query
         DatabaseOperationError: If there's an error with database operations

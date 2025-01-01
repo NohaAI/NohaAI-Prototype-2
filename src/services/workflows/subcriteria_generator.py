@@ -1,6 +1,6 @@
 from typing import Any, Dict, List
-from src.dao.Criterion import fetch_criteria
-from src.dao.Subcriterion import batch_insert_subcriteria, fetch_subcriteria
+from src.dao.criterion import fetch_criteria
+from src.dao.subcriterion import batch_insert_subcriteria, fetch_subcriteria
 from src.schemas.endpoints.schema import GenerateSubCriteriaRequest
 from src.utils.logger import get_logger
 #from src.services.llm.llm_service import llm as llm

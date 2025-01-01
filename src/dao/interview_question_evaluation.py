@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from pydantic import BaseModel, Field
 from typing import Optional
 import psycopg2
@@ -9,53 +9,16 @@ from contextlib import contextmanager
 from dotenv import load_dotenv
 import uvicorn
 import json
-from app.DAO.Exceptions import QuestionEvaluationNotFoundException,QuestionNotFoundException,InterviewNotFoundException
-from DB_Utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
+from src.dao.exceptions import QuestionEvaluationNotFoundException,QuestionNotFoundException,InterviewNotFoundException
+from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
+from src.schemas.dao.schema import QuestionEvaluationUpdateRequest,QuestionEvaluationResponse,QuestionEvaluationRequest
+
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Define the schema for update requests
-class QuestionEvaluationUpdateRequest(BaseModel):
-    """
-    Request model for updating question evaluation.
 
-    Attributes:
-        score (Optional[float]): Score to be updated
-        question_evaluation_json (Optional[str]): Question evaluation json to be updated
-    """
-    score: Optional[float] = None
-    question_evaluation_json: Optional[str] = Field(default=None,min_length=2,max_length=500    )
-
-# Define the schema for adding new evaluations
-class QuestionEvaluationRequest(QuestionEvaluationUpdateRequest):
-    """
-    Request model for adding question evaluation.
-
-    Attributes:
-        interview_id (int): ID of the interview
-        question_id (int): ID of the question that was asked in interview with provided interview_id
-    """
-    interview_id: int
-    question_id: int
-
-# Define the response schema for question evaluations
-class QuestionEvaluationResponse(BaseModel):
-    """
-    Response model for question evaluation.
-
-    Attributes:
-        question_evaluation_id (int): Unique identifier for interview question evaluation table
-        interview_id (int): ID of the interview
-        question_id (int): ID of the question that was asked in interview with provided interview_id
-        score (Optional[float]): Score obtained by the candidate
-        question_evaluation_json (Optional[str]): A string that contains question evaluation in a JSON format
-    """
-    question_evaluation_id: int
-    interview_id: int
-    question_id: int
-    score: Optional[float]
-    question_evaluation_json: Optional[str]
 
 app = FastAPI()
 
@@ -72,7 +35,7 @@ async def get_question_evaluation(question_evaluation_id: int):
         QuestionEvaluationResponse: Details of the evaluated question
 
     Raises:
-        HTTPException: 404 for Evaluation not found, 400 for validation errors, 
+        Exception: 404 for Evaluation not found, 400 for validation errors, 
             503 for connection issues, 500 for other database errors
     """
     try:
@@ -116,7 +79,7 @@ async def update_question_evaluation(question_evaluation_id: int,evaluation_requ
         QuestionEvaluationResponse: Updated question evaluation details
         
     Raises:
-        HTTPException: 404 if question evaluation not found, 503 for connection issues,
+        Exception: 404 if question evaluation not found, 503 for connection issues,
                       400 for invalid data, 500 for other errors
     """
     try:
@@ -191,7 +154,7 @@ async def add_question_evaluation(interview_id: int, question_id: int, score: fl
         QuestionEvaluationResponse:Added question evaluation details
 
     Raises: 
-        HTTPException: 404 for interview/question not found, 400 for validation errors, 503 for connection issues,
+        Exception: 404 for interview/question not found, 400 for validation errors, 503 for connection issues,
                       500 for other database errors
     """
     try:
@@ -267,7 +230,7 @@ async def delete_question_evaluation(question_evaluation_id: int):
         dict: Success message
         
     Raises:
-        HTTPException: 404 if evaluation not found, 503 for connection issues,
+        Exception: 404 if evaluation not found, 503 for connection issues,
                       400 for invalid data, 500 for other errors
     """
     try:

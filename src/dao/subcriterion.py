@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from pydantic import BaseModel, Field
 from datetime import datetime
 import psycopg2
@@ -10,44 +10,14 @@ from contextlib import contextmanager
 from dotenv import load_dotenv
 from psycopg2.extras import execute_values
 import uvicorn
-from src.dao.utils.DB_Utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
-from src.dao.Exceptions import QuestionNotFoundException,SubcriterionNotFoundException
-from src.dao.CriterionPayload import Criterion,SubCriterion
+from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
+from src.dao.exceptions import QuestionNotFoundException,SubcriterionNotFoundException
+from src.dao.criterion_payload import Criterion,SubCriterion
+from src.schemas.dao.schema import SubcriteriaResponse,SubcriteriaRequest,SubcriteriaUpdate
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 # Pydantic Models with Documentation
-class SubcriteriaResponse(BaseModel):
-    """
-    Response model for subcriterion data.
-    Attributes:
-        subcriterion_id (int): Unique identifier for the subcriterion
-        subcriteria (str): Name of the subcriterion, between 2 and 100 characters
-        criterion_id (int): ID of the parent category
-        question_id (int): ID of the associated question
-    """
-    subcriterion_id: int
-    subcriteria: str = Field(..., min_length=2, max_length=100)
-    criterion_id: int
-    question_id: int
-class SubcriteriaRequest(BaseModel):
-    """
-    Request model for creating/updating subcriteria.
-    Attributes:
-        subcriteria (str): Name of the subcriterion, between 2 and 100 characters
-        criterion_id (Optional[int]): Optional ID of the parent category
-        question_id (int): ID of the associated question
-    """
-    subcriteria: str = Field(..., min_length=2, max_length=100)
-    criterion_id: Optional[int] = None
-    question_id: int
-class SubcriteriaUpdate(BaseModel):
-    """
-    Model for updating existing subcriteria.
-    Attributes:
-        subcriteria (str): New name for the subcriterion, between 2 and 100 characters
-    """
-    subcriteria: str = Field(..., min_length=2, max_length=100)
 
 app = FastAPI()
 
@@ -60,7 +30,7 @@ async def get_subcriterion(subcriterion_id: int):
     Returns:
         SubcriteriaResponse: subcriterion details
     Raises:
-        HTTPException: 404 if subcriterion not found, 503 for connection issues,
+        Exception: 404 if subcriterion not found, 503 for connection issues,
                       400 for invalid data, 500 for other errors
     """
     try:
@@ -90,6 +60,11 @@ async def get_subcriterion(subcriterion_id: int):
 async def fetch_subcriteria(question_id: int):
     try:
         with get_db_connection() as conn:
+            check_question_query = "SELECT question FROM Question WHERE question_id = %s"
+            question = execute_query(conn, check_question_query, (question_id,))
+            
+            if not question:
+                raise QuestionNotFoundException(question_id)
             query = """
                 SELECT 
                     Criterion.criterion,
@@ -99,7 +74,6 @@ async def fetch_subcriteria(question_id: int):
                 JOIN Criterion ON Criterion.criterion_id = Subcriterion.criterion_id
                 WHERE Subcriterion.question_id = %s
             """
-            
             results = execute_query(conn, query, (question_id,), fetch_one=False)
             
             if not results:
@@ -197,7 +171,7 @@ async def update_subcriterion(subcriterion_id: int, update_data: SubcriteriaUpda
     Returns:
         SubcriteriaResponse: Updated subcriterion details
     Raises:
-        HTTPException: 404 if subcriterion not found, 503 for connection issues,
+        Exception: 404 if subcriterion not found, 503 for connection issues,
                       400 for invalid data, 500 for other errors
     """
     try:
@@ -237,7 +211,7 @@ async def delete_subcriterion(subcriterion_id: int):
     Returns:
         dict: Success message
     Raises:
-        HTTPException: 404 if subcriterion not found, 503 for connection issues,
+        Exception: 404 if subcriterion not found, 503 for connection issues,
                       400 for invalid data, 500 for other errors
     """
     try:
