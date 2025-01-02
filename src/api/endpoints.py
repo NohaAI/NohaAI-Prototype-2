@@ -18,7 +18,7 @@ from src.dao.query import get_user_query
 from src.services.workflows.candidate_greeter import generate_greeting
 import src.services.workflows as workflows
 from src.services.workflows.solution_hint_generator import generate_hint
-from src.services.workflows.approach_hint_generator import approach_hint_generator
+from src.services.workflows import hint_generator
 # Initialize logger
 logger = get_logger(__name__)
 
@@ -95,16 +95,17 @@ async def evaluate_answer(input_request: EvaluateAnswerRequest) -> JSONResponse:
         logger.critical("Failed to evaluate answer: %s", ex)
         return decorate_response(False,"Failed to evaluate answer",status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-@router.post("/generate_approach_hint")
-async def generate_approach_hint(interview_id,question,chat_history,answer_evaluation,criterion_weight_json):
+@router.post("/generate_hint")
+# remodel takes input chat_history and answer_evaluation
+async def generate_hint(chat_history,answer_evaluation):
     try:
-        approach_hint = await approach_hint_generator(interview_id,question,chat_history,answer_evaluation,criterion_weight_json)
-        return decorate_response(True,approach_hint)
+        hint = await hint_generator.generate_hint(chat_history,answer_evaluation)
+        return decorate_response(True,hint)
     except Exception as e:
-        logger.critical("Failed to generate followup question: %s", e)
+        logger.critical("Failed to generate hint: %s", e)
         return decorate_response(
             False,
-            "Failed to generate followup questions",
+            "Failed to generate hint",
             status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
@@ -130,6 +131,20 @@ async def generate_solution_hint(input_request: GenerateHintRequest) -> JSONResp
         logger.critical("Failed to generate hint: %s", ex)
         return decorate_response(False,"Failed to generate hint",status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
+#condcut interview
+@router.post("/conduct_interview", status_code=status.HTTP_200_OK)
+async def conduct_interview(interview_id) :
+    # if len(chat_history) == 0: call greeter  
+    # use dao calls for interview_question for question_id, interview for user_id/name, chat_history for turn_input/output
+    # call greeting and generate greeting
+    # call chat_history.add_chat_history and write the first turn to the database
+    # get answers from the user and update chat_history (answer_evaluator)
+    # pass the answer to the answer evaluator and generate scores 
+    # pass the scores and the updated chat history to hint generator
+    # get the generated hint and update chat history
+    # repeat the loop from step no.3 until the average interview score crosses the predefined threshold
+    # if the interview score crossed the threshold, call the reporting api and generate the report
+    #  
+    return s
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=9030)
