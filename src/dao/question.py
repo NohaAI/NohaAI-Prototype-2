@@ -60,6 +60,30 @@ async def get_question_metadata(question_id: int):
     except DatabaseOperationError as e:
         raise e
 
+@app.get("/question-service")
+async def get_initial_question_metadata():
+    try:
+        with get_db_connection() as conn:
+            question_query = """
+                SELECT question_id, question,question_type_id FROM question
+                WHERE question_id != 0
+                ORDER BY RANDOM()
+                LIMIT 1;
+            """
+            question = execute_query(conn, question_query)
+                
+            return {
+                "question_id": question[0],
+                "question": question[1],
+                "question_type_id": question[2]
+            }
+    except DatabaseConnectionError as e:
+        raise e
+    except DatabaseQueryError as e:
+        raise e
+    except DatabaseOperationError as e:
+        raise e
+
 @app.post("/question-service", response_model=QuestionResponse)
 async def add_question(question: QuestionRequest):
     """

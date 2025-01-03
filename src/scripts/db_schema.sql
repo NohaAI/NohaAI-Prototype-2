@@ -1,9 +1,9 @@
 CREATE TABLE chat_history (
-    chat_history_id integer NOT NULL,
+    chat_history_turn_id integer NOT NULL,
     interview_id integer,
     question_id integer,
     candidate_answer text,
-    PRIMARY KEY (chat_history_id),
+    PRIMARY KEY (chat_history_turn_id),
     FOREIGN KEY (interview_id) REFERENCES interview(interview_id),
     FOREIGN KEY (question_id) REFERENCES question(question_id)
 );

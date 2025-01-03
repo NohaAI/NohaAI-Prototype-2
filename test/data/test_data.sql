@@ -132,7 +132,7 @@ VALUES
     (3, 2),
     (1, 2);
 
-INSERT INTO chat_history (chat_history_id, interview_id, question_id, candidate_answer)
+INSERT INTO chat_history (chat_history_turn_id, interview_id, question_id, candidate_answer)
 VALUES
     (10, 1, 2, 'i will use two pointer approach to reverse the entire string character by characer including spaces repreat same reversal technique for each word'),
     (11, 2, 2, 'I want to use two pointer approach and iterate on both sides of the string while comparing each character'),

@@ -58,9 +58,9 @@ class FinalEvaluationNotFoundException(Exception):
 
 class ChatHistoryNotFoundException(Exception):
     """Exception raised when a chat history is not found in the database."""
-    def __init__(self, chat_history_id):
-        self.chat_history_id = chat_history_id
-        self.message = f"No chat history found with chat_history_id: {self.chat_history_id}"
+    def __init__(self, chat_history_turn_id):
+        self.chat_history_turn_id = chat_history_turn_id
+        self.message = f"No chat history found with chat_history_turn_id: {self.chat_history_turn_id}"
         super().__init__(self.message)
 
 class CriterionNotFoundException(Exception):

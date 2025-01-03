@@ -276,26 +276,31 @@ class CriteriaRequest(BaseModel):
     criterion: str = Field(..., min_length=2)  # Name of the criterion
 
 # Pydantic Models Documentation
-class CandidateAnswerResponse(BaseModel):
+class ChatHistoryResponse(BaseModel):
     """
     Response model for candidate answer operations with length validation.
     
     Attributes:
-        chat_history_id (int): Unique identifier for the chat history entry.
+        chat_history_turn_id (int): Unique identifier for the chat history entry.
         question_id (int): Reference to the question being answered.
         interview_id (int): Reference to the interview session.
         candidate_answer (str): The answer provided by the candidate, must be between 2 and 500 characters.
     """
-    chat_history_id: int
+    chat_history_turn_id: int
     question_id: int
     interview_id: int
-    candidate_answer: str = Field(..., min_length=2, max_length=500)
+    turn_input: str = Field(..., min_length=2, max_length=500)
+    turn_output: str = Field(..., min_length=2, max_length=500)
+    turn_input_type: str = Field(..., min_length=2, max_length=20)
 
-class CandidateAnswerRequest(BaseModel):
+class ChatHistoryRequest(BaseModel):
     """
     Request model for candidate answer submissions with length validation.
     
     Attributes:
         candidate_answer (str): The answer provided by the candidate, must be between 2 and 500 characters.
     """
-    candidate_answer: str = Field(..., min_length=2, max_length=500)
+    turn_input: Optional[str] = Field(default=None, min_length=2, max_length=500)
+    turn_output: Optional[str] = Field(default=None, min_length=2, max_length=500)
+    turn_input_type: Optional[str] = Field(default=None, min_length=2, max_length=20)
+

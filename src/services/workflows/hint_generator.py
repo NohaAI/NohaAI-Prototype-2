@@ -29,33 +29,33 @@ async def generate_hint(chat_history,answer_evaluation):
         "space_complexity_hint_question": "Can you rethink the choice of space complexity so that it is optimized for complexity?"
     }
     
-    # assumption_score = answer_evaluation["criteria_scores"][0]          
-    # corner_case_score = answer_evaluation["criteria_scores"][1]        
-    # data_structures_score = answer_evaluation["criteria_scores"][2]
-    # algorithm_score = answer_evaluation["criteria_scores"][3]   
-    # time_complexity_score = answer_evaluation["criteria_scores"][4]    
-    # space_complexity_score = answer_evaluation["criteria_scores"][5]
+    assumption_score = answer_evaluation["criteria_scores"][0]          
+    corner_case_score = answer_evaluation["criteria_scores"][1]        
+    data_structures_score = answer_evaluation["criteria_scores"][2]
+    algorithm_score = answer_evaluation["criteria_scores"][3]   
+    time_complexity_score = answer_evaluation["criteria_scores"][4]    
+    space_complexity_score = answer_evaluation["criteria_scores"][5]
     
-    assumption_score = 5         
-    corner_case_score = 5        
-    data_structures_score = 5
-    algorithm_score = 5   
-    time_complexity_score = 5     
-    space_complexity_score = 5
+    # assumption_score = 5         
+    # corner_case_score = 5        
+    # data_structures_score = 5
+    # algorithm_score = 5   
+    # time_complexity_score = 5     
+    # space_complexity_score = 5
 
-    if assumption_score < 2 or corner_case_score < 2:
+    if assumption_score < 0.2 or corner_case_score < 0.2:
         hint = hint_questions['assumption_corner_case_hint_question']
         return hint
-    if data_structures_score < 4:
+    if data_structures_score < 0.4:
         hint = hint_questions['data_structures_hint_question']
         return hint
-    if algorithm_score < 4:
+    if algorithm_score < 0.4:
         hint = hint_questions['algorithm_hint_question']
         return hint
-    if time_complexity_score < 4:
+    if time_complexity_score < 0.4:
         hint = hint_questions['time_complexity_hint_question']
         return hint
-    if space_complexity_score < 4:
+    if space_complexity_score < 0.4:
         hint = hint_questions['space_complexity_hint_question']
         return hint
         
