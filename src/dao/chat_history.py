@@ -216,13 +216,13 @@ async def add_chat_history(interview_id: int, question_id: int, turn_input: str,
     except DatabaseOperationError as e:
         raise e
 
-@app.delete("/chat_history/{chat_history_turn_id}")
-async def delete_chat_history(chat_history_turn_id: int):
+@app.delete("/chat_history/{interview_id}")
+async def delete_chat_history(interview_id: int):
     """
     Delete a specific chat history from the chat history.
     
     Args:
-        chat_history_turn_id (int): The unique identifier of the chat history entry to delete.
+        interview_id (int): The unique identifier of the interview chat history entry to delete.
     
     Returns:
         dict: A message confirming successful deletion:
@@ -239,19 +239,19 @@ async def delete_chat_history(chat_history_turn_id: int):
             try:
                 delete_query = """
                     DELETE FROM chat_history 
-                    WHERE chat_history_turn_id = %s 
-                    RETURNING chat_history_turn_id
+                    WHERE interview_id = %s 
+                    RETURNING interview_id
                 """
                 deleted_feedback = execute_query(
                     conn, 
                     delete_query, 
-                    (chat_history_turn_id,), 
+                    (interview_id,), 
                     fetch_one=True,
                     commit=True
                 )
                 
                 if not deleted_feedback:
-                    raise ChatHistoryNotFoundException(chat_history_turn_id)
+                    raise InterviewNotFoundException(interview_id)
                 
                 return {"message": "chat history deleted successfully"}
             except Exception as e:

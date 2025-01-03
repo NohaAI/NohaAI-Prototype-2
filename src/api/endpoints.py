@@ -24,7 +24,7 @@ from src.dao.chat_history import get_chat_history
 from src.dao.interview import get_interview_metadata
 from src.dao.chat_history import add_chat_history
 from src.dao.question import get_initial_question_metadata
-
+from src.dao.chat_history import delete_chat_history
 # Initialize logger
 logger = get_logger(__name__)
 
@@ -151,7 +151,11 @@ async def conduct_interview(interview_id) :
     # repeat the loop from step no.3 until the average interview score crosses the predefined threshold
     # if the interview score crossed the threshold, call the reporting api and generate the report
     # for now assuming that question_id = 1
+    
     chat_history= await get_chat_history(interview_id)
+    if chat_history:
+        await delete_chat_history(interview_id)
+    chat_history= await get_chat_history(interview_id)    
     if not chat_history:
         question_id=0
 
@@ -166,6 +170,7 @@ async def conduct_interview(interview_id) :
         simulated_candidate_greeting_response="Hey I am ready let's begin the interview"
         #check whether the candidate is readfy for interview by a logic
         added_chat_history_data=await add_chat_history(interview_id, question_id, greeting, simulated_candidate_greeting_response,'greeting')
+
     initial_question_metadata=await get_initial_question_metadata()
     initial_question=initial_question_metadata['question']
 
@@ -192,15 +197,19 @@ async def conduct_interview(interview_id) :
     }
     #logger.info(f"ANSWER EVALUATION PAYLOAD : {answer_evaluation_payload}")
     answer_evaluation_request=EvaluateAnswerRequest(**answer_evaluation_payload)
-    # logger.info(f"ANSWER EVALUATION PAYLOAD {answer_evaluation_request}")
     answer_evaluation=await evaluate_answer(answer_evaluation_request)
     logger.info("################################################################################")
-    logger.info(f"CHAT_HISTORY : {chat_history}")
+    logger.info(f"ANSWER EVALUATION PAYLOAD {answer_evaluation}")
     logger.info(f"ANSWER EVALUATION {answer_evaluation['criteria_scores']}")
     logger.info(f"ANSWER EVALUATION {answer_evaluation['final_score']}")
-    #chat_history=await get_chat_history(interview_id)
+    chat_history=await get_chat_history(interview_id)
+    logger.info(f"CHAT_HISTORY : {chat_history}")
 
-    # hint=await generate_hint(chat_history,answer_evaluation)
-
+    hint_response=await generate_hint(chat_history,answer_evaluation)
+    hint_response_body = hint_response.body.decode()
+    hint_response_data = json.loads(hint_response_body)
+    
+    hint = hint_response_data["message"]
+    logger.info(f"HINT : {hint}")
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=9030)
