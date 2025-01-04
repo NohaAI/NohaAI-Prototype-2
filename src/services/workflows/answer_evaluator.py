@@ -8,7 +8,7 @@ import src.utils as utils
 import src.services.llm.prompts.answer_evaluator_prompt as make_prompt_from_template
 import src.services.llm.prompts.answer_evaluator_prompt as prompts
 import src.services.llm as llm
-import src.dao as DAO
+from src import dao 
 
 # Initialize logger
 logger = utils.get_logger(__name__)
@@ -39,8 +39,8 @@ async def evaluate_answer(input_request):
             logger.critical(f"Input object missing required attributes: {attr_err}")
             raise AttributeError(f"Input object missing required attributes: {attr_err}") from attr_err
 
-        evaluation_criteria = await DAO.fetch_subcriteria(question_id)
-        chat_history = await DAO.get_chat_history(interview_id)
+        evaluation_criteria = await dao.fetch_subcriteria(question_id)
+        chat_history = await dao.get_chat_history(interview_id)
 
         chat_history = []
         chat_history.append({"question": question, "answer": candidate_answer})
@@ -82,4 +82,5 @@ def score_subcriteria(criterion_weights, subcriteria_score):
     total_weight = sum(criterion_weights)
     weighted_score = sum(weight * int(score) for weight, score in zip(criterion_weights, subcriteria_score))
     criterion_score = (round((weighted_score / total_weight), 2) if total_weight != 0 else 0)/10.0
+    criterion_score=round(criterion_score,2)
     return criterion_score

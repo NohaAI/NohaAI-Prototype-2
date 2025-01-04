@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, Depends
 from pydantic import BaseModel, Field
 import psycopg2
 from psycopg2.pool import SimpleConnectionPool
@@ -8,38 +8,14 @@ import logging
 from contextlib import contextmanager
 from dotenv import load_dotenv
 import uvicorn
-from src.dao.utils.DB_Utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
-from src.dao.Exceptions import QuestionNotFoundException,QuestionTypeNotFoundException
+from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
+from src.dao.exceptions import QuestionNotFoundException,QuestionTypeNotFoundException
+from src.schemas.dao.schema import QuestionResponse,QuestionRequest
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-class QuestionResponse(BaseModel):
-    """
-    Pydantic model representing the response structure for a question.
-    
-    Attributes:
-        question_id (int): Unique identifier for the question
-        question (str): The actual question text, length between 10-500 characters
-        question_type (str): Category or type of the question, length between 3-50 characters
-        question_type_id (int): Unique identifier for the question type
-    """
-    question_id: int
-    question: str = Field(..., min_length=10, max_length=500)
-    question_type: str = Field(..., min_length=3, max_length=50)
-    question_type_id: int
 
-class QuestionRequest(BaseModel):
-    """
-    Pydantic model for incoming question requests (creation/updates).
-    
-    Attributes:
-        question (Optional[str]): Question text, optional for partial updates
-        question_type (Optional[str]): Question category, optional for partial updates
-    """
-    question: Optional[str] = Field(None, min_length=10, max_length=500)
-    question_type: Optional[str] = Field(None, min_length=3, max_length=50)
-    
 
 app = FastAPI()
 
@@ -55,7 +31,7 @@ async def get_question_metadata(question_id: int):
         QuestionResponse: Question details
         
     Raises:
-        HTTPException: 404 if question not found, 503 for connection issues,
+        Exception: 404 if question not found, 503 for connection issues,
                       400 for invalid data, 500 for other errors
     """
     try:
@@ -84,6 +60,30 @@ async def get_question_metadata(question_id: int):
     except DatabaseOperationError as e:
         raise e
 
+@app.get("/question-service")
+async def get_initial_question_metadata():
+    try:
+        with get_db_connection() as conn:
+            question_query = """
+                SELECT question_id, question,question_type_id FROM question
+                WHERE question_id != 0
+                ORDER BY RANDOM()
+                LIMIT 1;
+            """
+            question = execute_query(conn, question_query)
+                
+            return {
+                "question_id": question[0],
+                "question": question[1],
+                "question_type_id": question[2]
+            }
+    except DatabaseConnectionError as e:
+        raise e
+    except DatabaseQueryError as e:
+        raise e
+    except DatabaseOperationError as e:
+        raise e
+
 @app.post("/question-service", response_model=QuestionResponse)
 async def add_question(question: QuestionRequest):
     """
@@ -96,7 +96,7 @@ async def add_question(question: QuestionRequest):
         QuestionResponse: Created question details
         
     Raises:
-        HTTPException: 503 for connection issues, 400 for invalid data,
+        Exception: 503 for connection issues, 400 for invalid data,
                       500 for other errors
     """
     try:
@@ -140,7 +140,7 @@ async def update_question(question_id: int, question: QuestionRequest, question_
         QuestionResponse: Updated question details
         
     Raises:
-        HTTPException: 404 if question not found, 400 if no update fields provided,
+        Exception: 404 if question not found, 400 if no update fields provided,
                       503 for connection issues, 500 for other errors
     """
     try:
@@ -213,7 +213,7 @@ async def delete_question(question_id: int):
         dict: Success message
         
     Raises:
-        HTTPException: 404 if question not found, 503 for connection issues,
+        Exception: 404 if question not found, 503 for connection issues,
                       400 for invalid data, 500 for other errors
     """
     try:

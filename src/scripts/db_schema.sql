@@ -1,9 +1,9 @@
 CREATE TABLE chat_history (
-    chat_history_id integer NOT NULL,
+    chat_history_turn_id integer NOT NULL,
     interview_id integer,
     question_id integer,
     candidate_answer text,
-    PRIMARY KEY (chat_history_id),
+    PRIMARY KEY (chat_history_turn_id),
     FOREIGN KEY (interview_id) REFERENCES interview(interview_id),
     FOREIGN KEY (question_id) REFERENCES question(question_id)
 );
@@ -84,3 +84,29 @@ CREATE TABLE users (
     name character varying(255) NOT NULL,
     PRIMARY KEY (user_id)
 );
+
+CREATE TABLE organization (
+    organization_id SERIAL PRIMARY KEY,
+    organization VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE role_profile (
+    role_profile_id SERIAL PRIMARY KEY,
+    role_profile VARCHAR(255) NOT NULL,
+    organization_id INT NOT NULL,
+    level TEXT,
+    CONSTRAINT fk_organization
+        FOREIGN KEY (organization_id)
+        REFERENCES organization (organization_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE role_profile_criterion_weight (
+    role_profile_id INT PRIMARY KEY,
+    criterion_weight_json TEXT NOT NULL,
+    CONSTRAINT fk_role_profile
+        FOREIGN KEY (role_profile_id)
+        REFERENCES role_profile (role_profile_id)
+        ON DELETE CASCADE
+);
+

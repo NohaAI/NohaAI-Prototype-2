@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from pydantic import BaseModel, Field
 from datetime import datetime
 import psycopg2
@@ -9,8 +9,8 @@ import logging
 from contextlib import contextmanager
 from dotenv import load_dotenv
 import uvicorn
-from DB_Utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
-from app.DAO.Exceptions import InterviewQuestionNotFoundException,InterviewNotFoundException,QuestionNotFoundException
+from src.dao.exceptions import QuestionEvaluationNotFoundException,QuestionNotFoundException,InterviewNotFoundException
+from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ async def add_interview_question(interview_id: int, question_id: int):
         Success message if the question is added.
 
     Raises:
-        HTTPException: 404 for interview/question not found, 400 for validation errors, 
+        Exception: 404 for interview/question not found, 400 for validation errors, 
             503 for connection issues, 500 for other database errors
     """
     try:
@@ -85,7 +85,7 @@ async def get_interview_questions(interview_id: int):
         List of question IDs.
 
     Raises:
-        HTTPException: 404 for interview not found, 400 for validation errors, 
+        Exception: 404 for interview not found, 400 for validation errors, 
             503 for connection issues, 500 for other database errors
     """
     try:
@@ -135,7 +135,7 @@ async def update_interview_question(current_interview_id: int,current_question_i
         Success message if the update is successful.
 
     Raises:
-        HTTPException: 404 for question not found, 400 for validation errors, 
+        Exception: 404 for question not found, 400 for validation errors, 
             503 for connection issues, 500 for other database errors
     """
     try:
@@ -186,7 +186,7 @@ async def delete_interview_question(interview_id: int, question_id: int):
         Success message if the question is deleted.
     
     Raises:
-        HTTPException: 404 for interview question not found, 400 for validation errors, 
+        Exception: 404 for interview question not found, 400 for validation errors, 
             503 for connection issues, 500 for other database errors
     """
     try:
