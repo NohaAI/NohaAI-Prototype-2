@@ -3,13 +3,13 @@
 
 import uvicorn
 from fastapi import FastAPI
-import src.api as api
+import src.api.endpoints as endpoints
 
 # Initialize the FastAPI application
 app = FastAPI()
 
 # Include the router
-app.include_router(api.router)
+app.include_router(endpoints.router)
 
 def main():
     """Run the FastAPI application."""
