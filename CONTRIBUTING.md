@@ -1,5 +1,4 @@
-[01Jan2024]
-## Future Improvements for the existing project structure
+## Future Improvements for the existing project structure [01Jan2024]
 
 ### 1. **Organize the Directory Structure**
 
