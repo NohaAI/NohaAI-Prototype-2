@@ -46,8 +46,8 @@ async def generate_subcriteria(input_request: GenerateSubCriteriaRequest) -> Dic
         raise Exception(f"Input object missing required attributes: {attr_err}") from attr_err
 
     # Fetch existing sub-criteria from the database
-    subcriteria = await fetch_subcriteria(question_id)
-    if subcriteria:
+    subcriteria_payload = await fetch_subcriteria(question_id)
+    if subcriteria_payload:
         logger.info("Sub-criteria found in the database for question ID: %s", question_id)
     # If no sub-criteria found, generate them using LLM
     else:
@@ -57,11 +57,12 @@ async def generate_subcriteria(input_request: GenerateSubCriteriaRequest) -> Dic
         logger.info("Retrieved criteria for question type ID: %s", question_type_id)
 
         try:
+            llm_inputs_dict = {'question': question, 'criteria': criteria }
             subcriteria_prompt = make_prompt_from_template()
             llm_model = llm_service.get_openai_model(model = "gpt-4o-mini")
             subcriteria_generator_chain = (subcriteria_prompt | llm_model)
-            subcriteria = await subcriteria_generator_chain.ainvoke({'question': question, 'criteria': criteria })
-            subcriteria = json.loads(utils.clean_response(subcriteria.content))
+            subcriteria_payload = await subcriteria_generator_chain.ainvoke(llm_inputs_dict)
+            subcriteria_payload = json.loads(utils.clean_response(subcriteria_payload.content))
             logger.info("")
 
         except (json.JSONDecodeError, AttributeError) as parse_err:
@@ -70,11 +71,11 @@ async def generate_subcriteria(input_request: GenerateSubCriteriaRequest) -> Dic
         except Exception as ex:
             logger.critical("Chain invocation failed: %s", ex)
             raise ex
-        await batch_insert_subcriteria(question_id, subcriteria)
+        await batch_insert_subcriteria(question_id, subcriteria_payload)
         logger.info("Sub-criteria inserted into the database for question ID: %s", question_id)
 
 
-    return subcriteria
+    return subcriteria_payload
 
 
 

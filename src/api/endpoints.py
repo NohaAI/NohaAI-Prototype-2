@@ -65,9 +65,9 @@ async def generate_subcriteria(input_request: GenerateSubCriteriaRequest) -> JSO
             - httpStatusCode: HTTP status code.
     """
     try:
-        subcriteria = await subcriteria_generator.generate_subcriteria(input_request)
-        logger.info("Successfully generated sub-criteria: %s", subcriteria)
-        return decorate_response(True, subcriteria)
+        subcriteria_payload = await subcriteria_generator.generate_subcriteria(input_request)
+        logger.info("Successfully generated sub-criteria: %s", subcriteria_payload)
+        return decorate_response(True, subcriteria_payload)
 
     except Exception as ex:
         logger.critical("Failed to generate sub-criteria: %s", ex)
