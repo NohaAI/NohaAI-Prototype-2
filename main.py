@@ -13,7 +13,7 @@ app.include_router(endpoints.router)
 
 def main():
     """Run the FastAPI application."""
-    uvicorn.run(app, host="127.0.0.1", port=9090)
+    uvicorn.run(app, host="127.0.0.1", port=8000)
 
 if __name__ == "__main__":
     main()
