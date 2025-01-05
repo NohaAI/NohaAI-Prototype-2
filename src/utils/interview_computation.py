@@ -36,22 +36,21 @@ def compute_turn_score_interim(turn_assessment_payload = None):
             
             computed_payload[key] = [weight, score, norm_score_subcriterion]
 
-            # grouping into three for populating evaluation_results and calculating scores at criterion level
             if counter % 3 == 0:
                 subcrit_dict = {}
                 subcrit_dict[key] = turn_assessment_payload[key][1]
                 evaluation_results_list.append(subcrit_dict)
-                if counter > 0:
-                    norm_score_criterion = round(norm_score_criterion, 4)
-                    norm_score_list_criterion.append(norm_score_criterion)
-                norm_score_criterion = norm_score_subcriterion
+                norm_score_criterion = round(norm_score_subcriterion, 4)
+                counter = counter + 1
+            elif counter % 3 == 1:
+                norm_score_criterion += round(norm_score_subcriterion, 4)
                 counter = counter + 1
             else:
                 evaluation_results_list[-1][key]=turn_assessment_payload[key][1]
-                norm_score_criterion += norm_score_subcriterion
-                # norm_score_list_criterion[-1] += norm_score_subcriterion
+                norm_score_criterion += round(norm_score_subcriterion, 4)
+                norm_score_list_criterion.append(round(norm_score_criterion, 4))
                 counter = counter + 1
-        
+
         final_score = math.fsum(norm_score_list_criterion)
         
         print("weight_base", weight_base)
