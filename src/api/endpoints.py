@@ -19,13 +19,15 @@ from src.services.workflows.candidate_greeter import generate_greeting
 from src.services.workflows import answer_evaluator
 from src.services.workflows.solution_hint_generator import generate_hint
 from src.services.workflows import hint_generator
-from src.services.workflows.simulate_candidate_response import simulate_candidate_response
+from test.simulate_candidate_response import simulate_candidate_response
 from src.dao.chat_history import get_chat_history
 from src.dao.interview import get_interview_metadata
 from src.dao.chat_history import add_chat_history
 from src.dao.question import get_initial_question_metadata
 from src.dao.chat_history import delete_chat_history
+from src.dao.question import add_question
 # Initialize logger
+
 logger = get_logger(__name__)
 
 # Initialize the router
@@ -65,9 +67,9 @@ async def generate_subcriteria(input_request: GenerateSubCriteriaRequest) -> JSO
             - httpStatusCode: HTTP status code.
     """
     try:
-        subcriteria_payload = await subcriteria_generator.generate_subcriteria(input_request)
-        logger.info("Successfully generated sub-criteria: %s", subcriteria_payload)
-        return decorate_response(True, subcriteria_payload)
+        subcriteria = await subcriteria_generator.generate_subcriteria(input_request)
+        logger.info("Successfully generated sub-criteria: %s", subcriteria)
+        return decorate_response(True, subcriteria)
 
     except Exception as ex:
         logger.critical("Failed to generate sub-criteria: %s", ex)
@@ -136,6 +138,24 @@ async def generate_solution_hint(input_request: GenerateHintRequest) -> JSONResp
     except Exception as ex:
         logger.critical("Failed to generate hint: %s", ex)
         return decorate_response(False,"Failed to generate hint",status.HTTP_500_INTERNAL_SERVER_ERROR)
+#add question complexity
+@router.post("/onboard_question",status_code=status.HTTP_200_OK)
+async def onboard_question(question,question_type_id):
+    question_metadata=await add_question(question,question_type_id)
+    question_id=question_metadata['question_id']
+    question=question_metadata['question']
+    question_type_id=question_metadata['question_type_id']
+    subcriteria_payload={
+        'question_id': question_id,
+        'question': question,
+        'question_type_id': question_type_id
+    }
+    subcriteria_request=GenerateSubCriteriaRequest(**subcriteria_payload)
+    subcriteria=await generate_subcriteria(subcriteria_request)
+    return {
+        "question_metadata": question_metadata,
+        "subcriteria": subcriteria
+    }
 
 #condcut interview
 @router.post("/conduct_interview", status_code=status.HTTP_200_OK)
@@ -174,9 +194,7 @@ async def conduct_interview(interview_id) :
     initial_question_metadata=await get_initial_question_metadata()
     initial_question=initial_question_metadata['question']
 
-    subcriteria_request=GenerateSubCriteriaRequest(**initial_question_metadata)
-
-    subcriteria=await generate_subcriteria(subcriteria_request)
+    
     ##################################################################################################
     # subcriteria_weight_list_norm=[]
     # for key,value in subcriteria.items():

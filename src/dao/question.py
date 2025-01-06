@@ -85,7 +85,7 @@ async def get_initial_question_metadata():
         raise e
 
 @app.post("/question-service", response_model=QuestionResponse)
-async def add_question(question: QuestionRequest):
+async def add_question(question: str, question_type_id: int):
     """
     Create a new question.
     
@@ -100,7 +100,10 @@ async def add_question(question: QuestionRequest):
                       500 for other errors
     """
     try:
-        with get_db_connection() as conn:      
+        with get_db_connection() as conn:     
+            question_type_query="SELECT question_type FROM question_type WHERE question_type_id = %s"
+            question_type=execute_query(conn,question_type_query,(question_type_id,))[0]
+
             insert_query = """
                 INSERT INTO Question (question, question_type, question_type_id)
                 VALUES (%s, %s, %s)
@@ -109,7 +112,7 @@ async def add_question(question: QuestionRequest):
             new_question = execute_query(
                 conn, 
                 insert_query, 
-                (question.question, question.question_type, 1), 
+                (question, question_type, question_type_id), 
                 commit=True
             )
             
