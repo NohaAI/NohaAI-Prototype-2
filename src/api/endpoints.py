@@ -216,18 +216,24 @@ async def conduct_interview(interview_id) :
     #logger.info(f"ANSWER EVALUATION PAYLOAD : {answer_evaluation_payload}")
     answer_evaluation_request=EvaluateAnswerRequest(**answer_evaluation_payload)
     answer_evaluation=await evaluate_answer(answer_evaluation_request)
-    logger.info("################################################################################")
-    logger.info(f"ANSWER EVALUATION PAYLOAD {answer_evaluation}")
-    logger.info(f"ANSWER EVALUATION {answer_evaluation['criteria_scores']}")
-    logger.info(f"ANSWER EVALUATION {answer_evaluation['final_score']}")
     chat_history=await get_chat_history(interview_id)
-    logger.info(f"CHAT_HISTORY : {chat_history}")
-
     hint_response=await generate_hint(chat_history,answer_evaluation)
     hint_response_body = hint_response.body.decode()
     hint_response_data = json.loads(hint_response_body)
-    
     hint = hint_response_data["message"]
-    logger.info(f"HINT : {hint}")
+    
+    logger.info("\n################################################################################")  
+    logger.info("\n######################################## CHAT HISTORY ####################")
+    for dict_el in chat_history:
+        for key, value in dict_el.items():
+            logger.info(f"\t[{key}]: {value}")
+    logger.info("\n######################################### ASSESSMENT ####################")
+    for dict_el in answer_evaluation["evaluation_results"]:
+        for key, value in dict_el.items():
+            logger.info(f"\t{key}: [{value}]")
+    logger.info(f"\n########################## CRITERIA LEVEL SCORES: {answer_evaluation['criteria_scores']}")
+    logger.info(f"\n############################### FINAL SCORE: {answer_evaluation['final_score']}")
+    logger.info(f"\n########################### HINT: {hint}")
+    
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=9030)
