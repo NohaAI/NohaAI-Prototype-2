@@ -24,7 +24,7 @@ def decorate_response(succeeded: bool, message: Any, status_code: int = status.H
 
 
 def clean_response(response):
-    cleaned_subcriteria = (response.replace("```python", "").replace("```'", "").replace("\n", "").replace("'", ""))
+    cleaned_subcriteria = (response.replace("```python", "").replace("```'", "").replace("\n", "").replace("'", "").replace("```", "").replace("json", ""))
     return cleaned_subcriteria
 
 

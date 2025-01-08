@@ -85,7 +85,7 @@ async def get_initial_question_metadata():
         raise e
 
 @app.post("/question-service", response_model=QuestionResponse)
-async def add_question(question: str, question_type_id: int):
+async def add_question(question: str, question_type_id: int, complexity: int):
     """
     Create a new question.
     
@@ -105,14 +105,14 @@ async def add_question(question: str, question_type_id: int):
             question_type=execute_query(conn,question_type_query,(question_type_id,))[0]
 
             insert_query = """
-                INSERT INTO Question (question, question_type, question_type_id)
-                VALUES (%s, %s, %s)
-                RETURNING question_id, question, question_type, question_type_id
+                INSERT INTO Question (question, question_type, question_type_id,complexity)
+                VALUES (%s, %s, %s, %s)
+                RETURNING question_id, question, question_type, question_type_id,complexity
             """
             new_question = execute_query(
                 conn, 
                 insert_query, 
-                (question, question_type, question_type_id), 
+                (question, question_type, question_type_id,complexity,), 
                 commit=True
             )
             

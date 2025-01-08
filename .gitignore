@@ -1,6 +1,11 @@
-*.env
-.venv
-_personal
+# ignore ALL files in ANY directory named temp
+temp/
+_personal/
+# ignore ALL files with the following extension
+*.log				
+*.env				
+*.venv
+*.ini
+##### specific patterns to be updated here 							
 *__pycache__*
-*.log
 pyvenv.cfg

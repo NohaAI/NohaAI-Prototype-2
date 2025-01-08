@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 from src.schemas.endpoints.schema import GenerateSubCriteriaRequest,EvaluateAnswerRequest, GenerateHintRequest
 from src.services.workflows import subcriteria_generator,answer_evaluator
 from src.utils.logger import get_logger
+from typing import List
 from src.utils.response_helper import decorate_response
 from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
 from src.dao.question import get_question_metadata
@@ -105,9 +106,9 @@ async def evaluate_answer(input_request: EvaluateAnswerRequest) -> JSONResponse:
 
 @router.post("/generate_hint")
 # remodel takes input chat_history and answer_evaluation
-async def generate_hint(chat_history,answer_evaluation):
+async def generate_hint(chat_history,answer_evaluation,hint_count):
     try:
-        hint = await hint_generator.generate_hint(chat_history,answer_evaluation)
+        hint = await hint_generator.generate_hint(chat_history,answer_evaluation,hint_count)
         return decorate_response(True,hint)
     except Exception as e:
         logger.critical("Failed to generate hint: %s", e)
@@ -140,8 +141,8 @@ async def generate_solution_hint(input_request: GenerateHintRequest) -> JSONResp
         return decorate_response(False,"Failed to generate hint",status.HTTP_500_INTERNAL_SERVER_ERROR)
 #add question complexity
 @router.post("/onboard_question",status_code=status.HTTP_200_OK)
-async def onboard_question(question,question_type_id):
-    question_metadata=await add_question(question,question_type_id)
+async def onboard_question(question: str, question_type_id: int ,complexity: int):
+    question_metadata=await add_question(question,question_type_id,complexity)
     question_id=question_metadata['question_id']
     question=question_metadata['question']
     question_type_id=question_metadata['question_type_id']
@@ -157,9 +158,50 @@ async def onboard_question(question,question_type_id):
         "subcriteria": subcriteria
     }
 
+@router.post("/onboard_multiple_questions", status_code=status.HTTP_200_OK)
+async def onboard_multiple_questions(questions: List[dict]):
+    """
+    Onboard multiple questions in a single request.
+
+    Args:
+        questions: A list of dictionaries, where each dictionary contains:
+            - question: The question text.
+            - question_type_id: The type ID of the question.
+            - complexity: The complexity level of the question.
+
+    Returns:
+        JSONResponse containing:
+            - succeeded: Operation success status.
+            - message: List of onboarded questions or error message.
+            - httpStatusCode: HTTP status code.
+    """
+    try:
+        results = []
+        for question_data in questions:
+            question = question_data.get("question")
+            question_type_id = question_data.get("question_type_id")
+            complexity = question_data.get("complexity")
+            
+            # if not all([question, question_type_id, complexity]):
+            #     raise ValueError("Missing required fields in one or more questions.")
+            
+            result = await onboard_question(question, question_type_id, complexity)
+            results.append(result)
+        
+        logger.info("Successfully onboarded multiple questions")
+        return decorate_response(True, results)
+    
+    except Exception as ex:
+        logger.critical("Failed to onboard multiple questions: %s", ex)
+        return decorate_response(
+            False,
+            "Failed to onboard multiple questions",
+            status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 #condcut interview
 @router.post("/conduct_interview", status_code=status.HTTP_200_OK)
 async def conduct_interview(interview_id) :
+    hint_count=[0,0,0,0,0]
     # if len(chat_history) == 0: call greeter  
     # use dao calls for interview_question for question_id, interview for user_id/name, chat_history for turn_input/output
     # call greeting and generate greeting
@@ -217,7 +259,8 @@ async def conduct_interview(interview_id) :
     answer_evaluation_request=EvaluateAnswerRequest(**answer_evaluation_payload)
     answer_evaluation=await evaluate_answer(answer_evaluation_request)
     chat_history=await get_chat_history(interview_id)
-    hint_response=await generate_hint(chat_history,answer_evaluation)
+    logger.info(f"HINT GENERATOR PAYLOAD : {chat_history} {answer_evaluation} {hint_count}")
+    hint_response=await generate_hint(chat_history,answer_evaluation,hint_count)
     hint_response_body = hint_response.body.decode()
     hint_response_data = json.loads(hint_response_body)
     hint = hint_response_data["message"]

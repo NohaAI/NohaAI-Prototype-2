@@ -12,7 +12,6 @@ import json
 from src.dao.exceptions import QuestionEvaluationNotFoundException,QuestionNotFoundException,InterviewNotFoundException
 from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
 from src.schemas.dao.schema import QuestionEvaluationUpdateRequest,QuestionEvaluationResponse,QuestionEvaluationRequest
-
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -23,8 +22,8 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 
 # API endpoint to fetch question evaluation details by ID
-@app.get("/question_evaluation/{question_evaluation_id}", response_model=QuestionEvaluationResponse)
-async def get_question_evaluation(question_evaluation_id: int):
+@app.get("/question_evaluation/{question_evaluation_id}")
+async def get_question_evaluation(interview_id: int,question_id: int):
     """
     Retrieves data of question evaluation table.
 
@@ -41,21 +40,33 @@ async def get_question_evaluation(question_evaluation_id: int):
     try:
         with get_db_connection() as conn:
             try:
-                query = """
-                    SELECT question_evaluation_id, interview_id, question_id, score, question_evaluation_json
-                    FROM Interview_Question_Evaluation
-                    WHERE question_evaluation_id = %s
+                # Validate interview existence
+                interview_check_query = """
+                    SELECT interview_id FROM Interview 
+                    WHERE interview_id = %s
                 """
-                result = execute_query(conn, query, (question_evaluation_id,), fetch_one=True)
+                interview_exists = execute_query(conn, interview_check_query, (interview_id,), fetch_one=True)
+                if not interview_exists:
+                    raise InterviewNotFoundException(interview_id)
+                
+                # Validate question existence
+                question_check_query = """
+                    SELECT question_id FROM Question 
+                    WHERE question_id = %s
+                """
+                question_exists = execute_query(conn, question_check_query, (question_id,), fetch_one=True)
+                if not question_exists:
+                    raise QuestionNotFoundException(question_id)
+                query = """
+                    SELECT question_evaluation_json
+                    FROM Interview_Question_Evaluation
+                    WHERE interview_id = %s and question_id = %s
+                """
+                result = execute_query(conn, query, (interview_id,question_id,), fetch_one=False)
+                logger.info(f"RESULTS FROM INTERVIEW QUESTION EVALUATION {result}")
                 if not result:
                     raise QuestionEvaluationNotFoundException(question_evaluation_id)
-                return QuestionEvaluationResponse(
-                    question_evaluation_id=result[0],
-                    interview_id=result[1],
-                    question_id=result[2],
-                    score=result[3],
-                    question_evaluation_json=result[4]
-                )
+                return result
             except Exception as e:
                 logger.error(f"Error retrieving evaluation: {e}")
                 raise
@@ -140,7 +151,7 @@ async def update_question_evaluation(question_evaluation_id: int,evaluation_requ
     
 # API endpoint to add a new question evaluation
 @app.post("/question_evaluation", response_model=QuestionEvaluationResponse)
-async def add_question_evaluation(interview_id: int, question_id: int, score: float, evaluation_results, accumulated_results):
+async def add_question_evaluation(interview_id: int, question_id: int, score: float, evaluation_results: str):
     """
     Add a new question evaluation to the database.
     
@@ -160,10 +171,6 @@ async def add_question_evaluation(interview_id: int, question_id: int, score: fl
     try:
         with get_db_connection() as conn:
             try:
-                question_evaluation_json = json.dumps({
-                    "evaluation_results": evaluation_results,
-                    "accumulated_results_all_categories": accumulated_results,
-                })
                 # Validate interview existence
                 interview_check_query = """
                     SELECT interview_id FROM Interview 
@@ -171,7 +178,6 @@ async def add_question_evaluation(interview_id: int, question_id: int, score: fl
                 """
                 interview_exists = execute_query(conn, interview_check_query, (interview_id,), fetch_one=True)
                 if not interview_exists:
-                    logger.error(f"Interview")
                     raise InterviewNotFoundException(interview_id)
                 
                 # Validate question existence
@@ -196,7 +202,7 @@ async def add_question_evaluation(interview_id: int, question_id: int, score: fl
                 result = execute_query(
                     conn,
                     insert_query,
-                    (interview_id, question_id, score, question_evaluation_json),
+                    (interview_id, question_id, score, evaluation_results),
                     fetch_one=True,
                     commit=True
                 )
