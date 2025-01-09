@@ -1,5 +1,5 @@
 # Schema classes for endpoints
-from pydantic import BaseModel
+from pydantic import Field,BaseModel
 from typing import List
 
 
@@ -22,7 +22,7 @@ class EvaluateAnswerRequest(BaseModel):
     question: str
     interview_id: int
     answer: str
-
+    eval_distribution: List[int] = Field(default_factory=list) #[0,0,0,0,0,0,0]
 
 class GenerateHintRequest(BaseModel):
     question : str

@@ -33,15 +33,16 @@ async def evaluate_answer(input_request):
             question = input_request.question
             interview_id = input_request.interview_id
             candidate_answer = input_request.answer
+            eval_distribution = input_request.eval_distribution
         except AttributeError as attr_err:
             logger.critical(f"Input object missing required attributes: {attr_err}")
             raise AttributeError(f"Input object missing required attributes: {attr_err}") from attr_err
 
         evaluation_criteria = await dao.fetch_subcriteria(question_id)
         chat_history = await dao.get_chat_history(interview_id)
-
-        chat_history = []
-        chat_history.append({"question": question, "answer": candidate_answer})
+        if len(chat_history)<2:
+            chat_history = []
+            chat_history.append({"question": question, "answer": candidate_answer})
 
         llm_inputs = []
         subcriteria_weights = []
@@ -51,7 +52,7 @@ async def evaluate_answer(input_request):
         assessment_payload_ready_for_computation = {}
 
         for criterion in evaluation_criteria.keys():
-            llm_inputs.append({"question": question, "answer": candidate_answer, "chat_history": chat_history, "subcriteria": evaluation_criteria[criterion]})
+            llm_inputs.append({"question": question, "answer": candidate_answer, "chat_history": chat_history, "subcriteria": evaluation_criteria[criterion],"eval_distribution":eval_distribution})
             subcriteria_weights.append([int(subcriterion['weight']) for subcriterion in evaluation_criteria[criterion]])
             ### rmsbegin: added code here to populate the assessment_payload
             subcriterion_question_weight_list = evaluation_criteria[criterion]
@@ -65,9 +66,16 @@ async def evaluate_answer(input_request):
         evaluation_llm = llm.get_openai_model(model = "gpt-4o-mini")
         evaluation_chain = evaluation_prompt | evaluation_llm
         llm_response = await evaluation_chain.abatch(llm_inputs)
-
-        for criterion_result, criterion_weights in zip(llm_response, subcriteria_weights):
-            evaluation_results.append(json.loads(criterion_result.content))
+        logger.info(f"LLM RESPONSE FOR ANSWER EVALUATOR : {llm_response}")
+        
+        for criterion_result, criterion_weights in zip(llm_response, subcriteria_weights):     
+            if "json" in criterion_result.content:
+                str1=criterion_result.content.replace("```json\n", "")
+                str2=str1.replace("```", "")
+                evaluation_results.append(json.loads(str2))
+            else:
+                evaluation_results.append(json.loads(criterion_result.content))
+            #evaluation_results.append(json.loads(criterion_result.content))
             # subcriteria_score = (json.loads(criterion_result.content)).values()
             # criteria_scores.append(score_subcriteria(criterion_weights, subcriteria_score))
            

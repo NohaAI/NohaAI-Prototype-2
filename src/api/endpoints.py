@@ -24,7 +24,7 @@ from test.simulate_candidate_response import simulate_candidate_response
 from src.dao.chat_history import get_chat_history
 from src.dao.interview import get_interview_metadata
 from src.dao.chat_history import add_chat_history
-from src.dao.question import get_initial_question_metadata
+from src.dao.question import get_initial_question_metadata,get_question_metadata
 from src.dao.chat_history import delete_chat_history
 from src.dao.question import add_question
 # Initialize logger
@@ -202,6 +202,7 @@ async def onboard_multiple_questions(questions: List[dict]):
 @router.post("/conduct_interview", status_code=status.HTTP_200_OK)
 async def conduct_interview(interview_id) :
     hint_count=[0,0,0,0,0]
+    initial_eval_distribution=[0,0,0,0,0,0,0]
     # if len(chat_history) == 0: call greeter  
     # use dao calls for interview_question for question_id, interview for user_id/name, chat_history for turn_input/output
     # call greeting and generate greeting
@@ -233,7 +234,8 @@ async def conduct_interview(interview_id) :
         #check whether the candidate is readfy for interview by a logic
         added_chat_history_data=await add_chat_history(interview_id, question_id, greeting, simulated_candidate_greeting_response,'greeting')
 
-    initial_question_metadata=await get_initial_question_metadata()
+    #initial_question_metadata=await get_initial_question_metadata()
+    initial_question_metadata=await get_question_metadata(10)
     initial_question=initial_question_metadata['question']
 
     
@@ -246,37 +248,54 @@ async def conduct_interview(interview_id) :
     # logger.info(f"SUBCRITERIA NORM {subcriteria_weight_list_norm}")
     ##################################################################################################
     
-    candidate_response=await simulate_candidate_response(initial_question_metadata['question_id'])
+    #candidate_response=await simulate_candidate_response(initial_question_metadata['question_id'])
+    candidate_response=input(f"Answer for question ,  : ")
     added_chat_history=await add_chat_history(interview_id,initial_question_metadata['question_id'],initial_question,candidate_response,'question')
     
     answer_evaluation_payload={
         "question_id":initial_question_metadata['question_id'],
         "question":initial_question,
         "interview_id":interview_id,
-        "answer":candidate_response
+        "answer":candidate_response,
+        "eval_distribution":initial_eval_distribution
     }
     #logger.info(f"ANSWER EVALUATION PAYLOAD : {answer_evaluation_payload}")
     answer_evaluation_request=EvaluateAnswerRequest(**answer_evaluation_payload)
     answer_evaluation=await evaluate_answer(answer_evaluation_request)
     chat_history=await get_chat_history(interview_id)
     logger.info(f"HINT GENERATOR PAYLOAD : {chat_history} {answer_evaluation} {hint_count}")
-    hint_response=await generate_hint(chat_history,answer_evaluation,hint_count)
-    hint_response_body = hint_response.body.decode()
-    hint_response_data = json.loads(hint_response_body)
-    hint = hint_response_data["message"]
-    
-    logger.info("\n################################################################################")  
-    logger.info("\n######################################## CHAT HISTORY ####################")
-    for dict_el in chat_history:
-        for key, value in dict_el.items():
-            logger.info(f"\t[{key}]: {value}")
-    logger.info("\n######################################### ASSESSMENT ####################")
-    for dict_el in answer_evaluation["evaluation_results"]:
-        for key, value in dict_el.items():
-            logger.info(f"\t{key}: [{value}]")
-    logger.info(f"\n########################## CRITERIA LEVEL SCORES: {answer_evaluation['criteria_scores']}")
-    logger.info(f"\n############################### FINAL SCORE: {answer_evaluation['final_score']}")
-    logger.info(f"\n########################### HINT: {hint}")
-    
+    while(answer_evaluation['final_score']<9.5):
+        hint_response=await generate_hint(chat_history,answer_evaluation,hint_count)
+        hint_response_body = hint_response.body.decode()
+        hint_response_data = json.loads(hint_response_body)
+        hint = hint_response_data["message"]
+        
+        logger.info("\n################################################################################")  
+        logger.info("\n######################################## CHAT HISTORY ####################")
+        for dict_el in chat_history:
+            for key, value in dict_el.items():
+                logger.info(f"\t[{key}]: {value}")
+        logger.info("\n######################################### ASSESSMENT ####################")
+        for dict_el in answer_evaluation["evaluation_results"]:
+            for key, value in dict_el.items():
+                logger.info(f"\t{key}: [{value}]")
+        logger.info(f"\n########################## CRITERIA LEVEL SCORES: {answer_evaluation['criteria_scores']}")
+        logger.info(f"\n############################### FINAL SCORE: {answer_evaluation['final_score']}")
+        logger.info(f"\n########################### HINT: {hint}")
+        #candidate_response=await simulate_candidate_response(initial_question_metadata['question_id'])
+        candidate_response=input("Enter your answer : " )
+        added_chat_history=await add_chat_history(interview_id,initial_question_metadata['question_id'],hint,candidate_response,'hint_question')
+        answer_evaluation_payload={
+        "question_id":initial_question_metadata['question_id'],
+        "question":initial_question,
+        "interview_id":interview_id,
+        "answer":candidate_response,
+        "eval_distribution":initial_eval_distribution
+    }
+        #logger.info(f"ANSWER EVALUATION PAYLOAD : {answer_evaluation_payload}")
+        answer_evaluation_request=EvaluateAnswerRequest(**answer_evaluation_payload)
+        answer_evaluation=await evaluate_answer(answer_evaluation_request)
+        chat_history=await get_chat_history(interview_id)
+        logger.info(f"\n############################### UPDATED SCORE {len(chat_history)}: {answer_evaluation['final_score']} ")
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=9030)
