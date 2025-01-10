@@ -249,7 +249,7 @@ async def conduct_interview(interview_id) :
     ##################################################################################################
     
     #candidate_response=await simulate_candidate_response(initial_question_metadata['question_id'])
-    candidate_response=input(f"Answer for question ,  : ")
+    candidate_response=input(f"Answer for initial question : ")
     added_chat_history=await add_chat_history(interview_id,initial_question_metadata['question_id'],initial_question,candidate_response,'question')
     
     answer_evaluation_payload={
@@ -264,7 +264,7 @@ async def conduct_interview(interview_id) :
     answer_evaluation=await evaluate_answer(answer_evaluation_request)
     chat_history=await get_chat_history(interview_id)
     logger.info(f"HINT GENERATOR PAYLOAD : {chat_history} {answer_evaluation} {hint_count}")
-    while(answer_evaluation['final_score']<9.5):
+    while(answer_evaluation['final_score'] < 9.5):
         hint_response=await generate_hint(chat_history,answer_evaluation,hint_count)
         hint_response_body = hint_response.body.decode()
         hint_response_data = json.loads(hint_response_body)

@@ -4,14 +4,14 @@ including calculating scores using weighted averages, and storing results in a d
 """
 
 import json
-from src import utils
-from  src.utils import interview_computation
+from src.utils import logger, interview_computation
 from src.services.llm.prompts import answer_evaluator_prompt
 import src.services.llm as llm
-from src import dao 
+from src.dao import subcriterion
+from src.dao import chat_history as chat_hist
 
 # Initialize logger
-logger = utils.get_logger(__name__)
+logger = logger.get_logger(__name__)
 
 async def evaluate_answer(input_request):
     """
@@ -38,8 +38,8 @@ async def evaluate_answer(input_request):
             logger.critical(f"Input object missing required attributes: {attr_err}")
             raise AttributeError(f"Input object missing required attributes: {attr_err}") from attr_err
 
-        evaluation_criteria = await dao.fetch_subcriteria(question_id)
-        chat_history = await dao.get_chat_history(interview_id)
+        evaluation_criteria = await subcriterion.fetch_subcriteria(question_id)
+        chat_history = await chat_hist.get_chat_history(interview_id)
         if len(chat_history)<2:
             chat_history = []
             chat_history.append({"question": question, "answer": candidate_answer})
@@ -88,7 +88,7 @@ async def evaluate_answer(input_request):
         # total_score_count = sum(criteria_scores)
         # final_score = round(total_score_count / len(evaluation_criteria.keys()), 2)
 
-        # print(assessment_payload_ready_for_computation)
+        print(assessment_payload_ready_for_computation)
         return (interview_computation.compute_turn_score_interim(assessment_payload_ready_for_computation))
 
         

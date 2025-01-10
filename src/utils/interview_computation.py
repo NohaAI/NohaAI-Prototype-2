@@ -43,10 +43,15 @@ def compute_turn_score_interim(turn_assessment_payload = None):
                 norm_score_criterion = round(norm_score_subcriterion, 4)
                 counter = counter + 1
             elif counter % 3 == 1:
+                subcrit_dict = {}
+                subcrit_dict[key] = turn_assessment_payload[key][1]
+                evaluation_results_list.append(subcrit_dict)
                 norm_score_criterion += round(norm_score_subcriterion, 4)
                 counter = counter + 1
             else:
-                evaluation_results_list[-1][key]=turn_assessment_payload[key][1]
+                subcrit_dict = {}
+                subcrit_dict[key] = turn_assessment_payload[key][1]
+                evaluation_results_list.append(subcrit_dict)
                 norm_score_criterion += round(norm_score_subcriterion, 4)
                 norm_score_list_criterion.append(round(norm_score_criterion, 4))
                 counter = counter + 1
