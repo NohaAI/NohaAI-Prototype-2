@@ -21,6 +21,7 @@ langchain==0.3.8
 langchain-openai==0.2.9
 langchain-text-splitters==0.3.2
 langsmith==0.1.146
+matplotlib==3.10.0
 multidict==6.1.0
 numpy==1.26.4
 openai==1.55.1
