@@ -18,8 +18,7 @@ from src.dao.question import get_question_metadata
 from src.dao.exceptions import QuestionNotFoundException,InterviewNotFoundException
 from src.services.workflows.candidate_greeter import generate_greeting
 from src.services.workflows import answer_evaluator
-from src.services.workflows.solution_hint_generator import generate_hint
-from src.services.workflows import hint_generator
+from src.services.workflows.hint_generator import generate_hint
 from test.simulate_candidate_response import simulate_candidate_response
 from src.dao.chat_history import get_chat_history
 from src.dao.interview import get_interview_metadata
@@ -108,7 +107,7 @@ async def evaluate_answer(input_request: EvaluateAnswerRequest) -> JSONResponse:
 # remodel takes input chat_history and answer_evaluation
 async def generate_hint(chat_history,answer_evaluation,hint_count):
     try:
-        hint = await hint_generator.generate_hint(chat_history,answer_evaluation,hint_count)
+        hint = await generate_hint(chat_history,answer_evaluation,hint_count)
         return decorate_response(True,hint)
     except Exception as e:
         logger.critical("Failed to generate hint: %s", e)
@@ -118,27 +117,28 @@ async def generate_hint(chat_history,answer_evaluation,hint_count):
             status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-@router.post("/generate_solution_hint", status_code=status.HTTP_200_OK)
-async def generate_solution_hint(input_request: GenerateHintRequest) -> JSONResponse:
-    """Evaluates an answer based on provided criteria.
+# @router.post("/generate_solution_hint", status_code=status.HTTP_200_OK)
+# async def generate_solution_hint(input_request: GenerateHintRequest) -> JSONResponse:
+#     """Evaluates an answer based on provided criteria.
 
-    Args:
-        evaluation_request_input: Request object containing evaluation details
+#     Args:
+#         evaluation_request_input: Request object containing evaluation details
 
-    Returns:
-        JSONResponse containing:
-            - succeeded: Operation success status
-            - message: Evaluation results or error message
-            - httpStatusCode: HTTP status code
-    """
-    try:
-        response = await generate_hint(input_request)
-        logger.info("Successfully generated hint")
-        return decorate_response(True, response)
+#     Returns:
+#         JSONResponse containing:
+#             - succeeded: Operation success status
+#             - message: Evaluation results or error message
+#             - httpStatusCode: HTTP status code
+#     """
+#     try:
+#         response = await generate_hint(input_request)
+#         logger.info("Successfully generated hint")
+#         return decorate_response(True, response)
     
-    except Exception as ex:
-        logger.critical("Failed to generate hint: %s", ex)
-        return decorate_response(False,"Failed to generate hint",status.HTTP_500_INTERNAL_SERVER_ERROR)
+#     except Exception as ex:
+#         logger.critical("Failed to generate hint: %s", ex)
+#         return decorate_response(False,"Failed to generate hint",status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
 #add question complexity
 @router.post("/onboard_question",status_code=status.HTTP_200_OK)
 async def onboard_question(question: str, question_type_id: int ,complexity: int):
@@ -201,6 +201,9 @@ async def onboard_multiple_questions(questions: List[dict]):
 #condcut interview
 @router.post("/conduct_interview", status_code=status.HTTP_200_OK)
 async def conduct_interview(interview_id) :
+    return interview_id
+
+async def conduct_interview_orig(interview_id) :
     hint_count=[0,0,0,0,0]
     initial_eval_distribution=[0,0,0,0,0,0,0]
     # if len(chat_history) == 0: call greeter  
