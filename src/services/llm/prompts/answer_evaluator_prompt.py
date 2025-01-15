@@ -131,9 +131,14 @@ def make_prompt_from_template():
     The response must be in strict JSON format as given in the example below.
     Example:
     {{
+        "Has the candidate considered the scenario of an empty set?": "2",
+        "Does the solution handle cases where the target sum exceeds the sum of all elements in the set?": "2",
+        "Has the candidate explained the scenario where no valid subset exists?": "1"
+    }},
+    {{
         "Is a string sufficient to solve the problem, or is another data structure required?": "3",
-        "Does the candidate consider the use of a stack or two-pointer technique?","9",
-        "Has the candidate evaluated the need for auxiliary storage?": "1"
+        "Does the solution handle cases where the target sum exceeds the sum of all elements in the set?": "2"
+        "Is there consideration for the smallest possible target sum that can be achieved?": "3"
     }}
     Response:
   """

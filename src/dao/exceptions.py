@@ -91,3 +91,15 @@ class OrganizationNotFoundException(Exception):
         self.organization_id = organization_id
         self.message = f"No organization found with organization_id: {self.organization_id}"
         super().__init__(self.message)
+
+class DatabaseConnectionError(Exception):
+    """Raised when database connection fails"""
+    pass
+
+class DatabaseQueryError(Exception):
+    """Raised when query execution fails"""
+    pass
+
+class DatabaseOperationError(Exception):
+    """Raised for general database operations failures"""
+    pass

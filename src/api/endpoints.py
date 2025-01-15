@@ -200,8 +200,8 @@ async def onboard_multiple_questions(questions: List[dict]):
         )
 #condcut interview
 @router.post("/conduct_interview", status_code=status.HTTP_200_OK)
-async def conduct_interview(interview_id) :
-    return interview_id
+# async def conduct_interview(interview_id) :
+#     return interview_id
 
 async def conduct_interview_orig(interview_id) :
     hint_count=[0,0,0,0,0]

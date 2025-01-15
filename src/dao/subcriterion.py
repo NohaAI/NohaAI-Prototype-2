@@ -73,6 +73,7 @@ async def fetch_subcriteria(question_id: int):
                 FROM Subcriterion
                 JOIN Criterion ON Criterion.criterion_id = Subcriterion.criterion_id
                 WHERE Subcriterion.question_id = %s
+                ORDER BY Subcriterion_id
             """
             results = execute_query(conn, query, (question_id,), fetch_one=False)
             

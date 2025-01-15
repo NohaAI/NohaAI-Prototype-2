@@ -12,7 +12,7 @@ from src.dao import chat_history as chat_hist
 
 # Initialize logger
 logger = logger.get_logger(__name__)
-
+#We are not instructing our LLM to score the candidate on recent hint
 async def evaluate_answer(input_request):
     """
     Orchestrates the evaluation process for a given query.
