@@ -50,18 +50,21 @@ async def evaluate_answer(input_request):
         evaluation_results = []
 
         assessment_payload_ready_for_computation = {}
-
+        
+        print("SUBCRITERION LIST AFTER FETCH_CRITERIA(QUESTION_ID) CALL#####################\n")
         for criterion in evaluation_criteria.keys():
             llm_inputs.append({"question": question, "answer": candidate_answer, "chat_history": chat_history, "subcriteria": evaluation_criteria[criterion],"eval_distribution":eval_distribution})
             subcriteria_weights.append([int(subcriterion['weight']) for subcriterion in evaluation_criteria[criterion]])
             ### rmsbegin: added code here to populate the assessment_payload
-            subcriterion_question_weight_list = evaluation_criteria[criterion]
+            subcriterion_question_weight_list = evaluation_criteria[criterion]    
+            for dct in subcriterion_question_weight_list:
+                print(dct['subcriterion'], " ", dct['weight'])
             for elem in subcriterion_question_weight_list:
                 subcriterion_question = elem["subcriterion"]
                 subcriterion_weight = elem["weight"]
                 assessment_payload_ready_for_computation[subcriterion_question] = [subcriterion_weight]
             ### rmsend: assessment_payload is ready with foll. format {"question1":[3.0]}
-
+        print("################# END SUBCRITERION LIST#####################\n")
         evaluation_prompt = answer_evaluator_prompt.make_prompt_from_template()
         evaluation_llm = llm.get_openai_model(model = "gpt-4o-mini")
         evaluation_chain = evaluation_prompt | evaluation_llm

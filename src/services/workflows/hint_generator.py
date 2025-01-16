@@ -36,6 +36,7 @@ async def generate_hint(chat_history,answer_evaluation,hint_count):
 
     logger.info(f"ANSWER EVALUATION {answer_evaluation}")
     logger.info(f"HINT COUNT AFTER {len(chat_history)} : {hint_count}")
+    
     assumption_score = answer_evaluation["criteria_scores"][0]          
     corner_case_score = answer_evaluation["criteria_scores"][1]        
     data_structures_score = answer_evaluation["criteria_scores"][2]

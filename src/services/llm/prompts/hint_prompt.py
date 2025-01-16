@@ -22,24 +22,10 @@ def hint_prompt_template():
        - Helps assess multiple aspects indirectly.
        - Avoids leading the candidate directly to the answer or providing explicit hints.
        - Prompts the candidate to think critically about implications, trade-offs, or optimizations.
-       - Ensures the hint has not been given before by checking chat_history. You will be penalized severely for repeating a hint that was      already provided in chat history.
+       - Ensures the hint has not been given before by checking chat_history. You will be penalized severely for repeating a hint that was already provided in chat history.
     
     Return:
     Return a single concise hint that helps the candidate to solve the given problem and helps the interviewer to evaluate the candidate for his problem solving data structures and algorithms skills.
-
-    Example:
-    Input:
-    chat_history: [
-        "Question: Reverse a linked list",
-        "I would use three pointers: prev, current, and next",
-        "The solution would modify the original list in-place"
-    ]
-    answer_evaluation: {{
-        "sub_criteria": [
-            {{"Is it clear what type of linked list is being reversed?": "3"}},
-            {{"Are there any specific constraints?": "4"}}
-        ]
-    }}
 
     Output:
     How would your approach need to be modified if we needed to maintain a reference to both ends of the list throughout the process?

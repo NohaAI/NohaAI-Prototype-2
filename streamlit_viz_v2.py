@@ -67,6 +67,7 @@ def run_async(func):
     return loop.run_until_complete(func)
 
 
+
 # define layout
 
 # Set the page configuration to use wide mode
@@ -82,50 +83,12 @@ midright = row2[1]
 bottomleft = row3[0]
 bottomright = row3[1]
 
+if("turn" in st.session_state and st.session_state.turn > 3):
+    # bottomleft.write(f"**INTERVIEW RESULTS**: {st.session_state.final_score}")
+    st.markdown(f'<p style="font-size: 24px;"><strong>INTERVIEW RESULTS</strong>: {st.session_state.final_score}</p>', unsafe_allow_html=True)
+    st.stop()
+
 ###### Some initial payload and variables for facilitation have been defined; refactor required later possibly; review
-
-def get_noha_utterance_original(turn=0, meta_payload=None):
-    if turn == 0:
-        st.session_state.meta_payload.question = "Hello 👋 interviewee, how are you doing? All set for the interview ?!"  
-
-    elif turn == 1:
-        # noha_utterance = "How to reverse a linked list ?" 
-        question_id = st.session_state.meta_payload.question_id # receiving question_id from the initialised st.session_state.meta_payload; for now the question_id is 10 for demo sake
-        # Call to interview_metadata helps fetch the question information at turn 1 after the greeting (turn 0)
-        initial_question_metadata = run_async(async_get_question_metadata(question_id))
-        st.session_state.meta_payload.question = initial_question_metadata['question']
-        
-    elif turn >=2 and turn < 25:
-        meta_payload_from_backend = run_async(async_evaluate_answer(st.session_state.meta_payload))
-        return meta_payload_from_backend
-    else:
-        st.session_state.meta_payload.answer = "Okay, lets take a break now. Catch you later, bye !"
-    
-    return st.session_state.meta_payload
-
-def get_noha_utterance(turn=0, meta_payload=None):
-    noha_utterance=None
-    if turn == 0:
-        noha_utterance = "Hello 👋 interviewee, how are you doing? All set for the interview ?!"  
-
-    elif turn == 1:
-        # noha_utterance = "How to reverse a linked list ?" 
-        question_id = st.session_state.meta_payload.question_id # receiving question_id from the initialised st.session_state.meta_payload; for now the question_id is 10 for demo sake
-        # Call to interview_metadata helps fetch the question information at turn 1 after the greeting (turn 0)
-        initial_question_metadata = run_async(async_get_question_metadata(question_id))
-        noha_utterance = initial_question_metadata['question']
-        
-    else:
-        noha_utterance = f"HINT QUESTION GENERATED IN STREAMLIT :{turn}"
-        
-    # elif turn >=2 and turn < 25:
-    #     meta_payload_from_backend = run_async(async_evaluate_answer(st.session_state.meta_payload))
-    #     return meta_payload_from_backend
-    # else:
-    #     st.session_state.meta_payload.answer = "Okay, lets take a break now. Catch you later, bye !"
-    
-    return noha_utterance
-
 # Initialize chat messages and other artefacts if not already done
 if "messages" not in st.session_state:
     st.session_state.hint_count=[0,0,0,0,0]
@@ -143,10 +106,24 @@ if "messages" not in st.session_state:
     chat_history = run_async(async_get_chat_history(st.session_state.meta_payload.interview_id))
     if chat_history:
         run_async(async_delete_chat_history(st.session_state.meta_payload.interview_id))
-    greeting = get_noha_utterance(st.session_state.turn, st.session_state.meta_payload)
-    st.session_state.messages = [{"role": "bot", "content": greeting}]
-    #run_async(async_add_chat_history(st.session_state.meta_payload.interview_id, st.session_state.meta_payload.question_id, greeting, st.session_state.meta_payload.answer, 'greeting'))
+    greeting = "Hello 👋 interviewee, how are you doing? All set for the interview ?!"
     st.session_state.meta_payload.question=greeting
+    st.session_state.messages = [{"role": "bot", "content": greeting}]
+
+placeholder_bl = bottomleft.container(height=320, border=True)
+placeholder_bl.write("**CHAT HISTORY**")
+
+if st.session_state.turn == 0:
+    # Display chat messages using a for loop
+    topleft.write("**NOHA AI-BOT**")
+    placeholder_tl = topleft.empty()
+    with placeholder_tl.container(height=240, border=True):
+        for msg in st.session_state.messages:
+            print(st.session_state.messages)
+            if msg["role"] == "user":
+                placeholder_tl.chat_message("user").markdown(msg["content"])
+            if msg["role"] == "bot":
+                placeholder_tl.chat_message("assistant").markdown(msg["content"])
 
 # Chat input
 container_ml = midleft.container(height=100, border=False)
@@ -154,51 +131,78 @@ container_ml.write("**CANDIDATE**")
 user_input = container_ml.chat_input("Type your message here...")
 
 if user_input:
-    
     # Add the user message to the session state and update_chat_history
     if st.session_state.turn==0:
         st.session_state.messages.append({"role": "user", "content": user_input})
         run_async(async_add_chat_history(st.session_state.meta_payload.interview_id, st.session_state.meta_payload.question_id, st.session_state.meta_payload.question, user_input, 'greeting'))
-    elif (st.session_state.turn == 1):
-        initial_question = get_noha_utterance(st.session_state.turn, st.session_state.meta_payload)
+        st.session_state.turn += 1
+        # Code block to fetch initial question; input args: question_id
+
+        # get question_id from the initialised st.session_state.meta_payload; question_id == 10 for now, to be generalised later
+        question_id = st.session_state.meta_payload.question_id 
+        initial_question_metadata = run_async(async_get_question_metadata(question_id))
+        initial_question = initial_question_metadata['question']
+        st.session_state.meta_payload.question = initial_question
         st.session_state.messages.append({"role": "bot", "content": initial_question})
-        run_async(async_add_chat_history(st.session_state.meta_payload.interview_id, st.session_state.meta_payload.question_id, initial_question, user_input, 'technical'))
-    else:
-        meta_payload_from_backend = get_noha_utterance(st.session_state.turn, st.session_state.meta_payload)
-        st.session_state.meta_payload.eval_distribution = meta_payload_from_backend['criteria_scores']
-        final_score = meta_payload_from_backend['final_score']
+        # run_async(async_add_chat_history(st.session_state.meta_payload.interview_id, st.session_state.meta_payload.question_id, initial_question, user_input, 'technical'))
+    elif (st.session_state.turn == 1):
+        st.session_state.messages.append({"role": "user", "content": user_input})
+        run_async(async_add_chat_history(st.session_state.meta_payload.interview_id, st.session_state.meta_payload.question_id, st.session_state.meta_payload.question, user_input, 'technical'))
+        # Code block to prepare input args(evaluation_answer_payload) and call evaluate_answer
+        # answer_evaluation_payload={
+        #     "question_id":initial_question_metadata['question_id'],
+        #     "question":initial_question,
+        #     "interview_id":interview_id,
+        #     "answer":candidate_response,
+        #     "eval_distribution":initial_eval_distribution
+        # }
+        # IN STREAMLIT st.session_state.meta_payload is the evaluation_answer_payload
+        # ALGO: assessment_payload = evaluate_answer(evaluate_answer_payload)
+        st.session_state.meta_payload.answer = user_input
+        assessment_payload = run_async(async_evaluate_answer(st.session_state.meta_payload))
+        st.session_state.meta_payload.eval_distribution = assessment_payload['criteria_scores']
+        st.session_state.eval_distribution = assessment_payload['criteria_scores']
+        st.session_state.final_score = assessment_payload['final_score']
+        st.session_state.turn += 1
+        # Code block to fetch hint question for the first time : input args: chat_history, assessment_payload, hint_count
         chat_history = run_async(async_get_chat_history(st.session_state.meta_payload.interview_id))
-        # hint_question = "generated hint question" # this requires chat_history, eval_distribution, hint_count?? or hint_question?? ask Toyesh >@#%!#%
-        hint_question = run_async(async_generate_hint(chat_history,meta_payload_from_backend, st.session_state.hint_count))
-        print(f"HINT COUNT IN STREAMLIT{st.session_state.hint_count}")
-        st.session_state.eval_distribution = st.session_state.meta_payload.eval_distribution
-        st.session_state.final_score = final_score
+        hint_question = run_async(async_generate_hint(chat_history, assessment_payload, st.session_state.hint_count))
+        st.session_state.meta_payload.question = hint_question
         st.session_state.messages.append({"role": "bot", "content": hint_question})
-        run_async(async_add_chat_history(st.session_state.meta_payload.interview_id, st.session_state.meta_payload.question_id, hint_question, user_input, 'hint'))
-    st.session_state.turn += 1
 
+        # run_async(async_add_chat_history(st.session_state.meta_payload.interview_id, st.session_state.meta_payload.question_id, initial_question, user_input, 'technical'))
+    else:
+        st.session_state.messages.append({"role": "user", "content": user_input})
+        run_async(async_add_chat_history(st.session_state.meta_payload.interview_id, st.session_state.meta_payload.question_id, st.session_state.meta_payload.question, user_input, 'hint'))
+        # ALGO: assessment_payload = evaluate_answer(evaluation_answer_payload)
+        st.session_state.meta_payload.answer = user_input
+        assessment_payload = run_async(async_evaluate_answer(st.session_state.meta_payload))
+        st.session_state.meta_payload.eval_distribution = assessment_payload['criteria_scores']
+        st.session_state.eval_distribution = assessment_payload['criteria_scores']
+        st.session_state.final_score = assessment_payload['final_score']
+        st.session_state.turn += 1
+        chat_history = run_async(async_get_chat_history(st.session_state.meta_payload.interview_id))
+        hint_question = run_async(async_generate_hint(chat_history,assessment_payload, st.session_state.hint_count))
+        st.session_state.meta_payload.question = hint_question
+        st.session_state.messages.append({"role": "bot", "content": hint_question})
+    print(f"CONVERSATION COUNT: {st.session_state.turn}")
 
-placeholder_bl = bottomleft.container(height=320, border=True)
-placeholder_bl.write("**CHAT HISTORY**")
-# placeholder_bl = bottomleft.expander("**CHAT HISTORY**")
-
-# Display chat messages using a for loop
-topleft.write("**NOHA AI-BOT**")
-placeholder_tl = topleft.empty()
-with placeholder_tl.container(height=240, border=True):
-    for msg in st.session_state.messages:
-        print(st.session_state.messages)
-        if msg["role"] == "user":
-            #placeholder_tl.chat_message("user").markdown(msg["content"])
-            # bottomleft.write(msg['content'])
-            placeholder_bl.markdown(f"<div class='scrollable-container'><b>Candidate:</b> { msg['content']}</div>", unsafe_allow_html=True)
-        if msg["role"] == "bot":
-            placeholder_tl.chat_message("assistant").markdown(msg["content"])
-            # bottomleft.write(msg['content'])
-            placeholder_bl.markdown(f"<div class='scrollable-container'><b>Noha-bot:</b> { msg['content']}</div>", unsafe_allow_html=True)
-            # time.sleep(0.5) 
-        #else:bottomright.write("Error in message roles from state.session")
-
+    # Display chat messages using a for loop
+    topleft.write("**NOHA AI-BOT**")
+    placeholder_tl = topleft.empty()
+    with placeholder_tl.container(height=240, border=True):
+        for msg in st.session_state.messages:
+            print(st.session_state.messages)
+            if msg["role"] == "user":
+                placeholder_tl.chat_message("user").markdown(msg["content"])
+                # bottomleft.write(msg['content'])
+                placeholder_bl.markdown(f"<div class='scrollable-container'><b>Candidate:</b> { msg['content']}</div>", unsafe_allow_html=True)
+            if msg["role"] == "bot":
+                placeholder_tl.chat_message("assistant").markdown(msg["content"])
+                # bottomleft.write(msg['content'])
+                placeholder_bl.markdown(f"<div class='scrollable-container'><b>Noha-bot:</b> { msg['content']}</div>", unsafe_allow_html=True)
+                # time.sleep(0.5) 
+            #else:bottomright.write("Error in message roles from state.session")
 
 container_tr = topright.container(height=240, border=False)
 container_tr.write("**SCORE TREND**")
@@ -247,3 +251,6 @@ with placeholder_br.container(height=240):
         if not st.session_state.stacked_data.empty:
             # Create a placeholder for dynamic updates
             placeholder_br.bar_chart(st.session_state.stacked_data.set_index("Turn"), use_container_width=False, width=360, height=300)
+
+
+
