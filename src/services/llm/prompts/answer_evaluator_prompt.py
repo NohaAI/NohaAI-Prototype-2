@@ -104,7 +104,7 @@ def make_prompt_from_template_16Jan2025():
   eval_prompt = ChatPromptTemplate.from_template(template=eval_prompt_str)
   return eval_prompt
 
-def make_prompt_from_template():
+def make_prompt_from_template_Ritesh():
   eval_prompt_str = """
     You are an expert interviewer with an experience in evaluating responses to interview questions about topics such as Data Structures, Algorithms and Algorithmic complexity.
     Given the following inputs:
@@ -124,6 +124,92 @@ def make_prompt_from_template():
     }}
     Response:
   """
+def make_prompt_from_template():
+  eval_prompt_str = """
+    You are an expert interviewer with experience in evaluating responses to interview questions about topics such as Data Structures, Algorithms and Algorithmic complexity.
+    
+    
+    EVALUATION GUIDELINES:
+    1. Only evaluate and score subcriteria that the candidate has EXPLICITLY addressed in their answers
+    2. For any subcriterion that the candidate has not EXPLICITLY addressed, assign a score of 1
+    3. If the solution contains best practices and is not applied to the problem, do not provide a score more than 3 irrespective of the criterion
+    4. Scoring Framework:
+       - Score 1: Criterion not addressed at all
+       - Score 2-3: Vaguely implied but not addressed
+       - Score 4-5: Implicitly addressed through solution
+       - Score 6-7: Explicitly addressed but not fully explained
+       - Score 8-10: Explicitly addressed with clear explanation
+    5. Consider the entire chat history when determining if a criterion has been addressed
+    6. Do not infer or assume knowledge not demonstrated in the answer
+    7. Related subcriteria should be scored consistently with each other
+    
+    Given the following inputs:
+      question: {question}
+      answer: {answer}
+      chat_history: {chat_history}
+      subcriteria: {subcriteria}
+      eval_distribution: {eval_distribution}
+      
+    The chat_history is a sequence of question/answer pairs, each pair representing a conversation turn between the interviewer and candidate respectively. Score the recent most candidate answer against each sub-criterion between 1 to 10. Ensure that the structure and length of the subcriteria remain the same and no new subcriterion are added.
+
+    YOU MUST RESPOND IN THE FOLLOWING LIST FORMAT:
+    [
+        "answer_evaluation",
+        "rationale"
+    ]
+    The answer_evaluation response must be in strict JSON format as given in the example below.
+    
+    Example:
+    [
+        {{
+            "Subcriterion question": "4",
+            "Subcriterion question": "4",
+            "Subcriterion question": "2"
+        }},
+        "rationale"
+    ]
+    The response should only include the list containing the evaluation and rationale.
+    
+    Response:
+    """
+  eval_prompt = ChatPromptTemplate.from_template(template=eval_prompt_str)
+  return eval_prompt
+def make_prompt_from_template_wo_rationale():
+  eval_prompt_str = """
+    You are an expert interviewer with experience in evaluating responses to interview questions about topics such as Data Structures, Algorithms and Algorithmic complexity.
+    
+    EVALUATION GUIDELINES:
+    1. Only evaluate and score subcriteria that the candidate has EXPLICITLY addressed in their answers
+    2. For any subcriterion that the candidate has not EXPLICITLY addressed, assign a score of 1
+    3. If the solution contains best practices and is not applied to the problem, do not provide a score more than 3 irrespective of the criterion
+    4. Scoring Framework:
+       - Score 1: Criterion not addressed at all
+       - Score 2-3: Vaguely implied but not addressed
+       - Score 4-5: Implicitly addressed through solution
+       - Score 6-7: Explicitly addressed but not fully explained
+       - Score 8-10: Explicitly addressed with clear explanation
+    5. Consider the entire chat history when determining if a criterion has been addressed
+    6. Do not infer or assume knowledge not demonstrated in the answer
+    7. Related subcriteria should be scored consistently with each other
+    
+    Given the following inputs:
+      question: {question}
+      answer: {answer}
+      chat_history: {chat_history}
+      subcriteria: {subcriteria}
+      eval_distribution: {eval_distribution}
+      
+    The chat_history is a sequence of question/answer pairs, each pair representing a conversation turn between the interviewer and candidate respectively. Score the recent most candidate answer against each sub-criterion between 1 to 10. Ensure that the structure and length of the subcriteria remain the same and no new subcriterion are added.
+    
+    The response must be in strict JSON format as given in the example below.
+    Example:
+    {{
+        "Subcriterion question": "4",
+        "Subcriterion question": "4",
+        "Subcriterion question": "2"
+    }}
+    Response:
+"""
   eval_prompt = ChatPromptTemplate.from_template(template=eval_prompt_str)
   return eval_prompt
 

@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel, Field
 from datetime import datetime
 import psycopg2
+from psycopg2.extras import execute_values
 from psycopg2.pool import SimpleConnectionPool
 from typing import Optional
 import os
@@ -9,8 +10,9 @@ import logging
 from contextlib import contextmanager
 from dotenv import load_dotenv
 import uvicorn
+import json
 import httpx
-from typing import List, Optional
+from typing import List, Optional,Dict
 from src.dao.question import get_question_metadata
 from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
 from src.dao.exceptions import ChatHistoryNotFoundException,InterviewNotFoundException,QuestionNotFoundException
@@ -216,6 +218,68 @@ async def add_chat_history(interview_id: int, question_id: int, turn_input: str,
     except DatabaseOperationError as e:
         raise e
 
+from psycopg2.extras import execute_values
+
+@app.post("/batch_chat_history", response_model=dict)
+async def batch_insert_chat_history(interview_id: int, question_id: int, chat_history_data):
+    if isinstance (chat_history_data,str):
+        chat_history_data=json.loads(chat_history_data)
+    try:
+        with get_db_connection() as conn:
+            # Validate interview exists
+            interview_check_query = "SELECT interview_id FROM interview WHERE interview_id = %s"
+            interview = execute_query(conn, interview_check_query, (interview_id,))
+            if not interview:
+                raise InterviewNotFoundException()
+            
+            # Validate question exists
+            question_check_query = "SELECT question FROM question WHERE question_id = %s"
+            question = execute_query(conn, question_check_query, (question_id,))
+            if not question:
+                raise QuestionNotFoundException()
+
+            # Prepare data for batch insert
+            data_tuples = []
+            for entry in chat_history_data:
+                # Get the single key that isn't 'answer'
+                turn_input_type = next(k for k in entry.keys() if k != 'answer')
+                turn_input = entry[turn_input_type]
+                turn_output = entry.get('answer', '')
+                
+                data_tuples.append((
+                    interview_id,
+                    question_id,
+                    turn_input_type,
+                    turn_input,
+                    turn_output
+                ))
+
+            # Batch insert using execute_values
+            with conn.cursor() as cursor:
+                execute_values(
+                    cursor,
+                    """INSERT INTO chat_history 
+                        (interview_id, question_id, turn_input_type, turn_input, turn_output)
+                        VALUES %s""",
+                    data_tuples,
+                    template="(%s, %s, %s, %s, %s)",
+                    page_size=100
+                )
+                conn.commit()
+
+            return {
+                "message": "Batch insert successful",
+                "inserted_count": len(data_tuples),
+                "interview_id": interview_id,
+                "question_id": question_id
+            }
+            
+    except DatabaseConnectionError as e:
+        raise e
+    except DatabaseQueryError as e:
+        raise e
+    except DatabaseOperationError as e:
+        raise e
 @app.delete("/chat_history/{interview_id}")
 async def delete_chat_history(interview_id: int):
     """

@@ -1,4 +1,5 @@
 import streamlit as st
+import time
 # import numpy as np
 import pandas as pd
 # import matplotlib.pyplot as plt
@@ -27,7 +28,10 @@ from src.dao.question import get_initial_question_metadata
 from src.dao.chat_history import delete_chat_history
 from src.api.endpoints import greet_candidate
 from test.simulate_candidate_response import simulate_candidate_response
-
+from src.services.workflows.policy_violation import check_policy_violation
+from src.services.workflows.candidate_dialogue_classifier import classify_candidate_dialogue
+from src.services.workflows.bot_dialogue_generator import generate_dialogue 
+from src.dao.chat_history import batch_insert_chat_history
 # Function to fetch chat history asynchronously
 async def async_get_chat_history(interview_id):
     return await get_chat_history(interview_id)
@@ -51,15 +55,26 @@ async def async_get_interview_metadata(interview_id):
 
 async def async_get_question_metadata(question_id):
     return await get_question_metadata(question_id)
+async def async_check_policy_violation(question, answer, interim_chat_history, hint=None):
+    return await check_policy_violation(question, answer, interim_chat_history, hint)
 
+async def async_guardrails_check(question, answer):
+    return await guardrails_check(question, answer)
 # Function that prepares a generate_hint call
 async def async_generate_hint(chat_history, meta_payload, hint_list):
     return await generate_hint(chat_history, meta_payload, hint_list)
 
-async def async_evaluate_answer(evaluation_input):
-    return await answer_evaluator.evaluate_answer(evaluation_input)
+async def async_classify_candidate_dialogue(question, answer, interim_chat_history):
+    return await classify_candidate_dialogue(question, answer, interim_chat_history)
 
+async def async_evaluate_answer(evaluation_input,prev_eval=None):
+    return await answer_evaluator.evaluate_answer(evaluation_input,prev_eval)
 
+async def async_batch_insert_chat_history(interview_id,question_id,chat_history_data):
+    return await batch_insert_chat_history(interview_id,question_id,chat_history_data)
+    
+async def async_generate_dialogue(label, chat_history, answer, question, answer_evaluation, hint_count, previous_bot_dialogue=None):
+    return await generate_dialogue(label, chat_history, answer, question, answer_evaluation, hint_count, previous_bot_dialogue)
 # Function to run the async function and return results
 def run_async(func):
     loop = asyncio.new_event_loop()
@@ -80,22 +95,28 @@ midleft = row2[0]
 midright = row2[1]
 bottomleft = row3[0]
 bottomright = row3[1]
-#for dev
-# if("turn" in st.session_state and st.session_state.turn > 25):
+
+# for dev
+# MAX_TURNS=50
+# if("turn" in st.session_state and st.session_state.turn > MAX_TURNS):
 #     # bottomleft.write(f"**INTERVIEW RESULTS**: {st.session_state.final_score}")
 #     st.markdown(f'<p style="font-size: 24px;"><strong>INTERVIEW RESULTS</strong>: {st.session_state.final_score}</p>', unsafe_allow_html=True)
 #     st.stop()
 #for prod
-if("turn" in st.session_state and "final_score" in st.session_state and st.session_state.turn > 12 and st.session_state.final_score > 7.0):
+if(("turn" in st.session_state and "final_score" in st.session_state) and (st.session_state.turn > 12 or st.session_state.final_score > 5.0)):
+    
     # bottomleft.write(f"**INTERVIEW RESULTS**: {st.session_state.final_score}")
-    st.markdown(f'<p style="font-size: 24px;"><strong>INTERVIEW RESULTS</strong>: {st.session_state.final_score}</p>', unsafe_allow_html=True)
+    st.markdown(f'<p style="font-size: 24px;"><strong>Since you have solved this question, can you now start writing code for it?</strong></p>', unsafe_allow_html=True)
     st.stop() 
-
+    
 ###### Some initial payload and variables for facilitation have been defined; refactor required later possibly; review
 # Initialize chat messages and other artefacts if not already done
 if "messages" not in st.session_state:
+    st.session_state.interim_chat_history=[]
     st.session_state.hint_count=[0,0,0,0,0]
     st.session_state.turn = 0
+    st.session_state.previous_bot_dialogue=""
+    st.session_state.assessment_payload=None
     # Create an instance of EvaluateAnswerRequest; call it st.session_state.meta_payload for now as it is required throughout
     st.session_state.meta_payload = EvaluateAnswerRequest(
         question_id=1, # Question 10 is chosen for now; later it needs to come from some selection criteria
@@ -133,63 +154,121 @@ container_ml = midleft.container(height=100, border=False)
 container_ml.write("**CANDIDATE**")
 user_input = container_ml.chat_input("Type your message here...")
 
+
 if user_input:
+    start_time=time.time()
     # Add the user message to the session state and update_chat_history
     if st.session_state.turn==0:
         st.session_state.messages.append({"role": "user", "content": user_input})
-        run_async(async_add_chat_history(st.session_state.meta_payload.interview_id, st.session_state.meta_payload.question_id, st.session_state.meta_payload.question, user_input, 'greeting'))
+       
+        st.session_state.interim_chat_history.append({"greeting" : st.session_state.meta_payload.question, "answer" : user_input})
         st.session_state.turn += 1
-        # Code block to fetch initial question; input args: question_id
-
         # get question_id from the initialised st.session_state.meta_payload; question_id == 10 for now, to be generalised later
         question_id = st.session_state.meta_payload.question_id 
         initial_question_metadata = run_async(async_get_question_metadata(question_id))
-        initial_question = initial_question_metadata['question']
-        st.session_state.meta_payload.question = initial_question
-        st.session_state.messages.append({"role": "bot", "content": initial_question})
-        # run_async(async_add_chat_history(st.session_state.meta_payload.interview_id, st.session_state.meta_payload.question_id, initial_question, user_input, 'technical'))
+        st.session_state.initial_question = initial_question_metadata['question']
+        st.session_state.meta_payload.question = st.session_state.initial_question
+        st.session_state.messages.append({"role": "bot", "content": st.session_state.initial_question})
+        st.session_state.previous_bot_dialogue=st.session_state.initial_question
     elif (st.session_state.turn == 1):
         st.session_state.messages.append({"role": "user", "content": user_input})
-        run_async(async_add_chat_history(st.session_state.meta_payload.interview_id, st.session_state.meta_payload.question_id, st.session_state.meta_payload.question, user_input, 'technical'))
-        # Code block to prepare input args(evaluation_answer_payload) and call evaluate_answer
-        # answer_evaluation_payload={
-        #     "question_id":initial_question_metadata['question_id'],
-        #     "question":initial_question,
-        #     "interview_id":interview_id,
-        #     "answer":candidate_response,
-        #     "eval_distribution":initial_eval_distribution
-        # }
-        # IN STREAMLIT st.session_state.meta_payload is the evaluation_answer_payload
-        # ALGO: assessment_payload = evaluate_answer(evaluate_answer_payload)
-        st.session_state.meta_payload.answer = user_input
-        assessment_payload = run_async(async_evaluate_answer(st.session_state.meta_payload))
-        st.session_state.meta_payload.eval_distribution = assessment_payload['criteria_scores']
-        st.session_state.eval_distribution = assessment_payload['criteria_scores']
-        st.session_state.final_score = assessment_payload['final_score']
-        st.session_state.turn += 1
-        # Code block to fetch hint question for the first time : input args: chat_history, assessment_payload, hint_count
-        chat_history = run_async(async_get_chat_history(st.session_state.meta_payload.interview_id))
-        hint_question = run_async(async_generate_hint(chat_history, assessment_payload, st.session_state.hint_count))
-        st.session_state.meta_payload.question = hint_question
-        st.session_state.messages.append({"role": "bot", "content": hint_question})
+        if st.session_state.previous_bot_dialogue==st.session_state.initial_question:
+            st.session_state.interim_chat_history.append({"technical": st.session_state.previous_bot_dialogue,"answer": user_input})
+        else:
+            st.session_state.interim_chat_history.append({"reciprocation": st.session_state.previous_bot_dialogue,"answer": user_input})
+        classify_candidate_dialogue=run_async(async_classify_candidate_dialogue(st.session_state.initial_question,user_input,st.session_state.interim_chat_history))
+        classify_candidate_dialogue=json.loads(classify_candidate_dialogue.content)
+        class_label=classify_candidate_dialogue[0]
+        if(class_label!='technical'):
+            #label, chat_history, answer, question,answer_evaluation, hint_count, previous_bot_dialogue=None
+            
+            bot_dialogue=run_async(async_generate_dialogue(class_label,st.session_state.interim_chat_history,user_input, st.session_state.initial_question,st.session_state.assessment_payload,st.session_state.hint_count,None))
+            bot_dialogue=json.loads(bot_dialogue.content)
+            st.session_state.previous_bot_dialogue=bot_dialogue[1]
+            print("######################################################################################################")
+            print(f"USER INPUT : {user_input}")
+            print(f"CLASS : {class_label}")
+            print(f"RATIONALE_CLASSIFICATION : {classify_candidate_dialogue[1]}")
+            print(f"RESPONSE : {bot_dialogue[1]}")
+            print(f"RATIONALE_RESPONSE : {bot_dialogue[2]}")
+            print("######################################################################################################")
+            st.session_state.messages.append({"role": "bot", "content": bot_dialogue[1]})
+        
+            #    st.session_state.turn += 1
+        else:
+            print("######################################################################################################")
+            print(f"USER INPUT : {user_input}")
+            print(f"RATIONALE : {classify_candidate_dialogue[1]}")
+            print("######################################################################################################")
+            #there should be a logic for checking answer correctness and completeness
+            #st.session_state.interim_chat_history.append({"technical": st.session_state.meta_payload.question, "answer": user_input})
+            st.session_state.meta_payload.answer = user_input
+            assessment_payload = run_async(async_evaluate_answer(st.session_state.meta_payload))
+            st.session_state.assessment_payload=assessment_payload
+            st.session_state.meta_payload.eval_distribution = assessment_payload['criteria_scores']
+            st.session_state.eval_distribution = assessment_payload['criteria_scores']
+            st.session_state.final_score = assessment_payload['final_score']
+            st.session_state.turn += 1
+            # Code block to fetch hint question for the first time : input args: chat_history, assessment_payload, hint_count
+            bot_dialogue=run_async(async_generate_dialogue(class_label,st.session_state.interim_chat_history,user_input, st.session_state.initial_question,st.session_state.assessment_payload,st.session_state.hint_count,None))
+            st.session_state.previous_bot_dialogue=bot_dialogue
+            #bot_dialogue=bot_dialogue.content
+            st.session_state.meta_payload.question = bot_dialogue
+            st.session_state.messages.append({"role": "bot", "content": bot_dialogue})
 
-        # run_async(async_add_chat_history(st.session_state.meta_payload.interview_id, st.session_state.meta_payload.question_id, initial_question, user_input, 'technical'))
     else:
         st.session_state.messages.append({"role": "user", "content": user_input})
-        run_async(async_add_chat_history(st.session_state.meta_payload.interview_id, st.session_state.meta_payload.question_id, st.session_state.meta_payload.question, user_input, 'hint'))
-        # ALGO: assessment_payload = evaluate_answer(evaluation_answer_payload)
-        st.session_state.meta_payload.answer = user_input
-        assessment_payload = run_async(async_evaluate_answer(st.session_state.meta_payload))
-        st.session_state.meta_payload.eval_distribution = assessment_payload['criteria_scores']
-        st.session_state.eval_distribution = assessment_payload['criteria_scores']
-        st.session_state.final_score = assessment_payload['final_score']
-        st.session_state.turn += 1
-        chat_history = run_async(async_get_chat_history(st.session_state.meta_payload.interview_id))
-        hint_question = run_async(async_generate_hint(chat_history,assessment_payload, st.session_state.hint_count))
-        st.session_state.meta_payload.question = hint_question
-        st.session_state.messages.append({"role": "bot", "content": hint_question})
-    print(f"CONVERSATION COUNT: {st.session_state.turn}")
+        if st.session_state.previous_bot_dialogue==st.session_state.meta_payload.question:
+            st.session_state.interim_chat_history.append({"hint": st.session_state.previous_bot_dialogue,"answer": user_input})
+        else:
+            st.session_state.interim_chat_history.append({"reciprocation": st.session_state.previous_bot_dialogue,"answer": user_input})
+        classify_candidate_dialogue=run_async(async_classify_candidate_dialogue(st.session_state.meta_payload.question,user_input,st.session_state.interim_chat_history))
+        classify_candidate_dialogue=json.loads(classify_candidate_dialogue.content)
+        class_label=classify_candidate_dialogue[0]
+        if(class_label!='technical'):
+            st.session_state.interim_chat_history.append({"reciprocation": st.session_state.previous_bot_dialogue,"answer": user_input})
+           
+            bot_dialogue=run_async(async_generate_dialogue(class_label,st.session_state.interim_chat_history,user_input, st.session_state.initial_question,st.session_state.assessment_payload,st.session_state.hint_count,st.session_state.meta_payload.question))
+            bot_dialogue=json.loads(bot_dialogue.content)
+            st.session_state.previous_bot_dialogue=bot_dialogue[1]
+            print("######################################################################################################")
+            print(f"USER INPUT : {user_input}")
+            print(f"CLASS : {class_label}")
+            print(f"RATIONALE_CLASSIFICATION : {classify_candidate_dialogue[1]}")
+            print(f"RESPONSE : {bot_dialogue[1]}")
+            print(f"RATIONALE_RESPONSE : {bot_dialogue[2]}")
+            print("######################################################################################################")
+            st.session_state.messages.append({"role": "bot", "content": bot_dialogue[1]})
+            st.session_state.turn += 1
+        else:
+            print("######################################################################################################")
+            print(f"USER INPUT : {user_input}")
+            print(f"RATIONALE : {classify_candidate_dialogue[1]}")
+            print("######################################################################################################")
 
+            #st.session_state.interim_chat_history.append({"hint": st.session_state.meta_payload.question, "answer": user_input})
+
+            # ALGO: assessment_payload = evaluate_answer(evaluation_answer_payload)
+            st.session_state.meta_payload.answer = user_input
+            assessment_payload = run_async(async_evaluate_answer(st.session_state.meta_payload,st.session_state.assessment_payload['evaluation_results']))
+            st.session_state.assessment_payload=assessment_payload
+            st.session_state.meta_payload.eval_distribution = assessment_payload['criteria_scores']
+            st.session_state.eval_distribution = assessment_payload['criteria_scores']
+            st.session_state.final_score = assessment_payload['final_score']
+            st.session_state.turn += 1
+            
+            bot_dialogue=run_async(async_generate_dialogue(class_label,st.session_state.interim_chat_history,user_input, st.session_state.initial_question,st.session_state.assessment_payload,st.session_state.hint_count,None))
+            st.session_state.previous_bot_dialogue=bot_dialogue
+            #bot_dialogue=bot_dialogue.content
+            st.session_state.meta_payload.question = bot_dialogue
+            st.session_state.messages.append({"role": "bot", "content": bot_dialogue})
+
+    end_time=time.time()
+    latency=(end_time-start_time)
+
+    
+    print(f"LATENCY FOR TURN {st.session_state.turn} IS {latency}")
+    print(f"CONVERSATION COUNT: {st.session_state.turn}")
     # Display chat messages using a for loop
     topleft.write("**NOHA AI-BOT**")
     placeholder_tl = topleft.empty()
@@ -209,6 +288,8 @@ if user_input:
 
 container_tr = topright.container(height=240, border=False)
 container_tr.write("**SCORE TREND**")
+
+
 if st.session_state.turn >= 0 and st.session_state.eval_distribution:
     df = pd.DataFrame({'Scores': st.session_state.eval_distribution})
     container_tr.bar_chart(df, use_container_width=False, width=280, height=160)
@@ -254,6 +335,3 @@ with placeholder_br.container(height=240):
         if not st.session_state.stacked_data.empty:
             # Create a placeholder for dynamic updates
             placeholder_br.bar_chart(st.session_state.stacked_data.set_index("Turn"), use_container_width=False, width=360, height=300)
-
-
-
