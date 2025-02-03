@@ -2,7 +2,7 @@ from langchain_core.prompts import ChatPromptTemplate
  
 # TO-DO: self-correction/apology can be added
 
-def classify_candidate_dialogue_prompt_template_dated_2_3_2025():
+def classify_candidate_dialogue_prompt_template_withclarification_open_specific():
   prompt="""
   
   You are emulating a dialogue act classifier. Your task is to label the candidate's dialogue into different classes as defined below and explain the rationale for classifying them as such.
@@ -13,6 +13,7 @@ def classify_candidate_dialogue_prompt_template_dated_2_3_2025():
   Interim Chat History: {interim_chat_history}
 
   'class' must be one of:
+  - technical - Candidate has attempted to solve this question
   - illegible - Possibly some gibberish output or non-standard words coming from STT
   - irrelevant - Candidate responses that are irrelevant to the conversation
   - interview_inquiry - Candidate inquires about the interview
@@ -25,12 +26,11 @@ def classify_candidate_dialogue_prompt_template_dated_2_3_2025():
   - disregard - Candidate expresses disregard continuing the interview.
   - illegitimate - Candidate is making illegitimate requests or statement 
   - uncertainty - Candidate utters a response which expresses uncertainty
-  - technical - Candidate dialogue that do no classify in any of the above classes 
-
+  
   'classification logic' for determining the appropriate class:
     *Take in account interim chat history while classifying
 
-  - Classify the dialogue as 'technical' when the following criteria are met:
+  - Classify the dialogue as 'illegible' when the following criteria are met:
     * Contains non-dictionary words or random character sequences
     * Has grammatically incorrect sentence structures that make meaning unclear
     * Contains excessive typos or transcription errors
@@ -84,10 +84,9 @@ def classify_candidate_dialogue_prompt_template_dated_2_3_2025():
     * Making assumptions about the problem without clarification
     * Questions seeking direct solution hints without showing effort
 
-  - For class 'uncertainty' here are few positive examples for this class:
-    Positive: 
-      "I don't know how to solve this problem"
-      "I don't know what to do now"
+  - Classify the dialogue as 'uncertainty' when the following criteria are met:
+    * The candidate expresses uncertainty about the next steps or what action to take
+    * The candidate explicitly states they do not know how to proceed or solve a problem
 
   You must respond ONLY in this exact format:
   ["class", "rationale"] where 'rationale' is your reasoning for classifying it as such
@@ -142,7 +141,7 @@ def classify_candidate_dialogue_prompt_template():
 
   - Classify the dialogue as 'clarification(specific)' when the following criteria are met:
     * The candidate asks if certain knowledge (e.g., data structures, recursion, system design) is necessary
-    * The candidate asks for definitions about specific terms  listed in the question
+    * The candidate asks for definitions about specific terms listed in the question
     * The question is framed to verify the interview's scope and expectations
     
   - Classify the dialogue as 'request(guidance)' when the following criteria are met:
