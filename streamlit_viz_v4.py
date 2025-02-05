@@ -97,7 +97,7 @@ bottomleft = row3[0]
 bottomright = row3[1]
 
 # for dev
-MAX_TURNS=25
+MAX_TURNS=12
 # if("turn" in st.session_state and st.session_state.turn > MAX_TURNS):
 #     # bottomleft.write(f"**INTERVIEW RESULTS**: {st.session_state.final_score}")
 #     st.markdown(f'<p style="font-size: 24px;"><strong>INTERVIEW RESULTS</strong>: {st.session_state.final_score}</p>', unsafe_allow_html=True)
@@ -129,7 +129,7 @@ if "messages" not in st.session_state:
     chat_history = run_async(async_get_chat_history(st.session_state.meta_payload.interview_id))
     if chat_history:
         run_async(async_delete_chat_history(st.session_state.meta_payload.interview_id))
-    greeting = "Hello 👋 interviewee, how are you doing? All set for the interview ?!"
+    greeting = "Hello Arun, I am Noha. I'm your interviewer today. We have planned a data structures and algorithms interview with you, are you good to go?"
     #Hi I am Noha I take care of DSA questions 
     st.session_state.meta_payload.question=greeting
     st.session_state.messages = [{"role": "bot", "content": greeting}]
@@ -172,7 +172,7 @@ if user_input:
         st.session_state.messages.append({"role": "bot", "content": st.session_state.initial_question})
         st.session_state.previous_bot_dialogue=st.session_state.initial_question
     elif (st.session_state.turn == 1):
-        if("turn" in st.session_state  and (st.session_state.guardrails_count>=8 or st.session_state.contiguous_guardrails_count>=3)):
+        if("turn" in st.session_state  and st.session_state.contiguous_guardrails_count>=3):
             st.session_state.conclude=True
             st.session_state.messages.append({"role": "user", "content": user_input})
             st.session_state.interim_chat_history.append({"hint": st.session_state.meta_payload.question_id,"answer":user_input})
@@ -242,7 +242,7 @@ if user_input:
             st.session_state.interim_chat_history.append({"hint": st.session_state.meta_payload.question_id,"answer":user_input})
             # ALGO: assessment_payload = evaluate_answer(evaluation_answer_payload)
             st.session_state.meta_payload.answer = user_input
-            assessment_payload = run_async(async_evaluate_answer(st.session_state.meta_payload))
+            assessment_payload = run_async(async_evaluate_answer(st.session_state.meta_payload,st.session_state.assessment_payload['evaluation_results']))
             st.session_state.meta_payload.eval_distribution = assessment_payload['criteria_scores']
             st.session_state.eval_distribution = assessment_payload['criteria_scores']
             st.session_state.final_score = assessment_payload['final_score']
@@ -251,13 +251,13 @@ if user_input:
             st.session_state.meta_payload.question = score_threshold_conclusion
             st.session_state.messages.append({"role": "bot", "content": score_threshold_conclusion})
 
-        elif("turn" in st.session_state  and (st.session_state.guardrails_count>=8 or st.session_state.contiguous_guardrails_count>=3)):
+        elif("turn" in st.session_state  and st.session_state.contiguous_guardrails_count>=4):
             st.session_state.conclude=True
             st.session_state.messages.append({"role": "user", "content": user_input})
             st.session_state.interim_chat_history.append({"hint": st.session_state.meta_payload.question_id,"answer":user_input})
             # ALGO: assessment_payload = evaluate_answer(evaluation_answer_payload)
             st.session_state.meta_payload.answer = user_input
-            assessment_payload = run_async(async_evaluate_answer(st.session_state.meta_payload))
+            assessment_payload = run_async(async_evaluate_answer(st.session_state.meta_payload,st.session_state.assessment_payload['evaluation_results']))
             st.session_state.meta_payload.eval_distribution = assessment_payload['criteria_scores']
             st.session_state.eval_distribution = assessment_payload['criteria_scores']
             st.session_state.final_score = assessment_payload['final_score']
@@ -320,7 +320,7 @@ if user_input:
         st.session_state.interim_chat_history.append({"hint": st.session_state.meta_payload.question_id,"answer":user_input})
         # ALGO: assessment_payload = evaluate_answer(evaluation_answer_payload)
         st.session_state.meta_payload.answer = user_input
-        assessment_payload = run_async(async_evaluate_answer(st.session_state.meta_payload))
+        assessment_payload = run_async(async_evaluate_answer(st.session_state.meta_payload,st.session_state.assessment_payload['evaluation_results']))
         st.session_state.meta_payload.eval_distribution = assessment_payload['criteria_scores']
         st.session_state.eval_distribution = assessment_payload['criteria_scores']
         st.session_state.final_score = assessment_payload['final_score']
@@ -383,15 +383,39 @@ if st.session_state.turn >= 0 and st.session_state.eval_distribution:
 if 'data' not in st.session_state:
     st.session_state.data = pd.DataFrame(columns=["Turn", "Score"])
 
+# placeholder_mr = midright.empty()
+# with placeholder_mr.container(height=200, border=False):
+#     if st.session_state.turn > 0 and st.session_state.eval_distribution:
+#         st.markdown(f"""
+#     <div style='text-align: center; margin-bottom: 6px; background-color: #f0f0f0; padding: 3px; border-radius: 5px; width: 250px'>
+#         <h4 style='font-size: 14px;'> SCORE: {st.session_state.final_score}</h4>
+#     </div>
+#     """, unsafe_allow_html=True)
 placeholder_mr = midright.empty()
 with placeholder_mr.container(height=200, border=False):
     if st.session_state.turn > 0 and st.session_state.eval_distribution:
-        st.markdown(f"""
-    <div style='text-align: center; margin-bottom: 6px; background-color: #f0f0f0; padding: 3px; border-radius: 5px; width: 250px'>
-        <h4 style='font-size: 14px;'> SCORE: {st.session_state.final_score}</h4>
-    </div>
-    """, unsafe_allow_html=True)
+        # Get current theme
+        is_dark_theme = st.get_option("theme.base") == "dark"
         
+        # Set colors based on theme
+        bg_color = "#1E1E1E" if is_dark_theme else "#f0f0f0"
+        text_color = "#FFFFFF" if is_dark_theme else "#000000"
+        
+        st.markdown(f"""
+            <div style='
+                text-align: center; 
+                margin-bottom: 6px; 
+                background-color: {bg_color}; 
+                padding: 3px; 
+                border-radius: 5px; 
+                width: 250px;
+                color: {text_color};
+                border: 1px solid {'rgba(255,255,255,0.1)' if is_dark_theme else 'rgba(0,0,0,0.1)'};
+            '>
+                <h4 style='font-size: 14px; margin: 8px 0;'> SCORE: {st.session_state.final_score}</h4>
+            </div>
+        """, unsafe_allow_html=True)
+
     # Create a new DataFrame for the new data point
     new_data = pd.DataFrame({"Turn": [st.session_state.turn], "Score": [st.session_state.final_score]})
         

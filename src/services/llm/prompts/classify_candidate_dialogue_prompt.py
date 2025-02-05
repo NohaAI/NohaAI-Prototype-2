@@ -2,7 +2,7 @@ from langchain_core.prompts import ChatPromptTemplate
  
 # TO-DO: self-correction/apology can be added
 
-def classify_candidate_dialogue_prompt_template_withclarification_open_specific():
+def classify_candidate_dialogue_prompt_template_clarification_open_specific():
   prompt="""
   
   You are emulating a dialogue act classifier. Your task is to label the candidate's dialogue into different classes as defined below and explain the rationale for classifying them as such.
@@ -109,7 +109,7 @@ def classify_candidate_dialogue_prompt_template():
   - irrelevant - Candidate responses that are irrelevant to the conversation
   - interview_inquiry - Candidate inquires about the interview
   - clarification(specific) -  A candidate asks if specific knowledge is required
-  - request(guidance) - Candidate asks for a detailed guidance or a stepwise explanation
+  - clarification(open) - Candidate asks a generic/non-specific expecting detailed guidance or a stepwise explanation
   - request(termination) - Candidate explicitly requests to end the interview 
   - request(proceed) - Candidate requests for a go-ahead to solve the problem
   - request(break) - Candidate requests to take a break
@@ -144,8 +144,8 @@ def classify_candidate_dialogue_prompt_template():
     * The candidate asks for definitions about specific terms listed in the question
     * The question is framed to verify the interview's scope and expectations
     
-  - Classify the dialogue as 'request(guidance)' when the following criteria are met:
-    * The dialogue represents requests for detailed guidance or a stepwise explanation or response to the problem  
+  - Classify the dialogue as 'clarification(open)' when the following criteria are met:
+    * The dialogue represents a generic/non-specific request expecting detailed guidance or a stepwise explanation  
         
   - Classify the dialogue as 'request(termination)' when the following criteria are met:
     * The candidate explicitly states they want to exit the interview.
@@ -153,17 +153,15 @@ def classify_candidate_dialogue_prompt_template():
     * Do not classify as 'request(termination)' if the candidate merely expresses unwillingness or a general desire not to continue (e.g., "I don't want to give this interview") without citing an emergency or directly stating they want to exit. These should be classified as disregard.
   
   - Classify the dialogue as 'request(proceed)' when the following criteria are met:
-    * Any open-ended request for guidance must not be considered
-    * Dialogue represents that the candidate is thinking aloud
-        
+    * The candidate expresses a direct intention to proceed without any sign of doubt or uncertainty.
+  
   - Classify the dialogue as 'request(break)' when the following criteria are met:
     * Explicit requests for a break
     * Mentions of needing a short pause
     * Time-specific break requests
   
   - Classify the dialogue as 'disregard' when the following criteria are met:
-    * The candidate uses inappropriate or offensive language 
-    * The candidate expresses disinterest or unwillingness to continue the interview without using polite or neutral language 
+    * The candidate uses inappropriate or offensive language  
     * The candidate exhibits an unprofessional or disrespectful tone in their responses 
 
   - Classify the dialogue as 'illegitimate' when the following criteria are met:
