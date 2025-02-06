@@ -27,8 +27,10 @@ def hint_prompt_template():
     5. Validate the hint by cross-referencing it with prior hints and discussion to ensure it introduces new, distinct ideas.
     
     Return:
-    Return a single concise hint that helps the candidate to solve the given problem and helps the interviewer to evaluate the candidate for his problem solving data structures and algorithms skills.
-
+    Return a single concise response that helps the candidate to solve the given problem without providing algorithmic and implementation details.
+    **IMPORTANT**:
+    Please don't provide the rationale only a single concise response
+    
     Example Output(Do not use this example output):
     How would your approach need to be modified if we needed to maintain a reference to both ends of the list throughout the process?
     """
