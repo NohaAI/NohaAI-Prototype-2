@@ -6,6 +6,75 @@ def compute_interview_score():
 
 def compute_turn_score_interim(turn_assessment_payload = None):
     if turn_assessment_payload:
+        evaluation_results_list = []
+        computed_payload = {}
+        weight_base = 0
+        score_base = 0
+        weight_list = []
+        score_list = []
+        norm_score_subcriterion = 0
+        norm_score_list_subcriterion = []
+        criteria_scores = []  # Will store max scores for each group of 3
+        temp_scores = []  # Temporary list to store scores for each group of 3
+        counter = 0
+        final_score = 0
+        
+        for key in turn_assessment_payload.keys():
+            weight_base = weight_base + turn_assessment_payload[key][0] 
+            score_base = score_base + 10 
+        
+        for key in turn_assessment_payload.keys():
+            weight = turn_assessment_payload[key][0]
+            weight = round(weight, 4)
+            score = float(turn_assessment_payload[key][1])
+            score = round(score, 4)
+            norm_score_subcriterion = (weight / weight_base) * score 
+            norm_score_subcriterion = round(norm_score_subcriterion, 4)
+            weight_list.append(weight)
+            score_list.append(score)
+            norm_score_list_subcriterion.append(norm_score_subcriterion)
+            
+            computed_payload[key] = [weight, score, norm_score_subcriterion]
+
+            # Handle evaluation results list
+            subcrit_dict = {}
+            subcrit_dict[key] = turn_assessment_payload[key][1]
+            evaluation_results_list.append(subcrit_dict)
+            
+            # Store raw scores for max calculation
+            temp_scores.append(float(turn_assessment_payload[key][1]))
+            
+            # Every third item, calculate max and reset temp_scores
+            if counter % 3 == 2:
+                max_score = max(temp_scores)
+                criteria_scores.append(max_score/10)  # Normalize to 0-1 range (assuming scores are 0-10)
+                temp_scores = []
+            
+            counter += 1
+
+        # Calculate final score based on criteria_scores
+        final_score = sum(criteria_scores)   # Scale back to 0-10 range
+        
+        print("weight_base", weight_base)
+        print("score_base", score_base)
+        print(weight_list)
+        print(score_list)
+        print(norm_score_list_subcriterion)
+        print(criteria_scores)
+        print("\n")
+        for key, values in computed_payload.items():
+            print(key, values)
+
+        return {
+            "evaluation_results": evaluation_results_list,
+            "criteria_scores": criteria_scores,
+            "final_score": final_score
+        }
+    else:
+        print("Turn assessment payload is empty")
+
+def compute_turn_score_interim_Ritesh(turn_assessment_payload = None):
+    if turn_assessment_payload:
         evaluation_results_list = [] # earlier code sent this as a part of a dictionary from the answer_evaluator.py
         computed_payload = {}
         weight_base = 0

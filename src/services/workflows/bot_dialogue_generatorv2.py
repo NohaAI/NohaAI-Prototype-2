@@ -19,17 +19,17 @@ from src.services.llm.prompts.hint_prompt import hint_prompt_template,hint_promp
 logger = get_logger(__name__)
 
 async def generate_dialogue(label, chat_history, answer, question, hint_count, answer_evaluation=None, previous_dialogue=None,rationale=None):
-    non_technical_class_labels=["illegible", "irrelevant", "clarification(specific)", "clarification(open)", "request(guidance)", "request(termination)", "request(proceed)", "request(break)", "disregard", "illegitimate", "uncertainty"]
+    # non_technical_class_labels=["illegible", "irrelevant", "clarification(specific)", "clarification(open)", "request(guidance)", "request(termination)", "request(proceed)", "request(break)", "disregard", "illegitimate", "uncertainty"]
     if not previous_dialogue:
         follow_up_question=""
     if not rationale:
         rationale=""
     if not answer_evaluation:
         answer_evaluation={}
-        
+    
     follow_up_question=previous_dialogue
     bot_dialogue_prompt=bot_dialogue_prompt_template()
     llm_model = llm_service.get_openai_model(model = "gpt-4o-mini")
     bot_dialogue_prompt_chain=(bot_dialogue_prompt|llm_model)
-    bot_dialogue=await bot_dialogue_prompt_chain.ainvoke({'class': label, 'question': question, 'follow_up_question': follow_up_question, 'answer': answer,'chat_history' : chat_history, 'rationale': rationale})
+    bot_dialogue=await bot_dialogue_prompt_chain.ainvoke({'class': label, 'question': question, 'follow_up_question': follow_up_question, 'answer': answer,'chat_history' : chat_history, 'rationale': rationale, 'answer_evaluation' : answer_evaluation})
     return bot_dialogue

@@ -13,7 +13,7 @@ from src.dao import chat_history as chat_hist
 # Initialize logger
 logger = logger.get_logger(__name__)
 #We are not instructing our LLM to score the candidate on recent hint
-async def evaluate_answer_wo_max_eval(input_request):
+async def evaluate_answer(input_request):
     """
     Orchestrates the evaluation process for a given query.
     
@@ -69,7 +69,7 @@ async def evaluate_answer_wo_max_eval(input_request):
         evaluation_llm = llm.get_openai_model(model = "gpt-4o-mini")
         evaluation_chain = evaluation_prompt | evaluation_llm
         llm_response = await evaluation_chain.abatch(llm_inputs)
-        logger.info(f"LLM RESPONSE FOR ANSWER EVALUATOR : {llm_response}")
+        #logger.info(f"LLM RESPONSE FOR ANSWER EVALUATOR : {llm_response}")
         #for rationale
         for criterion_result, criterion_weights in zip(llm_response, subcriteria_weights):
 
@@ -110,6 +110,7 @@ async def evaluate_answer_wo_max_eval(input_request):
            
         #logic for max eval
 
+
         ### rmsbegin: code below appends the candidate score against to each dictionary item in the existing list containg weight
        
         for evaluation_dict_item in evaluation_results:
@@ -125,8 +126,7 @@ async def evaluate_answer_wo_max_eval(input_request):
     except Exception as ex:
         logger.critical(f"Unexpected error in evaluation process: {ex}")
         raise Exception(f"Unexpected error in evaluation process: {ex}")
-        
-async def evaluate_answer(input_request,prev_eval=None):
+async def evaluate_answer_max_eval(input_request,prev_eval=None):
     """
     Orchestrates the evaluation process for a given query.
     
@@ -182,7 +182,7 @@ async def evaluate_answer(input_request,prev_eval=None):
         evaluation_llm = llm.get_openai_model(model = "gpt-4o-mini")
         evaluation_chain = evaluation_prompt | evaluation_llm
         llm_response = await evaluation_chain.abatch(llm_inputs)
-        logger.info(f"LLM RESPONSE FOR ANSWER EVALUATOR : {llm_response}")
+        #logger.info(f"LLM RESPONSE FOR ANSWER EVALUATOR : {llm_response}")
         #for rationale
         for criterion_result, criterion_weights in zip(llm_response, subcriteria_weights):
 
