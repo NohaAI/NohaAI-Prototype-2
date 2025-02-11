@@ -87,6 +87,7 @@ def classify_candidate_answer_prompt_template():
   """
   classify_candidate_answer_prompt=ChatPromptTemplate.from_template(template=prompt)
   return classify_candidate_answer_prompt
+  
 def classify_candidate_answer_prompt_template_Ritesh():
   prompt="""
   You are emulating a candidate answer classifier. Your task is to label the candidate's answer into different classes as defined below and explain the rationale for classifying them as such.

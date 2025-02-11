@@ -103,6 +103,8 @@ def classify_candidate_dialogue_prompt_template():
   Candidate Dialogue: {answer}
   Interim Chat History: {interim_chat_history}
 
+  Distill the candidate dialogue that you have recieved before classifying them.
+
   'class' must be one of:
   - technical - Candidate has attempted to solve this question 
   - illegible - Possibly some gibberish output or non-standard words coming from STT

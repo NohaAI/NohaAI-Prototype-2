@@ -21,7 +21,8 @@ from langchain_core.prompts import ChatPromptTemplate
 #         subcriteria_payload = {{
 #             "criteria": [
 #                 {{
-#                     "name": " "Are the assumptions clarified?"","weight": 8.5,
+#                     "name":  "Are the assumptions clarified?",
+#                     "weight": 8.5,
 #                     "subcriteria": [
 #                         {{"name": "Has the candidate defined what constitutes a word in the context of this problem?", "weight": 7.0}},
 #                         {{"name": "Is it clarified how to handle multiple spaces between words?", "weight": 9.0}},
