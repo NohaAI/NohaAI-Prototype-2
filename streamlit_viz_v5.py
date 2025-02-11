@@ -1,8 +1,11 @@
 import streamlit as st
 import time
+from datetime import datetime
 import pandas as pd
+import csv
 import plotly.express as px
 import asyncio
+import os
 import json
 from src.schemas.endpoints.schema import EvaluateAnswerRequest
 from src.services.workflows import answer_evaluator
@@ -17,6 +20,8 @@ from src.services.workflows.policy_violation import check_policy_violation
 from src.services.workflows.candidate_dialogue_classifier import classify_candidate_dialogue
 from src.services.workflows.bot_dialogue_generator import generate_dialogue 
 from src.dao.chat_history import batch_insert_chat_history
+from src.services.tts.tts_service import text_to_speech
+
 # Function to fetch chat history asynchronously
 async def async_get_chat_history(interview_id):
     return await get_chat_history(interview_id)
@@ -59,6 +64,22 @@ async def async_batch_insert_chat_history(interview_id,question_id,chat_history_
 async def async_generate_dialogue(label, chat_history, answer, question, answer_evaluation, hint_count, previous_bot_dialogue=None):
     return await generate_dialogue(label, chat_history, answer, question, answer_evaluation, hint_count, previous_bot_dialogue)
 # Function to run the async function and return results
+
+def write_to_chat_history_csv(filename, data):
+    file_exists = os.path.isfile(filename)
+    
+    with open(filename, mode='a', newline='') as file:
+        writer = csv.writer(file)
+        
+        # Write header if file does not exist
+        if not file_exists:
+            writer.writerow(["Date", "Chat_History"])
+        
+        # Write data
+        writer.writerow(data)
+
+# Example usage
+
 def run_async(func):
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
@@ -80,8 +101,10 @@ bottomleft = row3[0]
 bottomright = row3[1]
 
 if "turn" in st.session_state and st.session_state.conclude == True:
-    # async_batch_insert_chat_history(st.session_state.meta_payload.interview_id, st.session_state.meta_payload.question_id,st.session_state.interim_chat_history)
+    run_async(async_batch_insert_chat_history(st.session_state.meta_payload.interview_id, st.session_state.meta_payload.question_id,st.session_state.interim_chat_history))
     placeholder_ml=midleft.empty()
+    chat_history_csv_data=[datetime.now().strftime("%d %b %Y - %I:%M %p"),st.session_state.messages]
+    write_to_chat_history_csv('interview_sessions.csv',chat_history_csv_data)
     placeholder_ml.progress(0, "Thank you for your time ...")
     time.sleep(2)
     placeholder_ml.progress(20, "Thank you for your time ...")
@@ -97,7 +120,9 @@ if "turn" in st.session_state and st.session_state.conclude == True:
     
     placeholder_bl=bottomleft.empty()
     placeholder_bl = bottomleft.container(height=320, border=True)
-    placeholder_bl.write("**CHAT HISTORY**")
+    chat_history_str = datetime.now().strftime("**CHAT HISTORY** - (%d %b %Y) - (%I:%M %p)")
+    placeholder_bl.write(chat_history_str)
+    st.audio(text_to_speech(st.session_state.conclude_message), format='audio/mp3', autoplay=True)
     topleft.write("**NOHA AI-BOT**")
     placeholder_tl = topleft.empty()
     with placeholder_tl.container(height=240, border=True):
@@ -111,16 +136,6 @@ if "turn" in st.session_state and st.session_state.conclude == True:
                 placeholder_tl.chat_message("assistant").markdown(msg["content"])
                 # bottomleft.write(msg['content'])
                 placeholder_bl.markdown(f"<div class='scrollable-container'><b>Noha-bot:</b> { msg['content']}</div>", unsafe_allow_html=True)
-    # Display chat messages using a for loop
-    # topleft.write("**NOHA AI-BOT**")
-    # placeholder_tl = topleft.empty()
-    # with placeholder_tl.container(height=240, border=True):
-    #     for msg in st.session_state.messages:
-    #         print(st.session_state.messages)
-    #         if msg["role"] == "user":
-    #             placeholder_tl.chat_message("user").markdown(msg["content"])
-    #         if msg["role"] == "bot":
-    #             placeholder_tl.chat_message("assistant").markdown(msg["content"])
     st.stop()
 
 #for dev
@@ -147,6 +162,7 @@ if "messages" not in st.session_state:
     st.session_state.conversation_turn=0
     st.session_state.contigous_guardrails_count=0
     st.session_state.conclude=False
+    st.session_state.bot_dialogue = ""
     st.session_state.call_for_termination=False
     st.session_state.conclude_message=""
     # Create an instance of EvaluateAnswerRequest; call it st.session_state.meta_payload for now as it is required throughout
@@ -162,13 +178,15 @@ if "messages" not in st.session_state:
     chat_history = run_async(async_get_chat_history(st.session_state.meta_payload.interview_id))
     if chat_history:
         run_async(async_delete_chat_history(st.session_state.meta_payload.interview_id))
-    greeting = "Hello Ram, I am Noha. I'm your interviewer today. We have planned a data structures and algorithms interview with you, are you good to go?"
+    greeting = "Hello Arun, I am Noha. I'm your interviewer today. We have planned a data structures and algorithms interview with you, are you good to go?"
+    st.audio(text_to_speech(greeting), format='audio/mp3', autoplay=True)
     #Hi I am Noha I take care of DSA questions 
     st.session_state.meta_payload.question=greeting
     st.session_state.messages = [{"role": "bot", "content": greeting}]
 
 placeholder_bl = bottomleft.container(height=320, border=True)
-placeholder_bl.write("**CHAT HISTORY**")
+chat_history_str = datetime.now().strftime("**CHAT HISTORY** - (%d %b %Y) - (%I:%M %p)")
+placeholder_bl.write(chat_history_str)
 
 if st.session_state.turn == 0:
     # Display chat messages using a for loop
@@ -199,8 +217,9 @@ if user_input:
         # get question_id from the initialised st.session_state.meta_payload; question_id == 10 for now, to be generalised later
         question_id = st.session_state.meta_payload.question_id 
         initial_question_metadata = run_async(async_get_question_metadata(question_id))
-        st.session_state.initial_question = initial_question_metadata['question']
+        st.session_state.initial_question = "Great," + initial_question_metadata['question']
         st.session_state.meta_payload.question = st.session_state.initial_question
+        st.audio(text_to_speech(st.session_state.initial_question), format='audio/mp3', autoplay=True)
         st.session_state.messages.append({"role": "bot", "content": st.session_state.initial_question})
         st.session_state.previous_bot_dialogue=st.session_state.initial_question
     elif (st.session_state.turn == 1):
@@ -233,6 +252,8 @@ if user_input:
             print(f"RESPONSE : {bot_dialogue[1]}")
             print(f"RATIONALE_RESPONSE : {bot_dialogue[2]}")
             print("######################################################################################################")
+            st.session_state.bot_dialogue = bot_dialogue[1]
+            #text_to_speech_cq(bot_dialogue[1])
             st.session_state.messages.append({"role": "bot", "content": bot_dialogue[1]})
         
             #    st.session_state.turn += 1
@@ -258,8 +279,9 @@ if user_input:
             st.session_state.previous_bot_dialogue=bot_dialogue
             #bot_dialogue=bot_dialogue.content
             st.session_state.meta_payload.question = bot_dialogue
+            st.session_state.bot_dialogue = bot_dialogue
+            #text_to_speech_cq(bot_dialogue)
             st.session_state.messages.append({"role": "bot", "content": bot_dialogue})
-
     else:
         st.session_state.messages.append({"role": "user", "content": user_input})
         if st.session_state.previous_bot_dialogue==st.session_state.meta_payload.question:
@@ -290,6 +312,8 @@ if user_input:
             print(f"RESPONSE : {bot_dialogue[1]}")
             print(f"RATIONALE_RESPONSE : {bot_dialogue[2]}")
             print("######################################################################################################")
+            st.session_state.bot_dialogue = bot_dialogue[1]
+            #text_to_speech_cq(bot_dialogue[1])
             st.session_state.messages.append({"role": "bot", "content": bot_dialogue[1]})
             st.session_state.turn += 1
             st.session_state.conversation_turn += 1
@@ -315,6 +339,8 @@ if user_input:
             st.session_state.previous_bot_dialogue=bot_dialogue
             #bot_dialogue=bot_dialogue.content
             st.session_state.meta_payload.question = bot_dialogue
+            st.session_state.bot_dialogue = bot_dialogue
+            #text_to_speech_cq(bot_dialogue)
             st.session_state.messages.append({"role": "bot", "content": bot_dialogue})
 
     end_time=time.time()
@@ -324,26 +350,31 @@ if user_input:
         st.session_state.conclude=True      
         st.session_state.conclude_message="Since you have solved this question, can you now start writing code for it?"
         st.session_state.meta_payload.question = st.session_state.conclude_message
+        #text_to_speech_cq(st.session_state.conclude_message)
         st.session_state.messages.append({"role": "bot", "content": st.session_state.conclude_message})
         st.rerun() 
-    if(("turn" in st.session_state and "final_score" in st.session_state) and (st.session_state.conversation_turn > MAX_TURNS)):
+    elif(("turn" in st.session_state and "final_score" in st.session_state) and (st.session_state.conversation_turn > MAX_TURNS)):
         st.session_state.conclude=True      
         st.session_state.conclude_message="We appreciate your effort on the problem! Now, can you code it for us? Let us know when you're ready."
         st.session_state.meta_payload.question = st.session_state.conclude_message
+        #text_to_speech_cq(st.session_state.conclude_message)
         st.session_state.messages.append({"role": "bot", "content": st.session_state.conclude_message})
         st.rerun()
-    if("turn" in st.session_state  and (st.session_state.contigous_guardrails_count==MAX_CONTIGUOUS_GUARDRAIL_COUNT)):
+    elif("turn" in st.session_state  and (st.session_state.contigous_guardrails_count==MAX_CONTIGUOUS_GUARDRAIL_COUNT)):
         st.session_state.conclude=True
         st.session_state.conclude_message="It seems there is a lack of clarity. Let us move on to the next question."
         st.session_state.meta_payload.question = st.session_state.conclude_message
+        #text_to_speech_cq(st.session_state.conclude_message)
         st.session_state.messages.append({"role": "bot", "content": st.session_state.conclude_message})
         st.rerun()
-    if("turn" in st.session_state  and (st.session_state.call_for_termination==True)):
+    elif("turn" in st.session_state  and (st.session_state.call_for_termination==True)):
         st.session_state.conclude=True
-        # st.session_state.conclude_message="It seems there is a lack of clarity. Let us move on to the next question."
-        # st.session_state.meta_payload.question = st.session_state.conclude_message
-        # st.session_state.messages.append({"role": "bot", "content": st.session_state.conclude_message})
+        st.session_state.conclude_message = st.session_state.bot_dialogue
+        #text_to_speech_cq(st.session_state.bot_dialogue)
         st.rerun()
+    else:
+        st.audio(text_to_speech(st.session_state.bot_dialogue), format='audio/mp3', autoplay=True)
+       
 
     print(f"LATENCY FOR TURN {st.session_state.turn} IS {latency}")
     print(f"CONVERSATION COUNT: {st.session_state.turn}")
@@ -420,13 +451,13 @@ with placeholder_br.container(height=240):
     # Create mapping between score numbers and evaluation criteria
     evaluation_criteria = {
         f"Score {i+1}": criterion for i, criterion in enumerate([
-            "Assumptions",
-            "Corncer Cases",
-            "Data Structures",
-            "Algorithms",
-            "Time Complexity",
-            "Space Complexity?",
-            "Generalization"
+            "Are the assumptions clarified?",
+            "Does the candidate account for corner cases?",
+            "Does the candidate choose the appropriate data structure for the problem?",
+            "Does the candidate select a suitable algorithm for the task?",
+            "Does the solution proposed by the candidate have optimal time complexity?",
+            "Does the solution proposed by the candidate have optimal space complexity?",
+            "Does the proposed solution handle generic use cases?"
         ])
     }
 
@@ -460,5 +491,17 @@ with placeholder_br.container(height=240):
                         barmode='stack',
                         width=360,
                         height=300)
+            
+            # Update layout to move legend below the chart
+            fig.update_layout(
+                legend=dict(
+                    orientation="h",  # horizontal orientation
+                    yanchor="top",
+                    y=-0.5,         # position below the chart
+                    xanchor="center",
+                    x=0.5,          # center horizontally
+                    font=dict(size=8)  # make font smaller to fit
+                )
+            )
             
             placeholder_br.plotly_chart(fig, use_container_width=False)

@@ -32,6 +32,7 @@ from src.services.workflows.policy_violation import check_policy_violation
 from src.services.workflows.candidate_dialogue_classifier import classify_candidate_dialogue
 from src.services.workflows.bot_dialogue_generator import generate_dialogue 
 from src.dao.chat_history import batch_insert_chat_history
+
 # Function to fetch chat history asynchronously
 async def async_get_chat_history(interview_id):
     return await get_chat_history(interview_id)
@@ -97,18 +98,28 @@ bottomleft = row3[0]
 bottomright = row3[1]
 
 # for dev
-# MAX_TURNS=50
-# if("turn" in st.session_state and st.session_state.turn > MAX_TURNS):
-#     # bottomleft.write(f"**INTERVIEW RESULTS**: {st.session_state.final_score}")
-#     st.markdown(f'<p style="font-size: 24px;"><strong>INTERVIEW RESULTS</strong>: {st.session_state.final_score}</p>', unsafe_allow_html=True)
-#     st.stop()
-#for prod
-if(("turn" in st.session_state and "final_score" in st.session_state) and (st.session_state.turn > 12 or st.session_state.final_score > 5.0)):
-    
+MAX_TURNS=50
+if("turn" in st.session_state and st.session_state.turn > MAX_TURNS):
     # bottomleft.write(f"**INTERVIEW RESULTS**: {st.session_state.final_score}")
-    st.markdown(f'<p style="font-size: 24px;"><strong>Since you have solved this question, can you now start writing code for it?</strong></p>', unsafe_allow_html=True)
-    st.stop() 
-    
+    st.markdown(f'<p style="font-size: 24px;"><strong>INTERVIEW RESULTS</strong>: {st.session_state.final_score}</p>', unsafe_allow_html=True)
+    st.stop()
+#for prod
+# if(("turn" in st.session_state and "final_score" in st.session_state) and (st.session_state.final_score > 5.0)):
+#     # bottomleft.write(f"**INTERVIEW RESULTS**: {st.session_state.final_score}")
+#     st.markdown(f'<p style="font-size: 24px;"><strong>Since you have solved this question, can you now start writing code for it?</strong></p>', unsafe_allow_html=True)
+#     st.stop() 
+# if(("turn" in st.session_state and "final_score" in st.session_state) and (st.session_state.turn > 12)):
+#     # bottomleft.write(f"**INTERVIEW RESULTS**: {st.session_state.final_score}")
+#     st.markdown(f'<p style="font-size: 24px;"><strong>We have dedicated sufficient time to this. Could you code it for us?</strong></p>', unsafe_allow_html=True)
+#     st.stop() 
+# if("turn" in st.session_state  and (st.session_state.guardrails_count>=8 or st.session_state.contigous_guardrails_count>=3)):
+#     # bottomleft.write(f"**INTERVIEW RESULTS**: {st.session_state.final_score}")
+#     st.markdown(f'<p style="font-size: 24px;"><strong>It seems there is a lack of clarity. Let us move on to the next question.</strong></p>', unsafe_allow_html=True)
+#     st.stop() 
+#Can you now code this problem
+
+#looks like you need more clarity on this question how about we try another question
+
 ###### Some initial payload and variables for facilitation have been defined; refactor required later possibly; review
 # Initialize chat messages and other artefacts if not already done
 if "messages" not in st.session_state:
@@ -117,6 +128,9 @@ if "messages" not in st.session_state:
     st.session_state.turn = 0
     st.session_state.previous_bot_dialogue=""
     st.session_state.assessment_payload=None
+    st.session_state.guardrails_count=0
+    st.session_state.contigous_guardrails_count=0
+    st.session_state.termination=False
     # Create an instance of EvaluateAnswerRequest; call it st.session_state.meta_payload for now as it is required throughout
     st.session_state.meta_payload = EvaluateAnswerRequest(
         question_id=1, # Question 10 is chosen for now; later it needs to come from some selection criteria
@@ -130,7 +144,8 @@ if "messages" not in st.session_state:
     chat_history = run_async(async_get_chat_history(st.session_state.meta_payload.interview_id))
     if chat_history:
         run_async(async_delete_chat_history(st.session_state.meta_payload.interview_id))
-    greeting = "Hello 👋 interviewee, how are you doing? All set for the interview ?!"
+    greeting = "Hello Ram, I am Noha. I'm your interviewer today. We have planned a data structures and algorithms interview with you, are you good to go?"
+    #Hi I am Noha I take care of DSA questions 
     st.session_state.meta_payload.question=greeting
     st.session_state.messages = [{"role": "bot", "content": greeting}]
 
@@ -153,7 +168,6 @@ if st.session_state.turn == 0:
 container_ml = midleft.container(height=100, border=False)
 container_ml.write("**CANDIDATE**")
 user_input = container_ml.chat_input("Type your message here...")
-
 
 if user_input:
     start_time=time.time()
@@ -179,6 +193,9 @@ if user_input:
         classify_candidate_dialogue=run_async(async_classify_candidate_dialogue(st.session_state.initial_question,user_input,st.session_state.interim_chat_history))
         classify_candidate_dialogue=json.loads(classify_candidate_dialogue.content)
         class_label=classify_candidate_dialogue[0]
+        if class_label == 'clarification(open)' or class_label == 'clarification(specific)' or class_label == 'request(guidance)' or class_label == 'uncertainty':
+            st.session_state.guardrails_count+=1
+            st.session_state.contigous_guardrails_count+=1
         if(class_label!='technical'):
             #label, chat_history, answer, question,answer_evaluation, hint_count, previous_bot_dialogue=None
             
@@ -196,6 +213,7 @@ if user_input:
         
             #    st.session_state.turn += 1
         else:
+            st.session_state.contigous_guardrails_count=0
             print("######################################################################################################")
             print(f"USER INPUT : {user_input}")
             print(f"RATIONALE : {classify_candidate_dialogue[1]}")
@@ -225,6 +243,9 @@ if user_input:
         classify_candidate_dialogue=run_async(async_classify_candidate_dialogue(st.session_state.meta_payload.question,user_input,st.session_state.interim_chat_history))
         classify_candidate_dialogue=json.loads(classify_candidate_dialogue.content)
         class_label=classify_candidate_dialogue[0]
+        if class_label == 'clarification(open)' or class_label == 'clarification(specific)' or class_label == 'request(guidance)' or class_label == 'uncertainty':
+            st.session_state.guardrails_count+=1
+            st.session_state.contigous_guardrails_count+=1
         if(class_label!='technical'):
             st.session_state.interim_chat_history.append({"reciprocation": st.session_state.previous_bot_dialogue,"answer": user_input})
            
@@ -241,6 +262,7 @@ if user_input:
             st.session_state.messages.append({"role": "bot", "content": bot_dialogue[1]})
             st.session_state.turn += 1
         else:
+            st.session_state.contigous_guardrails_count=0
             print("######################################################################################################")
             print(f"USER INPUT : {user_input}")
             print(f"RATIONALE : {classify_candidate_dialogue[1]}")
@@ -257,7 +279,7 @@ if user_input:
             st.session_state.final_score = assessment_payload['final_score']
             st.session_state.turn += 1
             
-            bot_dialogue=run_async(async_generate_dialogue(class_label,st.session_state.interim_chat_history,user_input, st.session_state.initial_question,st.session_state.assessment_payload,st.session_state.hint_count,None))
+            bot_dialogue=run_async(async_generate_dialogue(class_label,st.session_state.interim_chat_history,user_input, st.session_state.initial_question,st.session_state.assessment_payload,st.session_state.hint_count,st.session_state.meta_payload.question))
             st.session_state.previous_bot_dialogue=bot_dialogue
             #bot_dialogue=bot_dialogue.content
             st.session_state.meta_payload.question = bot_dialogue
