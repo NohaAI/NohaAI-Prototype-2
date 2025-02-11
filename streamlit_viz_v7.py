@@ -22,6 +22,7 @@ from src.services.workflows.candidate_dialogue_classifier import classify_candid
 from src.services.workflows.bot_dialogue_generatorv2 import generate_dialogue 
 from src.dao.chat_history import batch_insert_chat_history
 from src.services.workflows.answer_classifer import classify_candidate_answer
+
 # Function to fetch chat history asynchronously
 async def async_get_chat_history(interview_id):
     return await get_chat_history(interview_id)
@@ -124,7 +125,7 @@ with app_tab:
         placeholder_ml.markdown(f'<p style="font-size: 24px;"><strong>INTERVIEW RESULTS</strong>: {round(st.session_state.final_score, 2)}</p>', unsafe_allow_html=True)
         
         placeholder_bl=bottomleft.empty()
-        placeholder_bl = bottomleft.container(height=320, border=True)
+        placeholder_bl = bottomleft.container(height=420, border=True)
         chat_history_str = datetime.now().strftime("**CHAT HISTORY** - (%d %b %Y) - (%I:%M %p)")
         placeholder_bl.write(chat_history_str)
         topleft.write("**NOHA AI-BOT**")
@@ -171,6 +172,7 @@ with app_tab:
         st.session_state.conclude=False
         st.session_state.call_for_termination=False
         st.session_state.conclude_message=""
+        st.session_state.class_label=None #added class_label so it could be accessed globally across tabs
         # Create an instance of EvaluateAnswerRequest; call it st.session_state.meta_payload for now as it is required throughout
         st.session_state.meta_payload = EvaluateAnswerRequest(
             question_id=1, # Question 10 is chosen for now; later it needs to come from some selection criteria
@@ -189,7 +191,7 @@ with app_tab:
         st.session_state.meta_payload.question=greeting
         st.session_state.messages = [{"role": "bot", "content": greeting}]
 
-    placeholder_bl = bottomleft.container(height=360, border=True)
+    placeholder_bl = bottomleft.container(height=420, border=True)
     chat_history_str = datetime.now().strftime("**CHAT HISTORY** - (%d %b %Y) - (%I:%M %p)")
     placeholder_bl.write(chat_history_str)
 
@@ -235,6 +237,7 @@ with app_tab:
             classify_candidate_dialogue=run_async(async_classify_candidate_dialogue(st.session_state.initial_question,user_input,st.session_state.interim_chat_history))
             classify_candidate_dialogue=json.loads(classify_candidate_dialogue.content)
             class_label=classify_candidate_dialogue[0]
+            st.session_state.class_label = class_label
             if class_label == 'clarification(open)' or class_label == 'clarification(specific)' or class_label == 'request(guidance)' or class_label == 'uncertainty' or  class_label == 'request(termination)':
                 if class_label != 'request(termination)':
                     st.session_state.guardrails_count+=1
@@ -303,6 +306,7 @@ with app_tab:
             classify_candidate_dialogue=run_async(async_classify_candidate_dialogue(st.session_state.meta_payload.question,user_input,st.session_state.interim_chat_history))
             classify_candidate_dialogue=json.loads(classify_candidate_dialogue.content)
             class_label=classify_candidate_dialogue[0]
+            st.session_state.class_label = class_label
             if class_label == 'clarification(open)' or class_label == 'clarification(specific)' or class_label == 'request(guidance)' or class_label == 'uncertainty' or  class_label == 'request(termination)':
                 if class_label != 'request(termination)':
                     st.session_state.guardrails_count+=1
@@ -466,20 +470,30 @@ with app_tab:
 
     ### For the bottomright cell
     placeholder_br = bottomright.empty()
-    with placeholder_br.container(height=360):
+    with placeholder_br.container(height=420, border=True):
         # Create mapping between score numbers and evaluation criteria
+        # evaluation_criteria = {
+        #     f"Score {i+1}": criterion for i, criterion in enumerate([
+        #         "Are the assumptions clarified?",
+        #         "Does the candidate account for corner cases?",
+        #         "Does the candidate choose the appropriate data structure for the problem?",
+        #         "Does the candidate select a suitable algorithm for the task?",
+        #         "Does the solution proposed by the candidate have optimal time complexity?",
+        #         "Does the solution proposed by the candidate have optimal space complexity?",
+        #         "Does the proposed solution handle generic use cases?"
+        #     ])
+        # }
         evaluation_criteria = {
-            f"Score {i+1}": criterion for i, criterion in enumerate([
-                "Are the assumptions clarified?",
-                "Does the candidate account for corner cases?",
-                "Does the candidate choose the appropriate data structure for the problem?",
-                "Does the candidate select a suitable algorithm for the task?",
-                "Does the solution proposed by the candidate have optimal time complexity?",
-                "Does the solution proposed by the candidate have optimal space complexity?",
-                "Does the proposed solution handle generic use cases?"
-            ])
+        f"Score {i+1}": criterion for i, criterion in enumerate([
+            "Generalization ability",
+            "Space Complexity",
+            "Time Complexity",
+            "Algorithm choice",
+            "Data structure choice",
+            "Corner case clarification",
+            "Assumption clarification"
+        ])
         }
-
         if 'stacked_data' not in st.session_state:
             st.session_state.stacked_data = pd.DataFrame(columns=["Turn"] + [f'Score {i+1}' for i in range(7)])
 
@@ -510,8 +524,7 @@ with app_tab:
                 bar_colors = ['#2E9CCA', '#D65A31', '#4A4FEA', '#FFDA63', '#336B87', '#90EE90', '#A3D1FF'] #distinct palette
 
                 # Create the stacked bar chart using matplotlib
-                fig, ax = plt.subplots(figsize=(15, 6))  # Reduced figsize for better fit
-                # bottom = np.zeros(len(melted_df['Turn'].unique()))  # Initialize the bottom for stacking
+                fig, ax = plt.subplots(figsize=(18, 12),layout='constrained')  # Reduced figsize for better fit
                 bottom = np.zeros(len(melted_df['Turn'].unique()), dtype=float) # Initialize the bottom for stacking
 
                 # Get unique evaluation criteria for iterating in plotting
@@ -534,28 +547,30 @@ with app_tab:
                         raise # re-raise the exception
                     turns = criterion_data['Turn'].values
                     turn_indices = [turn_values[turn] for turn in turns]  # Get corresponding index values
-                    ax.bar(turn_indices, values, label=criterion, bottom=bottom[turn_indices], width=0.8, color=bar_colors[i % len(bar_colors)]) # plot data with color) # plot data
+                    ax.bar(turn_indices, values, label=criterion, bottom=bottom[turn_indices], width=0.3, color=bar_colors[i % len(bar_colors)]) # plot data with color) # plot data
 
                     # Update the bottom for the next bar
                     bottom[turn_indices] += values
 
                 # Add labels and title
-                ax.set_xlabel('Turn', fontsize='large')
-                ax.set_ylabel('Value', fontsize='large')
-                ax.set_title('Evaluation Criteria Distribution',fontsize='large')
+                ax.set_xlabel('Turn', fontsize=36)
+                ax.set_ylabel('Value', fontsize=36)
+                ax.set_title('Evaluation Criteria Distribution',fontsize=48)
                 ax.set_xticks(list(turn_values.values())) # set only integer values as ticks
-                ax.set_xticklabels(list(turn_values.keys()))  # Label the ticks with Turn values
+                ax.set_xticklabels(list(turn_values.keys()), fontsize=36)  # Label the ticks with Turn values
                 ax.tick_params(axis='x', rotation=0) # change the rotation
 
-                # Add legend, adjust its position
-                ax.legend(title='Criteria', bbox_to_anchor=(0.5, -0.15), loc='upper center', fontsize='large', fancybox=True, shadow=True, ncol=3)  # Adjust ncol for spacing
-                # Adjust the layout to make room for the legend and reduce whitespace
-                plt.tight_layout(rect=[0.5, 0.1, 1, 1]) # Adjust right parameter to prevent legend overlap
+                # # Add legend, adjust its position
+                fig.legend(title='Criteria',loc="outside left center",bbox_to_anchor=(0.25, -0.6, 2, 0.5),title_fontsize=42, fontsize=42, fancybox=True, shadow=True, ncol=1)  # Adjust ncol for spacing
+                # # Adjust the layout to make room for the legend and reduce whitespace
+                # plt.tight_layout(rect=[0,0,0,0]) # Adjust right parameter to prevent legend overlap
+                plt.tight_layout()
 
                 # Show the chart in Streamlit
                 st.pyplot(fig)
 
 with rationale_evaluation_tab:
+    class_label = st.session_state.class_label
     st.write(f"**CONVERSATION TURN {st.session_state.conversation_turn}**")
     if class_label:
         st.write(f" CANDIDATE DIALOGUE : {user_input}")
