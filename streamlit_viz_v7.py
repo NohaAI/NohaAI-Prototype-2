@@ -524,7 +524,7 @@ with app_tab:
                 bar_colors = ['#2E9CCA', '#D65A31', '#4A4FEA', '#FFDA63', '#336B87', '#90EE90', '#A3D1FF'] #distinct palette
 
                 # Create the stacked bar chart using matplotlib
-                fig, ax = plt.subplots(figsize=(18, 12),layout='constrained')  # Reduced figsize for better fit
+                fig, ax = plt.subplots(figsize=((32/2.54),(15/2.54)))  # Reduced figsize for better fit
                 bottom = np.zeros(len(melted_df['Turn'].unique()), dtype=float) # Initialize the bottom for stacking
 
                 # Get unique evaluation criteria for iterating in plotting
@@ -553,15 +553,15 @@ with app_tab:
                     bottom[turn_indices] += values
 
                 # Add labels and title
-                ax.set_xlabel('Turn', fontsize=36)
-                ax.set_ylabel('Value', fontsize=36)
-                ax.set_title('Evaluation Criteria Distribution',fontsize=48)
+                ax.set_xlabel('Turn', fontsize=26)
+                ax.set_ylabel('Value', fontsize=26)
+                ax.set_title('Evaluation Criteria Distribution',fontsize=28)
                 ax.set_xticks(list(turn_values.values())) # set only integer values as ticks
-                ax.set_xticklabels(list(turn_values.keys()), fontsize=36)  # Label the ticks with Turn values
+                ax.set_xticklabels(list(turn_values.keys()), fontsize=26)  # Label the ticks with Turn values
                 ax.tick_params(axis='x', rotation=0) # change the rotation
 
                 # # Add legend, adjust its position
-                fig.legend(title='Criteria',loc="outside left center",bbox_to_anchor=(0.25, -0.6, 2, 0.5),title_fontsize=42, fontsize=42, fancybox=True, shadow=True, ncol=1)  # Adjust ncol for spacing
+                fig.legend(title='Criteria',loc="outside left center",bbox_to_anchor=(0.05, -0.4, 2, 0.5),title_fontsize=18, fontsize=18, fancybox=True, shadow=True, ncol=2)  # Adjust ncol for spacing
                 # # Adjust the layout to make room for the legend and reduce whitespace
                 # plt.tight_layout(rect=[0,0,0,0]) # Adjust right parameter to prevent legend overlap
                 plt.tight_layout()
