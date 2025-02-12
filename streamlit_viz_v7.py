@@ -161,6 +161,7 @@ with app_tab:
     # Initialize chat messages and other artefacts if not already done
     if "messages" not in st.session_state:
         st.session_state.interim_chat_history=[]
+        st.session_state.rationale_logs = []  # logs containing rationale etc. to be printed on the second tab
         st.session_state.hint_count=[0,0,0,0,0]
         st.session_state.turn = 0
         st.session_state.previous_bot_dialogue=""
@@ -569,25 +570,62 @@ with app_tab:
                 # Show the chart in Streamlit
                 st.pyplot(fig)
 
+# with rationale_evaluation_tab:
+#     class_label = st.session_state.class_label
+#     st.write(f"**CONVERSATION TURN {st.session_state.conversation_turn}**")
+#     if class_label:
+#         st.write(f" CANDIDATE DIALOGUE : {user_input}")
+#         st.write(f" CANDIDATE DIALOGUE CLASS LABEL : {class_label}")
+#         if class_label !='technical' and class_label != 'clarification(specific)':
+#             st.write(f" BOT DIALOGUE: {bot_dialogue[1]}")
+#             st.write(f" DIALOGUE CLASSIFICATION RATIONALE : { bot_dialogue[2]}")
+#         else:
+#             st.write(f"CANDIDATE ANSWER LABEL : {candidate_answer_label}")
+#             st.write(f"RATIONALE CANDIDATE ANSWER: {candidate_answer_classification_rationale}")
+#             if candidate_answer_label not in candidate_answer_labels_not_tobe_evaluated:
+#                 st.write(f" BOT FOLLOW UP DIALOGUE : {bot_dialogue}")
+#                 st.write(f" BOT FOLLOW UP RATIONALE : {bot_dialogue_rationale}")
+#                 st.write(f" SUBCRITERION ID : {bot_dialogue_subcriterion_id}")
+#                 st.write("**ANSWER EVALUATION**")
+#                 st.write(st.session_state.assessment_payload['evaluation_results'])
+#             else:    
+#                 st.write(f" BOT FOLLOW UP DIALOGUE : {bot_dialogue}")
+#                 st.write(f" BOT FOLLOW UP RATIONALE : {bot_dialogue_rationale}")
+#                 st.write(f" SUBCRITERION ID : {bot_dialogue_subcriterion_id}")
 with rationale_evaluation_tab:
+    if "rationale_logs" not in st.session_state:
+        st.session_state.rationale_logs = []
+
     class_label = st.session_state.class_label
-    st.write(f"**CONVERSATION TURN {st.session_state.conversation_turn}**")
+    log_entry = f"### CONVERSATION TURN {st.session_state.conversation_turn}\n"
+
     if class_label:
-        st.write(f" CANDIDATE DIALOGUE : {user_input}")
-        st.write(f" CANDIDATE DIALOGUE CLASS LABEL : {class_label}")
-        if class_label !='technical' and class_label != 'clarification(specific)':
-            st.write(f" BOT DIALOGUE: {bot_dialogue[1]}")
-            st.write(f" DIALOGUE CLASSIFICATION RATIONALE : { bot_dialogue[2]}")
+        log_entry += f"**CANDIDATE DIALOGUE:** {user_input}\n"
+        log_entry += f"**CANDIDATE DIALOGUE CLASS LABEL:** {class_label}\n"
+        
+        if class_label != 'technical' and class_label != 'clarification(specific)':
+            log_entry += f"**BOT DIALOGUE:** {bot_dialogue[1]}\n"
+            log_entry += f"**DIALOGUE CLASSIFICATION RATIONALE:** {bot_dialogue[2]}\n"
         else:
-            st.write(f"CANDIDATE ANSWER LABEL : {candidate_answer_label}")
-            st.write(f"RATIONALE CANDIDATE ANSWER: {candidate_answer_classification_rationale}")
+            log_entry += f"**CANDIDATE ANSWER LABEL:** {candidate_answer_label}\n"
+            log_entry += f"**RATIONALE CANDIDATE ANSWER:** {candidate_answer_classification_rationale}\n"
+
             if candidate_answer_label not in candidate_answer_labels_not_tobe_evaluated:
-                st.write(f" BOT FOLLOW UP DIALOGUE : {bot_dialogue}")
-                st.write(f" BOT FOLLOW UP RATIONALE : {bot_dialogue_rationale}")
-                st.write(f" SUBCRITERION ID : {bot_dialogue_subcriterion_id}")
-                st.write("**ANSWER EVALUATION**")
-                st.write(st.session_state.assessment_payload['evaluation_results'])
+                log_entry += f"**BOT FOLLOW UP DIALOGUE:** {bot_dialogue}\n"
+                log_entry += f"**BOT FOLLOW UP RATIONALE:** {bot_dialogue_rationale}\n"
+                log_entry += f"**SUBCRITERION ID:** {bot_dialogue_subcriterion_id}\n"
+                log_entry += "**ANSWER EVALUATION**\n"
+                for dct in assessment_payload['evaluation_results']:
+                # log_entry += f"{st.session_state.assessment_payload['evaluation_results']}\n"
+                    log_entry += f"{dct}\n"
             else:    
-                st.write(f" BOT FOLLOW UP DIALOGUE : {bot_dialogue}")
-                st.write(f" BOT FOLLOW UP RATIONALE : {bot_dialogue_rationale}")
-                st.write(f" SUBCRITERION ID : {bot_dialogue_subcriterion_id}")
+                log_entry += f"**BOT FOLLOW UP DIALOGUE:** {bot_dialogue}\n"
+                log_entry += f"**BOT FOLLOW UP RATIONALE:** {bot_dialogue_rationale}\n"
+                log_entry += f"**SUBCRITERION ID:** {bot_dialogue_subcriterion_id}\n"
+
+    # Append log entry
+    st.session_state.rationale_logs.append(log_entry)
+
+    # Display logs properly formatted
+    for log in st.session_state.rationale_logs:
+        st.markdown(log.replace("\n", "  \n"), unsafe_allow_html=True)
