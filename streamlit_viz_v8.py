@@ -22,7 +22,7 @@ from src.services.workflows.candidate_dialogue_classifier import classify_candid
 from src.services.workflows.bot_dialogue_generatorv2 import generate_dialogue 
 from src.dao.chat_history import batch_insert_chat_history
 from src.services.workflows.answer_classifer import classify_candidate_answer
-from src.services.workflows.candidate_dialogue_distiller import distill_candidate_dialogue
+
 # Function to fetch chat history asynchronously
 async def async_get_chat_history(interview_id):
     return await get_chat_history(interview_id)
