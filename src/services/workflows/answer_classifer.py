@@ -12,7 +12,7 @@ async def classify_candidate_answer(question, candidate_answer, chat_history, fo
     classify_candidate_answer_prompt=classify_candidate_answer_prompt_template()
     llm_model = llm_service.get_openai_model(model = "gpt-4o-mini")
     classify_candidate_answer_chain=(classify_candidate_answer_prompt|llm_model)
-    candidate_answer_label=await classify_candidate_answer_chain.ainvoke({'question': question, 'follow_up_question': follow_up_question,'answer': candidate_answer, 'chat_history': chat_history })
+    candidate_answer_label=await classify_candidate_answer_chain.ainvoke({'tech_question': question, 'bot_dialogue': follow_up_question,'candidate_dialogue': candidate_answer, 'chat_history': chat_history })
     return candidate_answer_label    
 
 if __name__ == "__main__":

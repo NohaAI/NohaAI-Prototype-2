@@ -31,5 +31,5 @@ async def generate_dialogue(label, chat_history, answer, question, hint_count, a
     bot_dialogue_prompt=bot_dialogue_prompt_template()
     llm_model = llm_service.get_openai_model(model = "gpt-4o-mini")
     bot_dialogue_prompt_chain=(bot_dialogue_prompt|llm_model)
-    bot_dialogue=await bot_dialogue_prompt_chain.ainvoke({'class': label, 'question': question, 'follow_up_question': follow_up_question, 'answer': answer,'chat_history' : chat_history, 'rationale': rationale, 'answer_evaluation' : answer_evaluation})
+    bot_dialogue=await bot_dialogue_prompt_chain.ainvoke({'class': label, 'tech_question': question, 'bot_dialogue': follow_up_question, 'candidate_dialogue': answer,'chat_history' : chat_history, 'rationale': rationale, 'answer_evaluation' : answer_evaluation})
     return bot_dialogue

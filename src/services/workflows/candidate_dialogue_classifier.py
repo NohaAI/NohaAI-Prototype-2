@@ -8,11 +8,11 @@ logger = logger.get_logger(__name__)
 app=FastAPI()
 
 @app.get('/classify_candidate_dialogue')
-async def classify_candidate_dialogue(bot_dialogue, candidate_dialogue,interim_chat_history):
+async def classify_candidate_dialogue(bot_dialogue, candidate_dialogue,chat_history):
     classify_candidate_dialogue_prompt=classify_candidate_dialogue_prompt_template()
     llm_model = llm_service.get_openai_model(model = "gpt-4o-mini")
     classify_candidate_dialogue_chain=(classify_candidate_dialogue_prompt|llm_model)
-    candidate_dialogue_label=await classify_candidate_dialogue_chain.ainvoke({'question': bot_dialogue,'answer': candidate_dialogue, 'interim_chat_history': interim_chat_history })
+    candidate_dialogue_label=await classify_candidate_dialogue_chain.ainvoke({'bot_dialogue': bot_dialogue,'candidate_dialogue': candidate_dialogue, 'chat_history': chat_history })
     return candidate_dialogue_label    
 
 if __name__ == "__main__":
