@@ -13,7 +13,7 @@ from src.dao import chat_history as chat_hist
 # Initialize logger
 logger = logger.get_logger(__name__)
 #We are not instructing our LLM to score the candidate on recent hint
-async def evaluate_answer(input_request):
+async def evaluate_answer_wo_max_eval(input_request):
     """
     Orchestrates the evaluation process for a given query.
     
@@ -71,14 +71,15 @@ async def evaluate_answer(input_request):
         llm_response = await evaluation_chain.abatch(llm_inputs)
         #logger.info(f"LLM RESPONSE FOR ANSWER EVALUATOR : {llm_response}")
         #for rationale
+        evaluation_rationale_list=[]
         for criterion_result, criterion_weights in zip(llm_response, subcriteria_weights):
 
             evaluation_results.append(json.loads(criterion_result.content)[0])
             evaluation_rationale=json.loads(criterion_result.content)[1]
             print(f"EVALUATION RATIONALE : ##############################################################################")
             print(json.loads(criterion_result.content)[0])
-            print(json.loads(criterion_result.content)[1])
-
+            print(evaluation_rationale)
+            evaluation_rationale_list.append(evaluation_rationale)
         print(f"##############################################################################")
         
             # if "json" in criterion_result.content:
@@ -121,12 +122,13 @@ async def evaluate_answer(input_request):
         # final_score = round(total_score_count / len(evaluation_criteria.keys()), 2)
 
         print(assessment_payload_ready_for_computation)
-        return (interview_computation.compute_turn_score_interim(assessment_payload_ready_for_computation))
-
+        answer_evaluation_payload=[interview_computation.compute_turn_score_interim(assessment_payload_ready_for_computation),evaluation_rationale_list]
+        # return (interview_computation.compute_turn_score_interim(assessment_payload_ready_for_computation))
+        return(answer_evaluation_payload)
     except Exception as ex:
         logger.critical(f"Unexpected error in evaluation process: {ex}")
         raise Exception(f"Unexpected error in evaluation process: {ex}")
-async def evaluate_answer_max_eval(input_request,prev_eval=None):
+async def evaluate_answer(input_request,prev_eval=None):
     """
     Orchestrates the evaluation process for a given query.
     
@@ -184,14 +186,15 @@ async def evaluate_answer_max_eval(input_request,prev_eval=None):
         llm_response = await evaluation_chain.abatch(llm_inputs)
         #logger.info(f"LLM RESPONSE FOR ANSWER EVALUATOR : {llm_response}")
         #for rationale
+        evaluation_rationale_list=[]
         for criterion_result, criterion_weights in zip(llm_response, subcriteria_weights):
 
             evaluation_results.append(json.loads(criterion_result.content)[0])
             evaluation_rationale=json.loads(criterion_result.content)[1]
             print(f"EVALUATION RATIONALE : ##############################################################################")
             print(json.loads(criterion_result.content)[0])
-            print(json.loads(criterion_result.content)[1])
-
+            print(evaluation_rationale)
+            evaluation_rationale_list.append(evaluation_rationale)
         print(f"##############################################################################")
         
             # if "json" in criterion_result.content:
@@ -236,8 +239,9 @@ async def evaluate_answer_max_eval(input_request,prev_eval=None):
         # final_score = round(total_score_count / len(evaluation_criteria.keys()), 2)
 
         print(assessment_payload_ready_for_computation)
-        return (interview_computation.compute_turn_score_interim(assessment_payload_ready_for_computation))
-
+        answer_evaluation_payload=[interview_computation.compute_turn_score_interim(assessment_payload_ready_for_computation),evaluation_rationale_list]
+        # return (interview_computation.compute_turn_score_interim(assessment_payload_ready_for_computation))
+        return(answer_evaluation_payload)
     except Exception as ex:
         logger.critical(f"Unexpected error in evaluation process: {ex}")
         raise Exception(f"Unexpected error in evaluation process: {ex}")
@@ -266,8 +270,8 @@ def return_max_eval(eval1, eval2):
         new_dict = {}
         for question, score in eval1_dict.items():
             
-            score1 = int(score)
-            score2 = int(eval2_dict.get(question, '0')) 
+            score1 = float(score)
+            score2 = float(eval2_dict.get(question, '0')) 
             max_score = max(score1, score2)
             new_dict[question] = str(max_score)
         eval3.append(new_dict)

@@ -13,14 +13,14 @@ def bot_dialogue_prompt_template():
     answer_evaluation: {answer_evaluation}
     
     You are an agent who provides:
-      * Concise response as per the instructions given below alongside each class while considering the above artifacts as well.     
+      * Concise response as per the instructions given below alongside each class while considering the above artefacts as well.     
       * A flag represented by action_flag that has labels for performing certain operations 
     
     The following contains class labels for a candidate_dialogue grouped into non-technical and technical categories as shown below.
 
     In particular, for the technical group of class labels consider the answer_evaluation payload received above. Please ensure that responses are in the form of concise questions directed towards the candidate. Prepare the questions with the following guidelines in mind.
     1. If the candidate_dialogue has not been able to answer the bot_dialogue completely then prepare the response based on the finer instructions as mentioned below each alongside each class label
-    2. Based on the answer_evaluation and the subcriteria scores present within, if there are relatively lower scoring subcriteria or in particular if a subcriterion score is equal to 1 then prepare the question based on such subcriteria and please include the subcriteria in the following format.
+    2. Based on the answer_evaluation and the subcriteria scores present within, if there are relatively lower scoring subcriteria or in particular if a subcriterion score is equal to 1 then prepare the question based on such subcriteria
     
   NON-TECHNICAL GROUP:
 
@@ -33,16 +33,21 @@ def bot_dialogue_prompt_template():
   - If class is 'interview_inquiry': The response should elegantly answer what the candidate has asked regarding the interview process
     * Assign action_flag as "Pass"
 
-  - If class is 'affirmation': Consider the most recent dialogues in the chat history to which the candidate has positively responded.
-    Based on the collective query and the positive response, reason about the intention of the candidate_dialogue.
-    - If the intention seems to be close to one of the following categories then, follow the respective instructions given along side:
-      * "get_new_question": The response should be "Alternative question: ", assign action_flag as "get_new_question"
-      * "terminate_interview": Professionally end the interview with a suitable concluding response, assign action_flag as "terminate_interview" 
-    -Else:
-      * Based on the intention identified above provide a concise response ensuring no implementation or algorithmic details are shared
+  - If class is 'affirmation': Consider the most recent question in the chat history to which the candidate has positively responded.
+    Based on the collective question and the positive response, reason about the intention of the candidate_dialogue.
+    * If the intention seems to be close to one of the following categories then, follow the respective instructions given along side:
+      - "get_new_question": The response should be "Alternative question: ", assign action_flag as "get_new_question"
+      - "terminate_interview_confirmation": Respond with : "Thank you for your participation!", assign action_flag as "terminate_interview_confirmation" 
+    * Else:
+      - Based on the intention identified above provide a concise response ensuring no implementation or algorithmic details are shared, assign action_flag as "Pass"
 
-  - If class is 'negation': Provide a suitable response
-    * Assign action_flag as "Pass"
+  - If class is 'negation': Consider the most recent question in the chat history to which the candidate has negatively responded.
+    Based on the collective question and the negative response, reason about the intention of the candidate_dialogue.
+    * If the intention seems to be close to one of the following categories then, follow the respective instructions given along side:
+      - "get_new_question": The response should be "Alternative question: ", assign action_flag as "get_new_question"
+      - "terminate_interview_confirmation": Respond with : "Thank you for your participation!", assign action_flag as "terminate_interview_confirmation" 
+    * Else:
+      - Based on the intention identified above provide a concise response ensuring no implementation or algorithmic details are shared, assign action_flag as "Pass"
 
   - If class is 'clarification(open)':
     * If the candidate asks about corner cases and edge cases:
@@ -57,9 +62,7 @@ def bot_dialogue_prompt_template():
   - If class is 'request(new_question)': Acknowledge the candidate's request and provide a suitable response by confirming whether they are ready for the new question.
     * Assign action_flag as "Pass"
 
-  - If class is 'request(termination)':
-    * If the candidate has explicitly asked to end the interview:
-      - Professionally end the interview with a suitable concluding response
+  - If class is 'request(termination)': Pose a clear question to the candidate confirming that they want to end or terminate the interview
     * Assign action_flag as "Pass"
 
   - If class is 'request(proceed)': Give an encouraging confirmation for the candidate to proceed with their approach, maintaining a supportive tone
@@ -106,16 +109,17 @@ def bot_dialogue_prompt_template():
   - If class is 'clarification(problem)': Write concise response by considering the rationale given above and conclude the response with a follow-up question.
     * Assign action_flag as "Pass"
 
-  You must respond ONLY in this exact format and ensure that "rationale" is not empty:
-  ["class", "response", "rationale, "subcriterion","action_flag"] 
+  You must respond ONLY in this exact list format :
+  Ensure that no elements of the list are missing, the list should contain five elements; if the subcriterion is None then assign subcriterion as ""
+  ["class", "response", "rationale, "subcriterion", "action_flag"] 
     where "rationale" is your reasoning for generating the response as such
     where "subcriterion" is the subcriterion question present from the answer evaluation
-    where "action_flag" denotes the action that is supposed to be initiated in the system
-    
+    where "action_flag" denotes the action that is supposed to be later initiated in the system
   """
   policy_violation_prompt=ChatPromptTemplate.from_template(template=prompt)
   return policy_violation_prompt
 
+      # - Professionally end the interview with a suitable concluding response
 def bot_dialogue_prompt_template_current():
   
   prompt="""
