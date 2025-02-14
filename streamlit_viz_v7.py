@@ -22,7 +22,7 @@ from src.services.workflows.candidate_dialogue_classifier import classify_candid
 from src.services.workflows.bot_dialogue_generatorv2 import generate_dialogue 
 from src.dao.chat_history import batch_insert_chat_history
 from src.services.workflows.answer_classifer import classify_candidate_answer
-
+from src.services.workflows.candidate_dialogue_distiller import distill_candidate_dialogue
 # Function to fetch chat history asynchronously
 async def async_get_chat_history(interview_id):
     return await get_chat_history(interview_id)
@@ -63,11 +63,12 @@ async def async_evaluate_answer(evaluation_input):
 async def async_batch_insert_chat_history(interview_id,question_id,chat_history_data):
     return await batch_insert_chat_history(interview_id,question_id,chat_history_data)
     
+async def async_distill_candidate_dialogue(candidate_dialogue):
+    return await distill_candidate_dialogue(candidate_dialogue)
+
 async def async_generate_dialogue(label, chat_history, answer, question, hint_count,answer_evaluation=None, previous_bot_dialogue=None,rationale=None):
     return await generate_dialogue(label, chat_history, answer, question, hint_count, answer_evaluation, previous_bot_dialogue,rationale)
 # Function to run the async function and return results
-
-
 
 def write_to_chat_history_csv(filename, data):
     file_exists = os.path.isfile(filename)
@@ -144,19 +145,18 @@ with app_tab:
         st.stop()
 
     #for dev
-    MAX_TURNS=50
-    SCORE_THRESHOLD=100.0
-    MAX_CONTIGUOUS_GUARDRAIL_COUNT=100
-    MAX_GUARDRAIL_COUNT=100
-    MAX_CONTIGUOUS_UNACCEPTABLE_ANSWER_COUNT=100
+    MAX_TURNS=10
+    SCORE_THRESHOLD=5.5
+    MAX_CONTIGUOUS_GUARDRAIL_COUNT=4
+    MAX_GUARDRAIL_COUNT=10
+    MAX_CONTIGUOUS_UNACCEPTABLE_ANSWER_COUNT=4
     #for prod/demo
     # MAX_TURNS=12
     # SCORE_THRESHOLD=5.0
     # MAX_CONTIGUOUS_GUARDRAIL_COUNT=4
     # MAX_GUARDRAIL_COUNT=8
 
-#FIXME: Exception: Unexpected error in evaluation process: 'Subcriterion question' 
-
+#FIXME: Exception: Unexpected error in evaluation process: list index out of range
     ###### Some initial payload and variables for facilitation have been defined; refactor required later possibly; review
     # Initialize chat messages and other artefacts if not already done
     if "messages" not in st.session_state:
@@ -215,6 +215,7 @@ with app_tab:
     user_input = container_ml.chat_input("Type your message here...")
 
     if user_input:
+        og_user_input=user_input
         start_time=time.time()
         # Add the user message to the session state and update_chat_history
         if st.session_state.turn==0:
@@ -238,6 +239,8 @@ with app_tab:
             classify_candidate_dialogue=run_async(async_classify_candidate_dialogue(st.session_state.initial_question,user_input,st.session_state.interim_chat_history))
             classify_candidate_dialogue=json.loads(classify_candidate_dialogue.content)
             class_label=classify_candidate_dialogue[0]
+            class_label_rationale=classify_candidate_dialogue[1]
+            user_input=classify_candidate_dialogue[2]
             st.session_state.class_label = class_label
             if class_label == 'clarification(open)' or class_label == 'clarification(specific)' or class_label == 'request(guidance)' or class_label == 'uncertainty' or  class_label == 'request(termination)':
                 if class_label != 'request(termination)':
@@ -249,14 +252,16 @@ with app_tab:
                 #label, chat_history, answer, question,answer_evaluation, hint_count, previous_bot_dialogue=None
                 bot_dialogue=run_async(async_generate_dialogue(class_label,st.session_state.interim_chat_history,user_input, st.session_state.initial_question,st.session_state.hint_count,st.session_state.assessment_payload,None,None))
                 bot_dialogue=json.loads(bot_dialogue.content)
+                print(f"BOT DIALOGUE LLM CONTENT BEFORE BREAKPOINT : {bot_dialogue}")
+                action_flag=bot_dialogue[4]
                 st.session_state.previous_bot_dialogue=bot_dialogue[1]
-                print("######################################################################################################")
-                print(f"USER INPUT : {user_input}")
-                print(f"CLASS : {class_label}")
-                print(f"RATIONALE_CLASSIFICATION : {classify_candidate_dialogue[1]}")
-                print(f"RESPONSE : {bot_dialogue[1]}")
-                print(f"RATIONALE_RESPONSE : {bot_dialogue[2]}")
-                print("######################################################################################################")
+                # print("######################################################################################################")
+                # print(f"USER INPUT : {user_input}")
+                # print(f"CLASS : {class_label}")
+                # print(f"RATIONALE_CLASSIFICATION : {classify_candidate_dialogue[1]}")
+                # print(f"RESPONSE : {bot_dialogue[1]}")
+                # print(f"RATIONALE_RESPONSE : {bot_dialogue[2]}")
+                # print("######################################################################################################")
                 st.session_state.messages.append({"role": "bot", "content": bot_dialogue[1]})
             
                 st.session_state.conversation_turn += 1
@@ -270,8 +275,8 @@ with app_tab:
                 print(f"CANDIDATE ANSWER LABEL : {candidate_answer_label}")
                 print(f"RATIONALE CANDIDATE ANSWER: {candidate_answer_classification_rationale}")
                 print("######################################################################################################")
-
-                candidate_answer_labels_not_tobe_evaluated=['incorrect','clarity(unclear)','verification(not_done)']
+                # candidate_answer_labels_not_tobe_evaluated=['incorrect','clarity(unclear)','verification(not_done)','verification(clarification)']
+                candidate_answer_labels_not_tobe_evaluated=['clarification(concept)']
                 if candidate_answer_label not in candidate_answer_labels_not_tobe_evaluated:
                     st.session_state.meta_payload.answer = user_input
                     assessment_payload = run_async(async_evaluate_answer(st.session_state.meta_payload))
@@ -287,6 +292,7 @@ with app_tab:
                 bot_dialogue=run_async(async_generate_dialogue(candidate_answer_label,st.session_state.interim_chat_history,user_input, st.session_state.initial_question,st.session_state.hint_count,st.session_state.assessment_payload,st.session_state.meta_payload.question,candidate_answer_classification_rationale))
                 bot_dialogue_rationale=json.loads(bot_dialogue.content)[2]
                 bot_dialogue_subcriterion_id=json.loads(bot_dialogue.content)[3]
+                action_flag=json.loads(bot_dialogue.content)[4]
                 bot_dialogue=json.loads(bot_dialogue.content)[1]
                 print("#####################################################################")
                 print(f" CANDIDATE ANSWER LABEL : {candidate_answer_label}")
@@ -299,6 +305,7 @@ with app_tab:
                 st.session_state.meta_payload.question = bot_dialogue
                 st.session_state.messages.append({"role": "bot", "content": bot_dialogue})
         else:
+            
             st.session_state.messages.append({"role": "user", "content": user_input})
             if st.session_state.previous_bot_dialogue==st.session_state.meta_payload.question:
                 st.session_state.interim_chat_history.append({"hint": st.session_state.previous_bot_dialogue,"answer": user_input})
@@ -307,6 +314,8 @@ with app_tab:
             classify_candidate_dialogue=run_async(async_classify_candidate_dialogue(st.session_state.meta_payload.question,user_input,st.session_state.interim_chat_history))
             classify_candidate_dialogue=json.loads(classify_candidate_dialogue.content)
             class_label=classify_candidate_dialogue[0]
+            class_label_rationale=classify_candidate_dialogue[1]
+            user_input=classify_candidate_dialogue[2]
             st.session_state.class_label = class_label
             if class_label == 'clarification(open)' or class_label == 'clarification(specific)' or class_label == 'request(guidance)' or class_label == 'uncertainty' or  class_label == 'request(termination)':
                 if class_label != 'request(termination)':
@@ -319,6 +328,8 @@ with app_tab:
 
                 bot_dialogue=run_async(async_generate_dialogue(class_label,st.session_state.interim_chat_history,user_input, st.session_state.initial_question,st.session_state.hint_count,st.session_state.assessment_payload,st.session_state.meta_payload.question,None))
                 bot_dialogue=json.loads(bot_dialogue.content)
+                print(f"BOT DIALOGUE LLM CONTENT BEFORE BREAKPOINT : {bot_dialogue}")
+                action_flag=bot_dialogue[4]
                 st.session_state.previous_bot_dialogue=bot_dialogue[1]
                 print("######################################################################################################")
                 print(f"USER INPUT : {user_input}")
@@ -343,7 +354,8 @@ with app_tab:
                 #st.session_state.interim_chat_history.append({"hint": st.session_state.meta_payload.question, "answer": user_input})
 
                 # ALGO: assessment_payload = evaluate_answer(evaluation_answer_payload)
-                candidate_answer_labels_not_tobe_evaluated=['incorrect','clarity(unclear)','verification(not_done)','verification(clarification)']
+                # candidate_answer_labels_not_tobe_evaluated=['incorrect','clarity(unclear)','verification(not_done)','verification(clarification)']
+                candidate_answer_labels_not_tobe_evaluated=['clarification(concept)']
                 if candidate_answer_label not in candidate_answer_labels_not_tobe_evaluated:
                     st.session_state.meta_payload.answer = user_input
                     assessment_payload = run_async(async_evaluate_answer(st.session_state.meta_payload))
@@ -360,6 +372,7 @@ with app_tab:
                 
                 bot_dialogue_rationale=json.loads(bot_dialogue.content)[2]
                 bot_dialogue_subcriterion_id=json.loads(bot_dialogue.content)[3]
+                action_flag=json.loads(bot_dialogue.content)[4]
                 bot_dialogue=json.loads(bot_dialogue.content)[1]
                 print("#####################################################################")
                 print(f" CANDIDATE ANSWER LABEL : {candidate_answer_label}")
@@ -597,31 +610,39 @@ with rationale_evaluation_tab:
         st.session_state.rationale_logs = []
 
     class_label = st.session_state.class_label
-    log_entry = f"### CONVERSATION TURN {st.session_state.conversation_turn}\n"
+    log_entry = f"#### ************ CONVERSATION TURN {st.session_state.conversation_turn} ************\n"
 
     if class_label:
-        log_entry += f"**CANDIDATE DIALOGUE:** {user_input}\n"
+        log_entry += f"**ORIGINAL CANDIDATE DIALOGUE:** {og_user_input}\n"
+        log_entry += f"**DISTILLED CANDIDATE DIALOGUE:** {user_input}\n"
         log_entry += f"**CANDIDATE DIALOGUE CLASS LABEL:** {class_label}\n"
+        log_entry += f"**CANDIDATE DIALOGUE CLASS LABEL RATIONALE:** {class_label_rationale}\n\n"  
+        log_entry += f"**ACTION FLAG:** {action_flag}\n\n"
         
         if class_label != 'technical' and class_label != 'clarification(specific)':
-            log_entry += f"**BOT DIALOGUE:** {bot_dialogue[1]}\n"
-            log_entry += f"**DIALOGUE CLASSIFICATION RATIONALE:** {bot_dialogue[2]}\n"
+            log_entry += f"**NOHA DIALOGUE:** {bot_dialogue[1]}\n"
+            log_entry += f"**NOHA DIALOGUE RATIONALE:** {bot_dialogue[2]}\n"
         else:
-            log_entry += f"**CANDIDATE ANSWER LABEL:** {candidate_answer_label}\n"
-            log_entry += f"**RATIONALE CANDIDATE ANSWER:** {candidate_answer_classification_rationale}\n"
+            log_entry += f"**CANDIDATE DIALOGUE CLASS LABEL II:** {candidate_answer_label}\n"
+            log_entry += f"**CANDIDATE DIALOGUE CLASS LABEL II RATIONALE:** {candidate_answer_classification_rationale}\n\n"
 
             if candidate_answer_label not in candidate_answer_labels_not_tobe_evaluated:
-                log_entry += f"**BOT FOLLOW UP DIALOGUE:** {bot_dialogue}\n"
-                log_entry += f"**BOT FOLLOW UP RATIONALE:** {bot_dialogue_rationale}\n"
-                log_entry += f"**SUBCRITERION ID:** {bot_dialogue_subcriterion_id}\n"
                 log_entry += "**ANSWER EVALUATION**\n"
-                for dct in assessment_payload['evaluation_results']:
-                # log_entry += f"{st.session_state.assessment_payload['evaluation_results']}\n"
+                subcriteria_score_list=[]
+                for idx, dct in enumerate (assessment_payload['evaluation_results']):
+                    if idx % 3 == 0:
+                        log_entry += "\n"
                     log_entry += f"{dct}\n"
+                    k= list(dct)[0]
+                    subcriteria_score_list.append(dct[k])
+                log_entry += f"\n**SUBCRITERIA SCORES:** {subcriteria_score_list}\n"
+                log_entry += f"\n**EVALUATION DISTRIBUTION:** {assessment_payload['criteria_scores']}\n"
+                log_entry += f"\n**FINAL SCORE:** {assessment_payload['final_score']}\n"
+                log_entry += f"\n**NOHA DIALOGUE:** {bot_dialogue}\n"
+                log_entry += f"**NOHA DIALOGUE RATIONALE:** {bot_dialogue_rationale}\n"
             else:    
-                log_entry += f"**BOT FOLLOW UP DIALOGUE:** {bot_dialogue}\n"
-                log_entry += f"**BOT FOLLOW UP RATIONALE:** {bot_dialogue_rationale}\n"
-                log_entry += f"**SUBCRITERION ID:** {bot_dialogue_subcriterion_id}\n"
+                log_entry += f"**NOHA DIALOGUE:** {bot_dialogue}\n"
+                log_entry += f"**NOHA DIALOGUE RATIONALE:** {bot_dialogue_rationale}\n"
 
     # Append log entry
     st.session_state.rationale_logs.append(log_entry)
