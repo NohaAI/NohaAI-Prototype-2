@@ -109,12 +109,20 @@ def bot_dialogue_prompt_template():
   - If class is 'clarification(problem)': Write concise response by considering the rationale given above and conclude the response with a follow-up question.
     * Assign action_flag as "Pass"
 
-  You must respond ONLY in this exact list format :
-  Ensure that no elements of the list are missing, the list should contain five elements; if the subcriterion is None then assign subcriterion as ""
-  ["class", "response", "rationale, "subcriterion", "action_flag"] 
-    where "rationale" is your reasoning for generating the response as such
-    where "subcriterion" is the subcriterion question present from the answer evaluation
-    where "action_flag" denotes the action that is supposed to be later initiated in the system
+  You must respond ONLY in this exact list format:
+  ["class", "response", "rationale", "subcriterion", "action_flag"]
+
+  Requirements:
+  1. List must contain exactly 5 elements
+  2. If any element is not applicable, use an empty string "" (not None)
+  3. Elements are defined as:
+    - class: Classification or category
+    - response: Your generated response
+    - rationale: Your reasoning for generating the response
+    - subcriterion: The subcriterion question from answer evaluation (if none exists, use "")
+    - action_flag: The action to be initiated in the system
+
+  The list format must be preserved exactly as shown above.
   """
   policy_violation_prompt=ChatPromptTemplate.from_template(template=prompt)
   return policy_violation_prompt
