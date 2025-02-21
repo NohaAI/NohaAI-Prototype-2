@@ -17,10 +17,8 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Load Whisper model (adjust model size as needed)
 model = whisper.load_model("medium")
-from src.services.workflows.candidate_dialogue_classifier import classify_candidate_dialogue
-from src.dao.question import get_question_metadata
 import json
-from src.dao.interview_session_state import get_interview_session_state, update_interview_session_state, delete_interview_session_state, add_interview_session_state
+from src.dao.interview_session_state import get_interview_session_state, update_interview_session_state
 # async def async_get_get_question_metadata(question_id):
 #     return await get_question_metadata(question_id)
 
@@ -42,7 +40,7 @@ async def stream_llm_response(text, websocket):
 
     print("🤖 Sending dialogue generation request...")
     try:
-        print(f"USER INPUT TRY BLOCK : {text}")
+       
         user_input=text
         session_state_db_data = await get_interview_session_state(interview_id) # fetch session_state from DB
         session_state_db_data_loaded=json.loads(session_state_db_data)
@@ -50,10 +48,10 @@ async def stream_llm_response(text, websocket):
         session_state = session_state_db_data_loaded
         response_list = await get_bot_dialogue(user_input, session_state) #response_list contains bot_dialogue and latest session_state
 
-        print(f"BOT DIALOGUE INTEGRATED RESPONSE LIST : {response_list}") 
+        # print(f"BOT DIALOGUE INTEGRATED RESPONSE LIST : {response_list}") 
         
         dialogue_response = response_list[0]
-        print("Dialogue response:", dialogue_response)
+        # print("Dialogue response:", dialogue_response)
         session_state = response_list[1]
         interview_conclude_flag=session_state['conclude'] #False/True handles exiting the interview
         session_state['meta_payload'] = session_state['meta_payload'].model_dump()
