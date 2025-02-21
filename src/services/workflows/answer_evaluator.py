@@ -128,6 +128,7 @@ async def evaluate_answer_wo_max_eval(input_request):
     except Exception as ex:
         logger.critical(f"Unexpected error in evaluation process: {ex}")
         raise Exception(f"Unexpected error in evaluation process: {ex}")
+    
 async def evaluate_answer(input_request,prev_eval=None):
     """
     Orchestrates the evaluation process for a given query.
@@ -166,20 +167,20 @@ async def evaluate_answer(input_request,prev_eval=None):
 
         assessment_payload_ready_for_computation = {}
         
-        print("SUBCRITERION LIST AFTER FETCH_CRITERIA(QUESTION_ID) CALL#####################\n")
+        # print("SUBCRITERION LIST AFTER FETCH_CRITERIA(QUESTION_ID) CALL#####################\n")
         for criterion in evaluation_criteria.keys():
             llm_inputs.append({"question": question, "answer": candidate_answer, "chat_history": chat_history, "subcriteria": evaluation_criteria[criterion],"eval_distribution":eval_distribution})
             subcriteria_weights.append([int(subcriterion['weight']) for subcriterion in evaluation_criteria[criterion]])
             ### rmsbegin: added code here to populate the assessment_payload
             subcriterion_question_weight_list = evaluation_criteria[criterion]    
-            for dct in subcriterion_question_weight_list:
-                print(dct['subcriterion'], " ", dct['weight'])
+            # for dct in subcriterion_question_weight_list:
+            #     print(dct['subcriterion'], " ", dct['weight'])
             for elem in subcriterion_question_weight_list:
                 subcriterion_question = elem["subcriterion"]
                 subcriterion_weight = elem["weight"]
                 assessment_payload_ready_for_computation[subcriterion_question] = [subcriterion_weight]
             ### rmsend: assessment_payload is ready with foll. format {"question1":[3.0]}
-        print("################# END SUBCRITERION LIST#####################\n")
+        # print("################# END SUBCRITERION LIST#####################\n")
         evaluation_prompt = answer_evaluator_prompt.make_prompt_from_template()
         evaluation_llm = llm.get_openai_model(model = "gpt-4o-mini")
         evaluation_chain = evaluation_prompt | evaluation_llm
@@ -191,11 +192,11 @@ async def evaluate_answer(input_request,prev_eval=None):
 
             evaluation_results.append(json.loads(criterion_result.content)[0])
             evaluation_rationale=json.loads(criterion_result.content)[1]
-            print(f"EVALUATION RATIONALE : ##############################################################################")
-            print(json.loads(criterion_result.content)[0])
-            print(evaluation_rationale)
+            # print(f"EVALUATION RATIONALE : ##############################################################################")
+            # print(json.loads(criterion_result.content)[0])
+            # print(evaluation_rationale)
             evaluation_rationale_list.append(evaluation_rationale)
-        print(f"##############################################################################")
+        # print(f"##############################################################################")
         
             # if "json" in criterion_result.content:
             #     str1=criterion_result.content.replace("```json\n", "")
@@ -238,7 +239,7 @@ async def evaluate_answer(input_request,prev_eval=None):
         # total_score_count = sum(criteria_scores)
         # final_score = round(total_score_count / len(evaluation_criteria.keys()), 2)
 
-        print(assessment_payload_ready_for_computation)
+        # print(assessment_payload_ready_for_computation)
         answer_evaluation_payload=[interview_computation.compute_turn_score_interim(assessment_payload_ready_for_computation),evaluation_rationale_list]
         # return (interview_computation.compute_turn_score_interim(assessment_payload_ready_for_computation))
         return(answer_evaluation_payload)

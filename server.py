@@ -18,7 +18,6 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 # Load Whisper model (adjust model size as needed)
 model = whisper.load_model("medium")
 from src.services.workflows.candidate_dialogue_classifier import classify_candidate_dialogue
-from src.services.workflows.bot_dialogue_generatorv2 import generate_dialogue_audio_integration
 from src.dao.question import get_question_metadata
 import json
 from src.dao.interview_session_state import get_interview_session_state, update_interview_session_state, delete_interview_session_state, add_interview_session_state

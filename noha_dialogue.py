@@ -61,14 +61,14 @@ async def get_bot_dialogue(user_input, session_state):
             while True:
                 try:
                     bot_dialogue_generator_response=await generate_dialogue(candidate_dialogue_label, session_state['interim_chat_history'], user_input, session_state['current_question'], session_state['hint_count'], session_state['assessment_payload'],None,None)
-                    print(f"BOT DIALOGUE LLM CONTENT BEFORE BREAKPOINT : {bot_dialogue_generator_response}")
+                    ##print(f"BOT DIALOGUE LLM CONTENT BEFORE BREAKPOINT : {bot_dialogue_generator_response}")
                     bot_dialogue_generator_content=json.loads(bot_dialogue_generator_response.content)
                     bot_dialogue=bot_dialogue_generator_content[1]
                     bot_dialogue_rationale=bot_dialogue_generator_content[2]
                     session_state['action_flag']=bot_dialogue_generator_content[4]
                     break
                 except Exception as e:
-                    print(f"BOT DIALOGUE GENERATION ERROR : {str(e)}")
+                    ##print(f"BOT DIALOGUE GENERATION ERROR : {str(e)}")
                     continue
             session_state['previous_bot_dialogue']=bot_dialogue
             session_state['messages'].append({"role": "bot", "content": bot_dialogue})
@@ -93,7 +93,7 @@ async def get_bot_dialogue(user_input, session_state):
                         session_state['final_score'] = assessment_payload['final_score']
                         break
                     except Exception as e:
-                        print(f"ANSWER EVALUATOR ERROR : {str(e)}")
+                        #print(f"ANSWER EVALUATOR ERROR : {str(e)}")
                         continue
             else:
                 session_state['contiguous_unacceptable_answer_count'] +=1 
@@ -102,7 +102,7 @@ async def get_bot_dialogue(user_input, session_state):
             while True:
                 try:
                     bot_dialogue_generator_response=await generate_dialogue(candidate_answer_label, session_state['interim_chat_history'], user_input,session_state['current_question'], session_state['hint_count'], session_state['assessment_payload'], session_state['meta_payload'].question,candidate_answer_classification_rationale)
-                    print(f"BOT DIALOGUE LLM CONTENT BEFORE BREAKPOINT : {bot_dialogue_generator_response}")
+                    #print(f"BOT DIALOGUE LLM CONTENT BEFORE BREAKPOINT : {bot_dialogue_generator_response}")
                     bot_dialogue_generator_content=json.loads(bot_dialogue_generator_response.content)
                     bot_dialogue=bot_dialogue_generator_content[1]
                     bot_dialogue_rationale=bot_dialogue_generator_content[2]
@@ -110,7 +110,7 @@ async def get_bot_dialogue(user_input, session_state):
                     session_state['action_flag']=bot_dialogue_generator_content[4]
                     break
                 except Exception as e:
-                    print(f"BOT DIALOGUE GENERATION ERROR : {str(e)}")
+                    #print(f"BOT DIALOGUE GENERATION ERROR : {str(e)}")
                     continue
             
             session_state['previous_bot_dialogue']=bot_dialogue
@@ -138,14 +138,14 @@ async def get_bot_dialogue(user_input, session_state):
             while True:
                 try:
                     bot_dialogue_generator_response=await generate_dialogue(candidate_dialogue_label, session_state['interim_chat_history'], user_input, session_state['current_question'], session_state['hint_count'], session_state['assessment_payload'],session_state['meta_payload'].question,None)
-                    print(f"BOT DIALOGUE LLM CONTENT BEFORE BREAKPOINT : {bot_dialogue_generator_response}")
+                    #print(f"BOT DIALOGUE LLM CONTENT BEFORE BREAKPOINT : {bot_dialogue_generator_response}")
                     bot_dialogue_generator_content=json.loads(bot_dialogue_generator_response.content)
                     bot_dialogue=bot_dialogue_generator_content[1]
                     bot_dialogue_rationale=bot_dialogue_generator_content[2]
                     session_state['action_flag']=bot_dialogue_generator_content[4]
                     break
                 except Exception as e:
-                    print(f"BOT DIALOGUE GENERATION ERROR : {str(e)}")
+                    #print(f"BOT DIALOGUE GENERATION ERROR : {str(e)}")
                     continue
             session_state['previous_bot_dialogue']=bot_dialogue
             session_state['messages'].append({"role": "bot", "content": bot_dialogue})
@@ -171,7 +171,7 @@ async def get_bot_dialogue(user_input, session_state):
                         session_state['final_score'] = assessment_payload['final_score']
                         break
                     except Exception as e:
-                        print(f"ANSWER EVALUATOR ERROR : {str(e)}")
+                        #print(f"ANSWER EVALUATOR ERROR : {str(e)}")
                         continue
             else:
                 session_state['contiguous_unacceptable_answer_count'] +=1 
@@ -180,7 +180,7 @@ async def get_bot_dialogue(user_input, session_state):
             while True:
                 try:
                     bot_dialogue_generator_response=await generate_dialogue(candidate_answer_label, session_state['interim_chat_history'], user_input,session_state['current_question'], session_state['hint_count'], session_state['assessment_payload'], session_state['meta_payload'].question,candidate_answer_classification_rationale)
-                    print(f"BOT DIALOGUE LLM CONTENT BEFORE BREAKPOINT : {bot_dialogue_generator_response}")
+                    #print(f"BOT DIALOGUE LLM CONTENT BEFORE BREAKPOINT : {bot_dialogue_generator_response}")
                     bot_dialogue_generator_content=json.loads(bot_dialogue_generator_response.content)
                     bot_dialogue=bot_dialogue_generator_content[1]
                     bot_dialogue_rationale=bot_dialogue_generator_content[2]
@@ -188,7 +188,7 @@ async def get_bot_dialogue(user_input, session_state):
                     session_state['action_flag']=bot_dialogue_generator_content[4]
                     break
                 except Exception as e:
-                    print(f"BOT DIALOGUE GENERATION ERROR : {str(e)}")
+                    #print(f"BOT DIALOGUE GENERATION ERROR : {str(e)}")
                     continue
             
             session_state['previous_bot_dialogue']=bot_dialogue
@@ -372,12 +372,12 @@ if __name__ == "__main__":
         session_state_db_data["meta_payload"] = EvaluateAnswerRequest(**session_state_db_data["meta_payload"])
         session_state = session_state_db_data
         
-        print(f"BOT DIALOGUE BEFORE USER INPUT : {session_state['previous_bot_dialogue']}")
+        #print(f"BOT DIALOGUE BEFORE USER INPUT : {session_state['previous_bot_dialogue']}")
         
         user_input=input("USER INPUT : ")
         bot_dialogue_response = run_async(async_get_bot_dialogue(user_input, session_state))
         bot_dialogue = bot_dialogue_response[0]
-        print(f"BOT DIALOGUE AFTER USER INPUT : {bot_dialogue}")
+        #print(f"BOT DIALOGUE AFTER USER INPUT : {bot_dialogue}")
         session_state = bot_dialogue_response[1]
 
         session_state['meta_payload'] = session_state['meta_payload'].model_dump()

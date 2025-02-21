@@ -55,15 +55,16 @@ def compute_turn_score_interim(turn_assessment_payload = None):
         # Calculate final score based on criteria_scores
         final_score = sum(criteria_scores)   # Scale back to 0-10 range
         
-        print("weight_base", weight_base)
-        print("score_base", score_base)
-        print(weight_list)
-        print(score_list)
-        print(norm_score_list_subcriterion)
-        print(criteria_scores)
-        print("\n")
+        # print("weight_base", weight_base)
+        # print("score_base", score_base)
+        # print(weight_list)
+        # print(score_list)
+        # print(norm_score_list_subcriterion)
+        # print(criteria_scores)
+        # print("\n")
         for key, values in computed_payload.items():
-            print(key, values)
+            # print(key, values)
+            pass
 
         return {
             "evaluation_results": evaluation_results_list,
@@ -127,16 +128,16 @@ def compute_turn_score_interim_Ritesh(turn_assessment_payload = None):
 
         final_score = math.fsum(norm_score_list_criterion)
         
-        print("weight_base", weight_base)
-        print("score_base", score_base)
-        print(weight_list)
-        print(score_list)
-        print(norm_score_list_subcriterion)
-        print(norm_score_list_criterion)
-        print("\n")
+        # print("weight_base", weight_base)
+        # print("score_base", score_base)
+        # print(weight_list)
+        # print(score_list)
+        # print(norm_score_list_subcriterion)
+        # print(norm_score_list_criterion)
+        # print("\n")
         for key, values in computed_payload.items():
-            print (key, values)
-
+            # print (key, values)
+            pass
         return {
             "evaluation_results": evaluation_results_list,
             "criteria_scores": norm_score_list_criterion,
