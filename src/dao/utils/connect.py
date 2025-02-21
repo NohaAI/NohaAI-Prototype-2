@@ -1,11 +1,13 @@
 import psycopg2
 from psycopg2.pool import SimpleConnectionPool
-import os
-import logging
 from contextlib import contextmanager
-from dotenv import load_dotenv
 from src.dao.utils.config import load_simple_connection_config
 from src.dao.exceptions import DatabaseConnectionError
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Create connection pool
 simple_connection_config=load_simple_connection_config()
 connection_pool = SimpleConnectionPool(

@@ -1,6 +1,11 @@
 # Custom Exceptions
-from src.dao.exceptions import DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError
+import psycopg2
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
+
+from src.dao.exceptions import DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError
 
 def execute_query(connection, query, params=None, fetch_one=True, commit=False):
     """

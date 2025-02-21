@@ -1,4 +1,4 @@
-from pydantic import BaseModel,Field
+from pydantic import BaseModel,Field,EmailStr
 from typing import List, Dict, Optional, Union
 from datetime import datetime
 
@@ -9,18 +9,30 @@ class UserResponse(BaseModel):
     Attributes:
         user_id (int): Unique identifier for the user
         name (str): User's name, must be between 2 and 50 characters
+        email_id (str): User's email_id, must be between 10 to 100 characters
     """
     user_id: int
-    name: str = Field(..., min_length=2, max_length=50)
+    name: str = Field(..., min_length=2, max_length= 50 )
+    email_id: str = Field(...,min_length=10, max_length = 100)
 
+class UserFeedbackRequest(BaseModel):
+    """
+    Pydantic model for user creation/update requests.
+
+    Attributes:
+        user_feedback (int): User feedback must be an integer between 1 and 5.
+    """
+    user_feedback: int = Field(..., ge=1, le=5)
 class UserRequest(BaseModel):
     """
     Pydantic model for user creation/update requests.
     
     Attributes:
         name (str): User's name, must be between 2 and 50 characters
+        email_id (str): User's email_id, must be between 10 to 100 characters
     """
     name: str = Field(..., min_length=2, max_length=50)
+    email_id: EmailStr = Field(...,min_length=10, max_length = 100)
 
 class OrganizationResponse(BaseModel):
     """

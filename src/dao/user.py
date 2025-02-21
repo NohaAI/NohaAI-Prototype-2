@@ -40,14 +40,14 @@ async def get_user_metadata(user_id: int):
         with get_db_connection() as conn:
             user = execute_query(
                 conn,
-                "SELECT user_id, name FROM Users WHERE user_id = %s",
+                "SELECT user_id, name, email_id FROM Users WHERE user_id = %s",
                 (user_id,)
             )
             
             if not user:
                 raise UserNotFoundException(user_id)
             
-            return {"user_id": user[0], "name": user[1]}
+            return {"user_id": user[0], "name": user[1], "email_id": user[2]}
             
     except DatabaseConnectionError as e:
         raise e
@@ -58,7 +58,7 @@ async def get_user_metadata(user_id: int):
 
 
 @app.post("/user-service", response_model=UserResponse)
-async def add_user(name: str):
+async def add_user(name: str, email_id: str):
     """
     Create a new user.
     
@@ -75,15 +75,15 @@ async def add_user(name: str):
     try:
         with get_db_connection() as conn:
             
-            cur_query = "INSERT INTO Users ( name) VALUES ( %s) RETURNING user_id, name"
+            cur_query = "INSERT INTO Users (name, email_id) VALUES (%s ,%s) RETURNING user_id, name, email_id"
             user = execute_query(
                 conn,
                 cur_query,
-                (name,),
+                (name, email_id, ),
                 commit=True
             )
             
-            return {"user_id": user[0], "name": user[1]}
+            return {"user_id": user[0], "name": user[1], "email_id": user[2]}
             
     except DatabaseConnectionError as e:
         raise e
