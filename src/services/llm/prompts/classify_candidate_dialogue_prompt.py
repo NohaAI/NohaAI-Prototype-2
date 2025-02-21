@@ -20,7 +20,7 @@ def classify_candidate_dialogue_prompt_template():
   - interview_inquiry - Candidate inquires about the interview
   - clarification(specific) -  A candidate asks if specific knowledge is required
   - clarification(open) - Candidate asks a generic/non-specific expecting detailed guidance or a stepwise explanation
-  - affirmation - Candidate expresses his willingness in the form of affirmative response
+  - confirmation - Candidate expresses his willingness in the form of confirmatory response
   - negation - Candidate expresses his unwillingness in the form of negative response
   - request(new_question) - Candidate explicitly requests for a new question
   - request(termination) - Candidate explicitly requests to end the interview 
@@ -53,13 +53,13 @@ def classify_candidate_dialogue_prompt_template():
     * Examples include questions like "Are we done with the interview?", "What is the duration of the interview?", "How many questions are there in this interview?", etc.
     * These inquiries are not about the specific questions being asked but focus on the overall interview process.
 
-  -Classify the dialogue as 'affirmation' when the following criteria are met:
-    * Candidate expresses his willingness in the form of affirmative responses like 
-    * Examples include 'Yes', 'Yeah', 'Sure', 'Okay', 'Alright', or similar affirmative verbose paraphrases
+  -Classify the dialogue as 'confirmation' when the following criteria are met:
+    * Candidate expresses his willingness in the form of confirmatory responses 
+    * Examples include 'Yes', 'Yeah', 'Sure', 'Okay', 'Alright', or similar confirmatory verbose paraphrases
 
   -Classify the dialogue as 'negation' when the following criteria are met:
     * Candidate expresses his unwillingness in the form of negative responses 
-    * Examples include 'No', 'Nope', 'Not at all', 'Never', or similar affirmative verbose paraphrases    
+    * Examples include 'No', 'Nope', 'Not at all', 'Never', or similar verbose paraphrases    
 
   - Classify the dialogue as 'clarification(specific)' when the following criteria are met:
     * The candidate asks if certain knowledge (e.g., data structures, recursion, system design) is necessary
@@ -75,7 +75,6 @@ def classify_candidate_dialogue_prompt_template():
   - Classify the dialogue as 'request(termination)' when the following criteria are met:
     * The candidate explicitly states they want to exit the interview.
     * The candidate cites an emergency requiring an immediate exit.
-    * Do not classify as 'request(termination)' if the candidate merely expresses unwillingness or a general desire not to continue (e.g., "I don't want to give this interview") without citing an emergency or directly stating they want to exit. These should be classified as disregard.
   
   - Classify the dialogue as 'request(proceed)' when the following criteria are met:
     * The candidate expresses a direct intention to proceed without any sign of doubt or uncertainty.

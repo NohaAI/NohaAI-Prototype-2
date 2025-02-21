@@ -23,8 +23,7 @@ from src.services.workflows.bot_dialogue_generatorv2 import generate_dialogue
 from src.dao.chat_history import batch_insert_chat_history
 from src.services.workflows.answer_classifer import classify_candidate_answer
 from src.dao.interview_question_evaluation import add_question_evaluation
-
-async def async_add_question_evaluation(interview_id, question_id, score, evaluation_results): #evaluation of a question before next question eval_results should be json.dumped
+async def async_add_question_evaluation(interview_id, question_id, score, evaluation_results):
     return await add_question_evaluation(interview_id, question_id, score, evaluation_results)
 
 # Function to fetch chat history asynchronously
@@ -230,8 +229,9 @@ with app_tab:
     placeholder_ml=midleft.empty()
     container_ml = placeholder_ml.container(height=100, border=False)
     container_ml.write("**CANDIDATE**")
+    
     user_input = container_ml.chat_input("Type your message here...")
-
+    
     if user_input:
         original_user_input=user_input
         start_time=time.time()
@@ -261,7 +261,7 @@ with app_tab:
             user_input=classify_candidate_dialogue_content[2]
             st.session_state.class_label = class_label
             technical_labels=['technical', 'clarification(specific)']
-            contiguous_guardrail_labels=['clarification(open)', 'clarification(specific)', 'uncertainty']
+            contiguous_guardrail_labels=['clarification(open)', 'clarification(specific)', 'uncertainty', 'inability']
             if class_label in contiguous_guardrail_labels:
                 st.session_state.guardrails_count+=1
                 st.session_state.contigous_guardrails_count+=1
@@ -289,7 +289,6 @@ with app_tab:
                 print(f"ACTION FLAG : {st.session_state.action_flag}")
                 print("######################################################################################################")
                 st.session_state.messages.append({"role": "bot", "content": bot_dialogue})
-            
                 st.session_state.conversation_turn += 1
             else:
                 st.session_state.contigous_guardrails_count=0
@@ -304,11 +303,11 @@ with app_tab:
                 # candidate_answer_labels_not_tobe_evaluated=['incorrect','clarity(unclear)','verification(not_done)','verification(clarification)']
                 candidate_answer_labels_not_tobe_evaluated=['clarification(concept)']
                 if candidate_answer_label not in candidate_answer_labels_not_tobe_evaluated:
+                    st.session_state.meta_payload.answer = user_input
                     while True:
                         try:
-                            st.session_state.meta_payload.answer = user_input
                             answer_evaluation_response = run_async(async_evaluate_answer(st.session_state.meta_payload))
-                            assessment_payload = answer_evaluation_response[0] #answer evaluation
+                            assessment_payload = answer_evaluation_response[0] #answer evaluation       
                             assessment_payload_rationale=answer_evaluation_response[1] #answer evaluation rationale
                             st.session_state.assessment_payload=assessment_payload
                             st.session_state.meta_payload.eval_distribution = assessment_payload['criteria_scores']
@@ -360,7 +359,7 @@ with app_tab:
             user_input=classify_candidate_dialogue_content[2]
             st.session_state.class_label = class_label
             technical_labels=['technical', 'clarification(specific)']
-            contiguous_guardrail_labels=['clarification(open)', 'clarification(specific)', 'uncertainty']
+            contiguous_guardrail_labels=['clarification(open)', 'clarification(specific)', 'uncertainty', 'inability']
             if class_label in contiguous_guardrail_labels:
                 st.session_state.guardrails_count+=1
                 st.session_state.contigous_guardrails_count+=1
@@ -405,11 +404,11 @@ with app_tab:
                 # candidate_answer_labels_not_tobe_evaluated=['incorrect','clarity(unclear)','verification(not_done)','verification(clarification)']
                 candidate_answer_labels_not_tobe_evaluated=['clarification(concept)']
                 if candidate_answer_label not in candidate_answer_labels_not_tobe_evaluated:
+                    st.session_state.meta_payload.answer = user_input
                     while True:
                         try:        
-                            st.session_state.meta_payload.answer = user_input
-                            answer_evaluation_response = run_async(async_evaluate_answer(st.session_state.meta_payload))
-                            # answer_evaluation_response = run_async(async_evaluate_answer(st.session_state.meta_payload,st.session_state.assessment_payload['evaluation_results']))
+                            # answer_evaluation_response = run_async(async_evaluate_answer(st.session_state.meta_payload))
+                            answer_evaluation_response = run_async(async_evaluate_answer(st.session_state.meta_payload,st.session_state.assessment_payload['evaluation_results']))
                             assessment_payload = answer_evaluation_response[0] #answer evaluation
                             assessment_payload_rationale=answer_evaluation_response[1] #answer evaluation rationale
                             st.session_state.assessment_payload=assessment_payload

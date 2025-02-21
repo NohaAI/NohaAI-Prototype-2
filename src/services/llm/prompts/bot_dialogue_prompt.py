@@ -33,7 +33,7 @@ def bot_dialogue_prompt_template():
   - If class is 'interview_inquiry': The response should elegantly answer what the candidate has asked regarding the interview process
     * Assign action_flag as "Pass"
 
-  - If class is 'affirmation': Consider the most recent question in the chat history to which the candidate has positively responded.
+  - If class is 'confirmation': Consider the most recent question in the chat history to which the candidate has positively responded.
     Based on the collective question and the positive response, reason about the intention of the candidate_dialogue.
     * If the intention seems to be close to one of the following categories then, follow the respective instructions given along side:
       - "get_new_question": The response should be "Alternative question: ", assign action_flag as "get_new_question"
@@ -121,7 +121,7 @@ def bot_dialogue_prompt_template():
     - rationale: Your reasoning for generating the response
     - subcriterion: The subcriterion question from answer evaluation (if none exists, use "")
     - action_flag: The action to be initiated in the system
-
+  4. Your generated response should be in meaningful chunks so that it could be passed to the next text to speech layer
   The list format must be preserved exactly as shown above.
   """
   policy_violation_prompt=ChatPromptTemplate.from_template(template=prompt)
