@@ -22,7 +22,7 @@ class EvaluateAnswerRequest(BaseModel):
     question: str
     interview_id: int
     answer: str
-    eval_distribution: List[int] = Field(default_factory=list) #[0,0,0,0,0,0,0]
+    eval_distribution: List[float] = Field(default_factory=list) #[0,0,0,0,0,0,0]
 
 class GenerateHintRequest(BaseModel):
     question : str
