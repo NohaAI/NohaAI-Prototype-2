@@ -47,7 +47,7 @@ async def get_interview_session_state(interview_id: int):
             # Raise 404 error if no matching record is found
             
             # Return the final evaluation JSON response with retrieved details
-            return result[0]
+            return result
             
     except DatabaseConnectionError as e:
         raise e

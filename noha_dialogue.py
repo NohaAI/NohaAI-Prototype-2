@@ -39,8 +39,9 @@ async def get_bot_dialogue(user_input, session_state):
     "MAX_GUARDRAIL_COUNT": 10,
     "MAX_CONTIGUOUS_UNACCEPTABLE_ANSWER_COUNT": 4
     }
+    if isinstance(session_state['meta_payload'], dict):
+        session_state["meta_payload"] = EvaluateAnswerRequest(**session_state["meta_payload"])
     original_user_input = user_input
-        
     if(session_state['turn'] == 1):
         session_state['messages'].append({"role": "user", "content" : user_input})
         if session_state['previous_bot_dialogue'] == session_state['current_question']:
@@ -197,16 +198,16 @@ async def get_bot_dialogue(user_input, session_state):
             session_state['messages'].append({"role": "bot", "content": bot_dialogue})
     
     if(session_state['final_score'] > interview_thresholds['SCORE_THRESHOLD']):
-        if len(session_state['interview_question_list']) != 0:
-            bot_dialogue = "Since you have answered this question, let us move on to the next one : "
-            # bot_dialogue="Since you have solved this question, can you now start writing code for it?"
-            session_state['action_flag']='get_new_question'
-        else:
-            session_state['conclude']=True      
-            session_state['conclude_message']="Since you have solved this question, can you now start writing code for it?"
-            session_state['meta_payload'].question = session_state['conclude_message']
-            session_state['messages'].pop() 
-            session_state['messages'].append({"role": "bot", "content": session_state['conclude_message']}) 
+        # if len(session_state['interview_question_list']) != 0:  #to be used for continous questions
+        #     bot_dialogue = "Since you have answered this question, let us move on to the next one : "
+        #     # bot_dialogue="Since you have solved this question, can you now start writing code for it?"
+        #     session_state['action_flag']='get_new_question'
+        # else:
+        session_state['conclude']=True      
+        session_state['conclude_message']="Since you have solved this question, can you now start writing code for it?"
+        session_state['meta_payload'].question = session_state['conclude_message']
+        session_state['messages'].pop() 
+        session_state['messages'].append({"role": "bot", "content": session_state['conclude_message']}) 
     if session_state['conversation_turn'] > interview_thresholds['MAX_TURNS']:
         if len(session_state['interview_question_list']) != 0:
             bot_dialogue="So far so good, let us move on to the next question : "
@@ -313,7 +314,8 @@ async def get_bot_dialogue(user_input, session_state):
     # Write to file
     with open(log_file, "a") as file:
         file.write(log_entry_with_timestamp)
-
+    if isinstance(session_state['meta_payload'], dict):
+        session_state['meta_payload'] = EvaluateAnswerRequest(**session_state['meta_payload'])
     return [bot_dialogue,session_state]
 
 if __name__ == "__main__":
