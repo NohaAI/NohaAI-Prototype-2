@@ -128,3 +128,4 @@ if __name__ == "__main__":
     # uvicorn.run(asgi_app, host="0.0.0.0", port=8000, log_level="debug") #for prod
     uvicorn.run(asgi_app, host="localhost", port=7000, log_level="debug") #for dev
 
+
