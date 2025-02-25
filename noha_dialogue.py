@@ -69,7 +69,7 @@ async def get_noha_dialogue(user_input, session_state):
                 if key not in bot_dialogue_generator_content:
                     bot_dialogue_generator_content[key] = value
             bot_dialogue = bot_dialogue_generator_content['response']
-            bot_dialogue_rationale = bot_dialogue_rationale['rationale']
+            bot_dialogue_rationale = bot_dialogue_generator_content['rationale']
             session_state['action_flag'] = bot_dialogue_generator_content['action_flag']
             
             print(f"EXITED GENERATE DIALOGUE TRY BLOCK FOR TURN {session_state['conversation_turn']}")
