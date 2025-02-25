@@ -227,7 +227,7 @@ async def get_noha_dialogue(user_input, session_state):
         if len(session_state['interview_question_list']) != 0:
             bot_dialogue="So far so good, let us move on to the next question : "
             # bot_dialogue="We appreciate your effort on the problem! Now, can you code it for us? Let us know when you're ready."
-            session_state['action_flag']='get_new_question'
+            session_state['action_flag']='get_new_topic'
         else:
             session_state['conclude']=True      
             session_state['conclude_message']="We appreciate your effort on the problem! Now, can you code it for us? Let us know when you're ready."
@@ -239,7 +239,7 @@ async def get_noha_dialogue(user_input, session_state):
              
     if session_state['contigous_guardrails_count']==interview_thresholds['MAX_CONTIGUOUS_GUARDRAIL_COUNT'] or session_state['contiguous_unacceptable_answer_count'] > interview_thresholds['MAX_CONTIGUOUS_UNACCEPTABLE_ANSWER_COUNT']: 
         if len(session_state['interview_question_list']) != 0:
-            session_state['action_flag']='get_new_question'
+            session_state['action_flag']='get_new_topic'
             bot_dialogue="It seems there is a lack of clarity. Let us move on to the next question : "
         else:                                   
             session_state['conclude']=True
@@ -247,7 +247,7 @@ async def get_noha_dialogue(user_input, session_state):
             session_state['meta_payload'].question = session_state['conclude_message']
             session_state['messages'].append({"role": "bot", "content": session_state['conclude_message']})
 
-    if("turn" in session_state and session_state['action_flag'] == 'get_new_question'):
+    if("turn" in session_state and session_state['action_flag'] == 'get_new_topic'):
         if(len(session_state['interview_question_list']) == 0):
             session_state['conclude']=True
             session_state['conclude_message']="You have exhausted all questions in this interview"

@@ -8,7 +8,7 @@ import json
 from src.schemas.endpoints.schema import EvaluateAnswerRequest
 from dotenv import load_dotenv
 # from noha_dialogue import get_noha_dialogue
-from _personal.noha_dialogue_v2 import get_noha_dialogue
+from noha_dialogue import get_noha_dialogue
 from src.dao.interview_session_state import get_interview_session_state, update_interview_session_state, add_interview_session_state,delete_interview_session_state
 from src.dao.chat_history import delete_chat_history
 from src.utils.logger import get_logger
@@ -47,7 +47,7 @@ initial_session_state = {
     "action_flag": "Pass",
     "conclude_message": "",
     "number_of_questions": 1,
-    "interview_question_list": [2, 10], #questions in list are hard coded for now there should be a logic for this
+    "interview_question_list": [12], #questions in list are hard coded for now there should be a logic for this
     "class_label": None,
     "meta_payload": EvaluateAnswerRequest(
             question_id=1,
