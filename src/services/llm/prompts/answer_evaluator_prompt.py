@@ -13,12 +13,14 @@ def make_prompt_from_template():
     
     Please evaluate the response based on the following evaluation guidelines:
     1. Group the subcriteria received in the subcriteria payload above into seven consecutive groups of three each
-    2.For each subcriterion in the subcriteria received above, pl. give a score between 1-10 for the response depending on how much the response fulfills the subcriterion
+    2. For each subcriterion in the subcriteria received above, pl. give each subcriterion a score based on the following: 
+      - If the response satisfies a weak subcriterion give a score between 0 and 2, but never more than 2
+      - If the response satisfies a moderate subcriterion give a score between 0 and 5, but never more than 5 
+      - If the response satisfies a strong subcriterion give a score between 0 and 10, but never more than 10
     
     IMPORTANT : 
-    - Please ensure that the structure and length of the subcriteria remain the same and no new subcriterion are added because you would incur a penalty otherwise
-    
-    - Make sure no subcriterion question is truncated because the subcriterion question is used as a key in one of the dictionaries for later processing
+    - Please ensure that the structure and length of the subcriteria remain the same and no new subcriterion are added because you would incur a penalty otherwise    
+    - Make sure that subcriterion question is neither truncated nor remains empty because you would incur a penalty otherwise
     
     YOU MUST RESPOND IN THE FOLLOWING LIST FORMAT:
     [

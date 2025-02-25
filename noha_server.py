@@ -7,15 +7,15 @@ from flask_cors import CORS
 import json
 from src.schemas.endpoints.schema import EvaluateAnswerRequest
 from dotenv import load_dotenv
-from noha_dialogue import get_bot_dialogue
+# from noha_dialogue import get_noha_dialogue
+from _personal.noha_dialogue_v2 import get_noha_dialogue
 from src.dao.interview_session_state import get_interview_session_state, update_interview_session_state, add_interview_session_state,delete_interview_session_state
+from src.dao.chat_history import delete_chat_history
+from src.utils.logger import get_logger
 app = Flask(__name__)
 CORS(app)
 
-import logging
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 # Load environment variables
@@ -28,9 +28,9 @@ sio = socketio.AsyncServer(cors_allowed_origins="*", async_mode="asgi", logger=T
 # Wrap the Flask app with the ASGI app from socket.io
 asgi_app = socketio.ASGIApp(sio, app)
 
-interview_id = 1 #hardcoded as 1 should be fetched from DB
+interview_id = 1 #hard-coded; should be fetched from DB
 initial_session_state = {
-    "interim_chat_history": [],
+    "chat_history": [],
     "rationale_logs": [],
     "hint_count": [0, 0, 0, 0, 0],
     "turn": 1,
@@ -45,11 +45,12 @@ initial_session_state = {
     "current_question": "Find an index in an array where the sum of elements to the left equals the sum to the right.", # question_id = 1
     "action_flag": "Pass",
     "conclude_message": "",
+    "number_of_questions": 1,
     "interview_question_list": [2, 10], #questions in list are hard coded for now there should be a logic for this
     "class_label": None,
     "meta_payload": EvaluateAnswerRequest(
             question_id=1,
-            question="What is your favorite programming language?",
+            question="Find an index in an array where the sum of elements to the left equals the sum to the right.",
             interview_id=1,
             answer="Python",
             eval_distribution=[0, 0, 0, 0, 0, 0, 0]
@@ -62,11 +63,24 @@ initial_session_state = {
 # Socket.IO Events
 @sio.event
 async def connect(sid, environ):
+    #flushing session state and chat history before starting the interview
+    try:
+        await delete_chat_history(interview_id)
+    except Exception as e:
+        pass
+    try:
+        await delete_interview_session_state(interview_id)
+    except Exception as e:
+        pass
     print(f"✅ Client connected: {sid}")
 
 @sio.event
 async def disconnect(sid):
-    await delete_interview_session_state(interview_id)
+    #flushing session state and chat history after interview ends
+    try:
+        await delete_interview_session_state(interview_id)
+    except Exception as e:
+        pass
     print(f"❌ Client disconnected: {sid}")
 
 @sio.on("STOP")
@@ -87,7 +101,8 @@ async def process_text(text, sid):
     """
     Sends the received text to GPT and streams back the response.
     """
-    print(f"Sending text to noha-bot: {text}")
+    logger.info(f"USER INPUT BEFORE CALLING get_noha_dialogue : {text} \n")
+    print(f"Sending text to noha-bot recieved from frontend :\n {text}")
     try:
         if not text.strip():
             print("❌ Empty transcription; skipping dialogue generation request.")
@@ -107,7 +122,7 @@ async def process_text(text, sid):
             await add_interview_session_state(interview_id, json.dumps(initial_session_state))
 
         print(f"SESSION STATE BEFORE CALLING get_bot_dialogue : \n {session_state}")
-        response_list = await get_bot_dialogue(user_input, session_state) # response_list contains bot_dialogue and latest session_state
+        response_list = await get_noha_dialogue(user_input, session_state) # response_list contains bot_dialogue and latest session_state
         response = response_list[0]
         session_state = response_list[1]
         interview_conclude_flag=session_state['conclude'] #False/True handles exiting the interview
@@ -117,14 +132,14 @@ async def process_text(text, sid):
             session_state['meta_payload'] = session_state['meta_payload'].model_dump()
         await(update_interview_session_state(interview_id, json.dumps(session_state))) #update session state
         return response
-    except openai.error.OpenAIError as e:
-        print(f"⚠️ GPT API Error: {e}")
+    except Exception as e:
+        print(f"⚠️ Error: {e}")
 
 if __name__ == "__main__":
     import uvicorn
     #print("🚀 Starting server on http://0.0.0.0:8000") ## for prod
     print("🚀 Starting server on http://localhost:7000") ## for dev
 
-    # uvicorn.run(asgi_app, host="0.0.0.0", port=8000, log_level="debug") #for prod
-    uvicorn.run(asgi_app, host="localhost", port=7000, log_level="debug") #for dev
+    # uvicorn.run(asgi_app, host="0.0.0.0", port=8000, log_level="debug") ##for prod
+    uvicorn.run(asgi_app, host="localhost", port=7000, log_level="debug") ##for dev
 

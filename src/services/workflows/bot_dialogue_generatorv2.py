@@ -15,10 +15,10 @@ async def generate_dialogue(label, chat_history, answer, question, hint_count, a
     if not answer_evaluation:
         answer_evaluation={}
    #writing to rationale_logs.txt
-    generate_dialogue_inputs=f"GENERATE DIALOGUE INPUTS label : {label} , answer : {answer}, question : {question}, previous_dalogue : {previous_dialogue} rationale : {rationale} \n"
-    log_file = "rationale_logs.txt"
-    with open(log_file, "a") as file:
-        file.write(generate_dialogue_inputs)
+    # generate_dialogue_inputs=f"GENERATE DIALOGUE INPUTS label : {label} , answer : {answer}, question : {question}, previous_dalogue : {previous_dialogue} rationale : {rationale} \n"
+    # log_file = "rationale_logs.txt"
+    # with open(log_file, "a") as file:
+    #     file.write(generate_dialogue_inputs)
     
     follow_up_question=previous_dialogue
     bot_dialogue_prompt=bot_dialogue_prompt_template()

@@ -14,15 +14,18 @@ def classify_candidate_answer_prompt_template():
   YOU MUST RESPOND IN THE FOLLOWING FORMAT:
   ["class","rationale"]
 
-  class must be one of:
-  - "solution": The candidate_dialogue seems to contain some solution to the tech_question or bot_dialogue(if present)
-  - "clarification(concept)": The candidate_dialogue asks about fundamental programming/algorithmic concepts referenced in the tech_question or bot_dialogue (if present)
-  - "clarification(problem)": The candidate_dialogue seeks to clarify specific requirements, constraints, or assumptions about the tech_question or bot_dialogue (if present)
+  'rationale' is your reasoning for classifying the candidate_dialogue
 
-  'rationale' is your reasoning for classifying the candidate_dialogue, explaining
-  
-  Note: Choose the most appropriate single classification based on the primary characteristic of the candidate_dialogue. If multiple categories could apply, select the most significant one that best captures the key attribute of candidate_dialogue
+ class must be one of:
+  - "solution": The candidate_dialogue contains either: Complete implementation details/code, step-by-step approach, specific algorithmic elements with clear purpose, or technical approach that includes HOW components will be used
+
+  - "doubt(concept)": The candidate_dialogue seeks to clarify a doubt or doubts about fundamental programming/algorithmic concepts referenced in the tech_question or bot_dialogue (if present)
+
+  - "doubt(problem)": The candidate_dialogue seeks to clarify a specific doubt or specific doubts about the tech_question or bot_dialogue (if present)
+
   """
+  
+  # Note: Choose the most appropriate single classification based on the primary characteristic of the candidate_dialogue. If multiple categories could apply, select the most significant one that best captures the key attribute of candidate_dialogue
   classify_candidate_answer_prompt=ChatPromptTemplate.from_template(template=prompt)
   return classify_candidate_answer_prompt
 def classify_candidate_answer_prompt_template_current():

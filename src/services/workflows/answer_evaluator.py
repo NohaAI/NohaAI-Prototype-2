@@ -8,7 +8,7 @@ from src.utils import logger, interview_computation
 from src.services.llm.prompts import answer_evaluator_prompt
 import src.services.llm as llm
 from src.dao import subcriterion
-from src.dao import chat_history as chat_hist
+from src.dao import chat_history as chat_history
 
 # Initialize logger
 logger = logger.get_logger(__name__)
@@ -39,7 +39,7 @@ async def evaluate_answer_wo_max_eval(input_request):
             raise AttributeError(f"Input object missing required attributes: {attr_err}") from attr_err
 
         evaluation_criteria = await subcriterion.fetch_subcriteria(question_id)
-        chat_history = await chat_hist.get_chat_history(interview_id)
+        chat_history = await chat_history.get_chat_history(interview_id)
         if len(chat_history)<2:
             chat_history = []
             chat_history.append({"question": question, "answer": candidate_answer})
@@ -116,20 +116,19 @@ async def evaluate_answer_wo_max_eval(input_request):
        
         for evaluation_dict_item in evaluation_results:
             for key in evaluation_dict_item.keys():
+                #instead of a key append it normally
                 assessment_payload_ready_for_computation[key].append(evaluation_dict_item[key])  # appending score to the weight  
 
-        # total_score_count = sum(criteria_scores)
-        # final_score = round(total_score_count / len(evaluation_criteria.keys()), 2)
 
         print(assessment_payload_ready_for_computation)
         answer_evaluation_payload=[interview_computation.compute_turn_score_interim(assessment_payload_ready_for_computation),evaluation_rationale_list]
-        # return (interview_computation.compute_turn_score_interim(assessment_payload_ready_for_computation))
+        
         return(answer_evaluation_payload)
     except Exception as ex:
         logger.critical(f"Unexpected error in evaluation process: {ex}")
         raise Exception(f"Unexpected error in evaluation process: {ex}")
     
-async def evaluate_answer(input_request,prev_eval=None):
+async def evaluate_answer(input_request, chat_history, prev_eval=None):
     """
     Orchestrates the evaluation process for a given query.
     
@@ -153,12 +152,12 @@ async def evaluate_answer(input_request,prev_eval=None):
         except AttributeError as attr_err:
             logger.critical(f"Input object missing required attributes: {attr_err}")
             raise AttributeError(f"Input object missing required attributes: {attr_err}") from attr_err
-
+        print(f"CHAT HISTORY RECIEVED IN ANSWER EVALUATOR : {chat_history}")
         evaluation_criteria = await subcriterion.fetch_subcriteria(question_id)
-        chat_history = await chat_hist.get_chat_history(interview_id)
-        if len(chat_history)<2:
-            chat_history = []
-            chat_history.append({"question": question, "answer": candidate_answer})
+        # chat_history = await chat_history.get_chat_history(interview_id)
+        # if len(chat_history)<2:
+        #     chat_history = []
+        #     chat_history.append({"question": question, "answer": candidate_answer})
 
         llm_inputs = []
         subcriteria_weights = []
@@ -188,7 +187,7 @@ async def evaluate_answer(input_request,prev_eval=None):
         #logger.info(f"LLM RESPONSE FOR ANSWER EVALUATOR : {llm_response}")
         #for rationale
         evaluation_rationale_list=[]
-        for criterion_result, criterion_weights in zip(llm_response, subcriteria_weights):
+        for criterion_result, criterion_weights in zip(llm_response, subcriteria_weights):  
 
             evaluation_results.append(json.loads(criterion_result.content)[0])
             evaluation_rationale=json.loads(criterion_result.content)[1]
@@ -232,9 +231,16 @@ async def evaluate_answer(input_request,prev_eval=None):
 
         ### rmsbegin: code below appends the candidate score against to each dictionary item in the existing list containg weight
        
-        for evaluation_dict_item in evaluation_results:
-            for key in evaluation_dict_item.keys():
-                assessment_payload_ready_for_computation[key].append(evaluation_dict_item[key])  # appending score to the weight  
+        evaluation_results_dict={}
+        for dict_item in evaluation_results:
+            evaluation_results_dict.update(dict_item)
+
+        for key1,key2 in zip(evaluation_results_dict,assessment_payload_ready_for_computation):
+            assessment_payload_ready_for_computation[key2].append(evaluation_results_dict[key1])
+
+        # for evaluation_dict_item in evaluation_results:
+        #     for key in evaluation_dict_item.keys():
+        #         assessment_payload_ready_for_computation[key].append(evaluation_dict_item[key])  # appending score to the weight  
 
         # total_score_count = sum(criteria_scores)
         # final_score = round(total_score_count / len(evaluation_criteria.keys()), 2)
