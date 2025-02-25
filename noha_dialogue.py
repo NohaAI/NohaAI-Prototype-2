@@ -37,17 +37,20 @@ async def get_noha_dialogue(user_input, session_state):
         session_state["meta_payload"] = EvaluateAnswerRequest(**session_state["meta_payload"])
     original_user_input = user_input
     if(session_state['turn'] == 1):
-        session_state['messages'].append({"role": "user", "content" : user_input})
-        if session_state['previous_bot_dialogue'] == session_state['current_question']:
-            session_state['chat_history'].append({"technical": session_state['previous_bot_dialogue'],"answer": user_input})
-        else:
-            session_state['chat_history'].append({"reciprocation": session_state['previous_bot_dialogue'],"answer": user_input})
 
         classify_candidate_dialogue_response=await classify_candidate_dialogue(session_state['current_question'], user_input, session_state['chat_history'])
         classify_candidate_dialogue_content=json.loads(classify_candidate_dialogue_response.content)
         candidate_dialogue_label=classify_candidate_dialogue_content[0]
         candidate_dialogue_rationale=classify_candidate_dialogue_content[1]
-        user_input=classify_candidate_dialogue_content[2]
+        distilled_user_input=classify_candidate_dialogue_content[2]
+        
+        user_input=distilled_user_input
+        session_state['messages'].append({"role": "user", "content" : user_input})
+        if session_state['previous_bot_dialogue'] == session_state['current_question']:
+            session_state['chat_history'].append({"technical": session_state['previous_bot_dialogue'],"answer": user_input})
+        else:
+            session_state['chat_history'].append({"reciprocation": session_state['previous_bot_dialogue'],"answer": user_input})
+        
         technical_labels=['technical', 'clarification(specific)']
         contiguous_guardrail_labels=['clarification(open)', 'uncertainty', 'inability']
         if candidate_dialogue_label in contiguous_guardrail_labels:
@@ -121,17 +124,20 @@ async def get_noha_dialogue(user_input, session_state):
             session_state['messages'].append({"role": "bot", "content": bot_dialogue})
     
     else:
-        session_state['messages'].append({"role": "user", "content" : user_input})
-        if session_state['previous_bot_dialogue'] == session_state['meta_payload'].question:
-            session_state['chat_history'].append({"hint": session_state['previous_bot_dialogue'],"answer": user_input})
-        else:
-            session_state['chat_history'].append({"reciprocation": session_state['previous_bot_dialogue'],"answer": user_input})
 
         classify_candidate_dialogue_response=await classify_candidate_dialogue(session_state['meta_payload'].question, user_input, session_state['chat_history'])
         classify_candidate_dialogue_content=json.loads(classify_candidate_dialogue_response.content)
         candidate_dialogue_label=classify_candidate_dialogue_content[0]
         candidate_dialogue_rationale=classify_candidate_dialogue_content[1]
-        user_input=classify_candidate_dialogue_content[2]
+        distilled_user_input=classify_candidate_dialogue_content[2]
+        
+        user_input=distilled_user_input
+        session_state['messages'].append({"role": "user", "content" : user_input})
+        if session_state['previous_bot_dialogue'] == session_state['meta_payload'].question:
+            session_state['chat_history'].append({"hint": session_state['previous_bot_dialogue'],"answer": user_input})
+        else:
+            session_state['chat_history'].append({"reciprocation": session_state['previous_bot_dialogue'],"answer": user_input})
+        
         technical_labels=['technical', 'clarification(specific)']
         contiguous_guardrail_labels=['clarification(open)', 'uncertainty', 'inability']
         if candidate_dialogue_label in contiguous_guardrail_labels:
@@ -207,13 +213,16 @@ async def get_noha_dialogue(user_input, session_state):
         # if len(session_state['interview_question_list']) != 0:  #to be used for continous questions
         #     bot_dialogue = "Since you have answered this question, let us move on to the next one : "
         #     # bot_dialogue="Since you have solved this question, can you now start writing code for it?"
-        #     session_state['action_flag']='get_new_question'
+        #     session_state['action_flag']='get_new_topic'
         # else:
         session_state['conclude']=True      
         session_state['conclude_message']="Since you have solved this question, can you now start writing code for it?"
         session_state['meta_payload'].question = session_state['conclude_message']
         session_state['messages'].pop() 
         session_state['messages'].append({"role": "bot", "content": session_state['conclude_message']}) 
+    
+    # Max Conversation turns check
+    
     if session_state['conversation_turn'] > (interview_thresholds['MAX_TURNS'] * session_state['number_of_questions']):
         if len(session_state['interview_question_list']) != 0:
             bot_dialogue="So far so good, let us move on to the next question : "
@@ -225,12 +234,14 @@ async def get_noha_dialogue(user_input, session_state):
             session_state['meta_payload'].question = session_state['conclude_message']
             session_state['messages'].pop() 
             session_state['messages'].append({"role": "bot", "content": session_state['conclude_message']})
-            
-    if session_state['contigous_guardrails_count']==interview_thresholds['MAX_CONTIGUOUS_GUARDRAIL_COUNT'] or session_state['contiguous_unacceptable_answer_count'] > interview_thresholds['MAX_CONTIGUOUS_UNACCEPTABLE_ANSWER_COUNT']:
+    
+    # Contiguous guardrail and unacceptable answer check breach check
+             
+    if session_state['contigous_guardrails_count']==interview_thresholds['MAX_CONTIGUOUS_GUARDRAIL_COUNT'] or session_state['contiguous_unacceptable_answer_count'] > interview_thresholds['MAX_CONTIGUOUS_UNACCEPTABLE_ANSWER_COUNT']: 
         if len(session_state['interview_question_list']) != 0:
             session_state['action_flag']='get_new_question'
             bot_dialogue="It seems there is a lack of clarity. Let us move on to the next question : "
-        else:    
+        else:                                   
             session_state['conclude']=True
             session_state['conclude_message']="It seems there is a lack of clarity. Let us conclude here."
             session_state['meta_payload'].question = session_state['conclude_message']

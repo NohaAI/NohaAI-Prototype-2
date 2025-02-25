@@ -33,7 +33,6 @@ def bot_dialogue_prompt_template_list():
   - If class is 'confirmation': Consider the most recent question in the chat history to which the candidate has positively responded.
     Based on the collective question and the positive response, reason about the intention of the candidate_dialogue.
     * If the intention seems to be close to one of the following categories then, follow the respective instructions given along side:
-      - "get_new_question": The response should be "Alternative question: ", assign action_flag as "get_new_question"
       - "terminate_interview_confirmation": Respond with : "Thank you for your participation!", assign action_flag as "terminate_interview_confirmation" 
     * Else:
       - Based on the intention identified above provide a concise response ensuring no implementation or algorithmic details are shared, assign action_flag as "Pass"
@@ -41,7 +40,6 @@ def bot_dialogue_prompt_template_list():
   - If class is 'negation': Consider the most recent question in the chat history to which the candidate has negatively responded.
     Based on the collective question and the negative response, reason about the intention of the candidate_dialogue.
     * If the intention seems to be close to one of the following categories then, follow the respective instructions given along side:
-      - "get_new_question": The response should be "Alternative question: ", assign action_flag as "get_new_question"
       - "terminate_interview_confirmation": Respond with : "Thank you for your participation!", assign action_flag as "terminate_interview_confirmation" 
     * Else:
       - Based on the intention identified above provide a concise response ensuring no implementation or algorithmic details are shared, assign action_flag as "Pass"
@@ -178,7 +176,6 @@ def bot_dialogue_prompt_template():
   - If class is 'confirmation': Consider the most recent question in the chat history to which the candidate has positively responded.
     Based on the collective question and the positive response, reason about the intention of the candidate_dialogue.
     * If the intention seems to be close to one of the following categories then, follow the respective instructions given along side:
-      - "get_new_question": The response should be "Alternative question: ", assign action_flag as "get_new_question"
       - "terminate_interview_confirmation": Respond with : "Thank you for your participation!", assign action_flag as "terminate_interview_confirmation" 
     * Else:
       - Based on the intention identified above provide a concise response ensuring no implementation or algorithmic details are shared, assign action_flag as "Pass"
@@ -186,7 +183,6 @@ def bot_dialogue_prompt_template():
   - If class is 'negation': Consider the most recent question in the chat history to which the candidate has negatively responded.
     Based on the collective question and the negative response, reason about the intention of the candidate_dialogue.
     * If the intention seems to be close to one of the following categories then, follow the respective instructions given along side:
-      - "get_new_question": The response should be "Alternative question: ", assign action_flag as "get_new_question"
       - "terminate_interview_confirmation": Respond with : "Thank you for your participation!", assign action_flag as "terminate_interview_confirmation" 
     * Else:
       - Based on the intention identified above provide a concise response ensuring no implementation or algorithmic details are shared, assign action_flag as "Pass"
@@ -293,7 +289,6 @@ def bot_dialogue_prompt_template_verbose():
   - If class is 'confirmation': Consider the most recent question in the chat history to which the candidate has positively responded.
     Based on the collective question and the positive response, reason about the intention of the candidate_dialogue.
     * If the intention seems to be close to one of the following categories then, follow the respective instructions given along side:
-      - "get_new_question": The response should be "Alternative question: ", assign action_flag as "get_new_question"
       - "terminate_interview_confirmation": Respond with : "Thank you for your participation!", assign action_flag as "terminate_interview_confirmation" 
     * Else:
       - Based on the intention identified above provide a concise response ensuring no implementation or algorithmic details are shared, assign action_flag as "Pass"
@@ -301,7 +296,6 @@ def bot_dialogue_prompt_template_verbose():
   - If class is 'negation': Consider the most recent question in the chat history to which the candidate has negatively responded.
     Based on the collective question and the negative response, reason about the intention of the candidate_dialogue.
     * If the intention seems to be close to one of the following categories then, follow the respective instructions given along side:
-      - "get_new_question": The response should be "Alternative question: ", assign action_flag as "get_new_question"
       - "terminate_interview_confirmation": Respond with : "Thank you for your participation!", assign action_flag as "terminate_interview_confirmation" 
     * Else:
       - Based on the intention identified above provide a concise response ensuring no implementation or algorithmic details are shared, assign action_flag as "Pass"

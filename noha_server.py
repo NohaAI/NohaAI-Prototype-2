@@ -34,6 +34,7 @@ initial_session_state = {
     "rationale_logs": [],
     "hint_count": [0, 0, 0, 0, 0],
     "turn": 1,
+    "consecutive_termination_requests": 0,
     "interview_id": 1,
     "previous_bot_dialogue": "Find an index in an array where the sum of elements to the left equals the sum to the right.", # question_id = 1
     "assessment_payload": None,
