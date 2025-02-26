@@ -15,8 +15,8 @@ logging.basicConfig(level=logging.DEBUG)  # Ensure logs are visible
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-app.config['CORS_HEADERS'] = 'Content-Type'
-CORS(app)
+
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 interview_id = 1 #hard-coded; should be fetched from DB
 initial_session_state = {
