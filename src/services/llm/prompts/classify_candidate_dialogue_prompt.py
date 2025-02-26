@@ -5,7 +5,7 @@ from langchain_core.prompts import ChatPromptTemplate
 def classify_candidate_dialogue_prompt_template():
   prompt="""
   
-  You are an agent and your task is to classify the candidate's dialogue into different classes as defined below and explain the rationale for classifying them as such.
+  You are an agent and your task is to classify the candidate's dialogue into different classes as defined below and explain the rationale for classifying them as such. Ensure that you classify the candidate_dialogue with only the labels listed below and that no new label is created.
 
   Given:
   bot_dialogue: {bot_dialogue}
@@ -74,7 +74,7 @@ def classify_candidate_dialogue_prompt_template():
   - Classify the dialogue as 'clarification(open)' when the following criteria are met:
     * The dialogue represents a generic/non-specific request expecting detailed guidance or a stepwise explanation  
         
-  - Classify the dialogue as 'request(alternate_question)' when the following criteria are met:
+  - Classify the dialogue as 'request(new_question)' when the following criteria are met:
     * The candidate explicitly states that they want alternate question.
 
   - Classify the dialogue as 'request(termination)' when the following criteria are met:
@@ -100,14 +100,14 @@ def classify_candidate_dialogue_prompt_template():
     * Questions seeking direct solution hints without showing effort
 
   - Classify the dialogue as 'inability' when the following criteria are met:
-    *   
+    * Candidate shows inability to solve the problem  
 
   - Classify the dialogue as 'uncertainty' when the following criteria are met:
     * The candidate expresses uncertainty about the next steps or what action to take
     * The candidate explicitly states they do not know how to proceed or solve a problem
 
   You must respond ONLY in this exact format:
-  ["class", "rationale","distilled_candidate_dialogue"] where 'rationale' is your reasoning for classifying it as such
+  ["class", "rationale", "distilled_candidate_dialogue"] where 'rationale' is your reasoning for classifying it as such
   """
   classify_candidate_dialogue_prompt=ChatPromptTemplate.from_template(template=prompt)
   return classify_candidate_dialogue_prompt

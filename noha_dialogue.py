@@ -9,23 +9,14 @@ from src.services.workflows.bot_dialogue_generatorv2 import generate_dialogue
 from src.dao.chat_history import batch_insert_chat_history
 from src.services.workflows.answer_classifer import classify_candidate_answer
 from src.dao.interview_question_evaluation import add_question_evaluation
-from src.dao.interview_session_state import get_interview_session_state,add_interview_session_state,update_interview_session_state,delete_interview_session_state
 from src.utils.logger import get_logger
-# async def async_get_bot_dialogue(user_input, session_state):
-#     return await get_bot_dialogue(user_input, session_state)
 
 logger = get_logger(__name__)
-
-def run_async(func):
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    return loop.run_until_complete(func)
-
 
 async def get_noha_dialogue(user_input, session_state):
     interview_thresholds = {
     "MAX_TURNS": 10,
-    "SCORE_THRESHOLD": 5,
+    "SCORE_THRESHOLD": 5.0,
     "MAX_CONTIGUOUS_GUARDRAIL_COUNT": 4,
     "MAX_GUARDRAIL_COUNT": 10,
     "MAX_CONTIGUOUS_UNACCEPTABLE_ANSWER_COUNT": 4
@@ -93,7 +84,7 @@ async def get_noha_dialogue(user_input, session_state):
                 session_state['assessment_payload']=assessment_payload
                 session_state['meta_payload'].eval_distribution = assessment_payload['criteria_scores']
                 session_state['eval_distribution'] = assessment_payload['criteria_scores']
-                session_state['final_score'] = round(assessment_payload['final_score'],2)
+                session_state['final_score'] = assessment_payload['final_score']
                 session_state['turn'] += 1
                   
             else:
@@ -180,7 +171,7 @@ async def get_noha_dialogue(user_input, session_state):
                 session_state['assessment_payload']=assessment_payload
                 session_state['meta_payload'].eval_distribution = assessment_payload['criteria_scores']
                 session_state['eval_distribution'] = assessment_payload['criteria_scores']
-                session_state['final_score'] = round(assessment_payload['final_score'],2)
+                session_state['final_score'] = assessment_payload['final_score']
                 print(f"EXITED EVALUATE ANSWER FOR TURN {session_state['conversation_turn']}")
             else:
                 session_state['contiguous_unacceptable_answer_count'] +=1 
@@ -209,24 +200,19 @@ async def get_noha_dialogue(user_input, session_state):
             session_state['meta_payload'].question = bot_dialogue
             session_state['messages'].append({"role": "bot", "content": bot_dialogue})
     
-    if(session_state['final_score'] > interview_thresholds['SCORE_THRESHOLD']):
-        # if len(session_state['interview_question_list']) != 0:  #to be used for continous questions
-        #     bot_dialogue = "Since you have answered this question, let us move on to the next one : "
-        #     # bot_dialogue="Since you have solved this question, can you now start writing code for it?"
-        #     session_state['action_flag']='get_new_topic'
-        # else:
+    
+    if(session_state['final_score'] >= interview_thresholds['SCORE_THRESHOLD']):
         session_state['conclude']=True      
         session_state['conclude_message']="Since you have solved this question, can you now start writing code for it?"
         session_state['meta_payload'].question = session_state['conclude_message']
         session_state['messages'].pop() 
         session_state['messages'].append({"role": "bot", "content": session_state['conclude_message']}) 
-    
+        bot_dialogue = session_state['conclude_message'] 
     # Max Conversation turns check
     
-    if session_state['conversation_turn'] > (interview_thresholds['MAX_TURNS'] * session_state['number_of_questions']):
+    if session_state['conversation_turn'] >= (interview_thresholds['MAX_TURNS'] * session_state['number_of_questions']):
         if len(session_state['interview_question_list']) != 0:
             bot_dialogue="So far so good, let us move on to the next question : "
-            # bot_dialogue="We appreciate your effort on the problem! Now, can you code it for us? Let us know when you're ready."
             session_state['action_flag']='get_new_topic'
         else:
             session_state['conclude']=True      
@@ -234,10 +220,11 @@ async def get_noha_dialogue(user_input, session_state):
             session_state['meta_payload'].question = session_state['conclude_message']
             session_state['messages'].pop() 
             session_state['messages'].append({"role": "bot", "content": session_state['conclude_message']})
-    
+            bot_dialogue = session_state['conclude_message']
+            session_state['previous_bot_dialogue'] = bot_dialogue
     # Contiguous guardrail and unacceptable answer check breach check
              
-    if session_state['contigous_guardrails_count']==interview_thresholds['MAX_CONTIGUOUS_GUARDRAIL_COUNT'] or session_state['contiguous_unacceptable_answer_count'] > interview_thresholds['MAX_CONTIGUOUS_UNACCEPTABLE_ANSWER_COUNT']: 
+    if session_state['contigous_guardrails_count'] >= interview_thresholds['MAX_CONTIGUOUS_GUARDRAIL_COUNT'] or session_state['contiguous_unacceptable_answer_count'] >= interview_thresholds['MAX_CONTIGUOUS_UNACCEPTABLE_ANSWER_COUNT']: 
         if len(session_state['interview_question_list']) != 0:
             session_state['action_flag']='get_new_topic'
             bot_dialogue="It seems there is a lack of clarity. Let us move on to the next question : "
@@ -246,35 +233,40 @@ async def get_noha_dialogue(user_input, session_state):
             session_state['conclude_message']="It seems there is a lack of clarity. Let us conclude here."
             session_state['meta_payload'].question = session_state['conclude_message']
             session_state['messages'].append({"role": "bot", "content": session_state['conclude_message']})
-
+            bot_dialogue = session_state['conclude_message']
+            session_state['previous_bot_dialogue'] = bot_dialogue
     if("turn" in session_state and session_state['action_flag'] == 'get_new_topic'):
         if(len(session_state['interview_question_list']) == 0):
-            session_state['conclude']=True
-            session_state['conclude_message']="You have exhausted all questions in this interview"
-            bot_dialogue=session_state['conclude_message']
+            session_state['conclude'] = True
+            session_state['conclude_message'] = "You are all done. There are no more questions left in this interview."
             session_state['meta_payload'].question = session_state['conclude_message']
             session_state['messages'].pop()
             session_state['messages'].append({"role": "bot", "content": session_state['conclude_message']})
+            bot_dialogue=session_state['conclude_message']
+            session_state['previous_bot_dialogue'] = bot_dialogue
         else:
             await add_question_evaluation(session_state['meta_payload'].interview_id, session_state['meta_payload'].question_id, session_state['final_score'], json.dumps(session_state['assessment_payload']))
             await batch_insert_chat_history(session_state['meta_payload'].interview_id, session_state['meta_payload'].question_id,session_state['chat_history'])
             #add answer eval and chat history for this question to DB
             session_state['chat_history'].clear()
+            session_state['contigous_guardrails_count'] = 0 
+            session_state['contiguous_unacceptable_answer_count'] = 0
+            session_state['consecutive_termination_requests'] = 0
             #there should be logic for question switching right now a list is responsible for question switching
             session_state['meta_payload'].question_id = session_state['interview_question_list'].pop()
             session_state['meta_payload'].eval_distribution = [0, 0, 0, 0, 0, 0, 0]
             session_state['eval_distribution'] = [0, 0, 0, 0, 0, 0, 0]
             session_state['final_score'] = 0
-            session_state['number_of_questions']+=1
+            session_state['number_of_questions'] += 1
             next_question_metadata=await get_question_metadata(session_state['meta_payload'].question_id)
             next_question=next_question_metadata['question']
-            session_state['current_question']=next_question
+            session_state['current_question'] = next_question
             session_state['meta_payload'].question = session_state['current_question']
             bot_dialogue = bot_dialogue + session_state['current_question']
             session_state['messages'].pop()
             session_state['messages'].append({"role": "bot", "content": bot_dialogue})
-            session_state['previous_bot_dialogue']=bot_dialogue
-            session_state['turn']=1
+            session_state['previous_bot_dialogue'] = bot_dialogue
+            session_state['turn'] = 1
             #session_state['conversation_turn']=1    
             
     if(session_state['action_flag'] == "terminate_interview_confirmation"):

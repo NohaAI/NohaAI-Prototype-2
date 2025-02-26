@@ -3,11 +3,11 @@ import openai
 import socketio
 from flask_socketio import emit
 from flask import Flask
+import traceback
 from flask_cors import CORS
 import json
 from src.schemas.endpoints.schema import EvaluateAnswerRequest
 from dotenv import load_dotenv
-# from noha_dialogue import get_noha_dialogue
 from noha_dialogue import get_noha_dialogue
 from src.dao.interview_session_state import get_interview_session_state, update_interview_session_state, add_interview_session_state,delete_interview_session_state
 from src.dao.chat_history import delete_chat_history
@@ -28,14 +28,14 @@ sio = socketio.AsyncServer(cors_allowed_origins="*", async_mode="asgi", logger=T
 # Wrap the Flask app with the ASGI app from socket.io
 asgi_app = socketio.ASGIApp(sio, app)
 
-interview_id = 1 #hard-coded; should be fetched from DB
+interview_id = 3 #hard-coded; should be fetched from DB
 initial_session_state = {
     "chat_history": [],
     "rationale_logs": [],
     "hint_count": [0, 0, 0, 0, 0],
     "turn": 1,
     "consecutive_termination_requests": 0,
-    "interview_id": 1,
+    "interview_id": 3,
     "previous_bot_dialogue": "Find an index in an array where the sum of elements to the left equals the sum to the right.", # question_id = 1
     "assessment_payload": None,
     "guardrails_count": 0,
@@ -52,7 +52,7 @@ initial_session_state = {
     "meta_payload": EvaluateAnswerRequest(
             question_id=1,
             question="Find an index in an array where the sum of elements to the left equals the sum to the right.",
-            interview_id=1,
+            interview_id=3,
             answer="Python",
             eval_distribution=[0, 0, 0, 0, 0, 0, 0]
         ),
@@ -134,7 +134,10 @@ async def process_text(text, sid):
         await(update_interview_session_state(interview_id, json.dumps(session_state))) #update session state
         return response
     except Exception as e:
-        print(f"⚠️ Error: {e}")
+        print(f"⚠️ Error in process_text: {e}")
+        print("Full traceback:")
+        traceback.print_exc()
+        return f"An error occurred: {str(e)}"
 
 if __name__ == "__main__":
     import uvicorn
