@@ -13,6 +13,7 @@ async def classify_candidate_dialogue(bot_dialogue, candidate_dialogue,chat_hist
     llm_model = llm_service.get_openai_model(model = "gpt-4o-mini")
     distilled_candidate_dialogue = ""
     classify_candidate_dialogue_chain=(classify_candidate_dialogue_prompt|llm_model)
+    print(f"INPUTS TO CLASSIFY CANDIDATE DIALOGUE : \n bot_dialogue: {bot_dialogue} \n candidate_dialogue {candidate_dialogue} \n chat_history : {chat_history} \n distilled_candidate_dialogue : {distilled_candidate_dialogue}")
     candidate_dialogue_label=await classify_candidate_dialogue_chain.ainvoke({'bot_dialogue': bot_dialogue,'candidate_dialogue': candidate_dialogue, 'chat_history': chat_history,'distilled_candidate_dialogue': distilled_candidate_dialogue })
     return candidate_dialogue_label    
 
