@@ -63,7 +63,7 @@ def classify_candidate_dialogue_prompt_template():
     * Examples include 'Yes', 'Yeah', 'Sure', 'Okay', 'Alright', or similar confirmatory verbose paraphrases
 
   -Classify the dialogue as 'negation' when the following criteria are met:
-    * Candidate expresses his unwillingness in the form of negative responses 
+    * Candidate expresses his reluctance in the form of negative responses 
     * Examples include 'No', 'Nope', 'Not at all', 'Never', or similar verbose paraphrases    
 
   - Classify the dialogue as 'clarification(specific)' when the following criteria are met:
