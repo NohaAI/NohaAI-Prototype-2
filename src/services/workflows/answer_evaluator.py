@@ -183,8 +183,9 @@ async def evaluate_answer(input_request, chat_history, prev_eval=None):
         evaluation_prompt = answer_evaluator_prompt.make_prompt_from_template()
         evaluation_llm = llm.get_openai_model(model = "gpt-4o-mini")
         evaluation_chain = evaluation_prompt | evaluation_llm
+        print(f"INPUTS TO LLM {llm_inputs}")
         llm_response = await evaluation_chain.abatch(llm_inputs)
-        #logger.info(f"LLM RESPONSE FOR ANSWER EVALUATOR : {llm_response}")
+        logger.info(f"LLM RESPONSE FOR ANSWER EVALUATOR : {llm_response}")
         #for rationale
         evaluation_rationale_list=[]
         for criterion_result, criterion_weights in zip(llm_response, subcriteria_weights):  
