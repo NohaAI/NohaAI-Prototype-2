@@ -11,3 +11,4 @@ _personal/
 pyvenv.cfg
 database.ini
 interview_sessions.csv
+rationale_logs.txt
