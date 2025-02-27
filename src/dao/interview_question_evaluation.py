@@ -11,7 +11,7 @@ import uvicorn
 import json
 from src.dao.exceptions import QuestionEvaluationNotFoundException,QuestionNotFoundException,InterviewNotFoundException
 from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
-from src.schemas.dao.schema import QuestionEvaluationUpdateRequest,QuestionEvaluationResponse,QuestionEvaluationRequest
+from src.schemas.dao import QuestionEvaluationUpdateRequest,QuestionEvaluationResponse,QuestionEvaluationRequest
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

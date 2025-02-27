@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
 from src.dao.exceptions import FinalEvaluationNotFoundException,InterviewNotFoundException
 import uvicorn
-from src.schemas.dao.schema import FinalEvaluationRequest,FinalEvaluationResponse
+from src.schemas.dao import FinalEvaluationRequest,FinalEvaluationResponse
 # Configure application-wide logging to track and record application events and errors
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

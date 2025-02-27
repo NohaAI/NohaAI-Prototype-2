@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 import uvicorn
 from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
 from src.dao.exceptions import RoleProfileNotFoundException,OrganizationNotFoundException
-from src.schemas.dao.schema import RoleProfileResponse,RoleProfileRequest,RoleProfileUpdateRequest
+from src.schemas.dao import RoleProfileResponse,RoleProfileRequest,RoleProfileUpdateRequest
 
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)

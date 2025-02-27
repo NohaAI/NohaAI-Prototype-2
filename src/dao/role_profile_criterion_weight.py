@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 import uvicorn
 from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
 from src.dao.exceptions import RoleProfileCriterionWeightNotFoundException,RoleProfileNotFoundException
-from src.schemas.dao.schema import RoleProfileCriterionWeightRequest,RoleProfileCriterionWeightResponse
+from src.schemas.dao import RoleProfileCriterionWeightRequest,RoleProfileCriterionWeightResponse
 
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)

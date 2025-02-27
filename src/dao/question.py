@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 import uvicorn
 from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
 from src.dao.exceptions import QuestionNotFoundException,QuestionTypeNotFoundException
-from src.schemas.dao.schema import QuestionResponse,QuestionRequest
+from src.schemas.dao import QuestionResponse,QuestionRequest
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

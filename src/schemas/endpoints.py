@@ -28,4 +28,3 @@ class GenerateHintRequest(BaseModel):
     question : str
     chat_history: List[str]
     evaluation_results: List[dict]
-

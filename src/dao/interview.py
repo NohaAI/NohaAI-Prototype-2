@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 import uvicorn
 from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
 from src.dao.exceptions import UserNotFoundException,InterviewNotFoundException
-from src.schemas.dao.schema import InterviewRequest,InterviewResponse
+from src.schemas.dao import InterviewRequest,InterviewResponse
 
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)

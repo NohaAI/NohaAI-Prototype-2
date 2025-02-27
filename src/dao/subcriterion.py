@@ -13,7 +13,7 @@ import uvicorn
 from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
 from src.dao.exceptions import QuestionNotFoundException,SubcriterionNotFoundException
 from src.dao.criterion_payload import Criterion,SubCriterion
-from src.schemas.dao.schema import SubcriteriaResponse,SubcriteriaRequest,SubcriteriaUpdate
+from src.schemas.dao import SubcriteriaResponse,SubcriteriaRequest,SubcriteriaUpdate
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

@@ -16,7 +16,7 @@ from typing import List, Optional,Dict
 from src.dao.question import get_question_metadata
 from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
 from src.dao.exceptions import ChatHistoryNotFoundException,InterviewNotFoundException,QuestionNotFoundException
-from src.schemas.dao.schema import ChatHistoryRequest,ChatHistoryResponse
+from src.schemas.dao import ChatHistoryRequest,ChatHistoryResponse
 
 # Configure application-wide logging to track and record application events and errors
 logging.basicConfig(level=logging.INFO)
