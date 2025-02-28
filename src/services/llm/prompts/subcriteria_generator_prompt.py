@@ -1,53 +1,98 @@
 from langchain_core.prompts import ChatPromptTemplate
-# from langchain_core.prompts import PromptTemplate
-
-# def make_prompt_from_template():
-#     subcriteria_prompt_template = """
-#         You are an expert interviewer with an experience in evaluating responses to interview questions about topics such as Data Structures, Algorithms and Algorithmic complexity. 
-#         The response to every such question is evaluated based on the following set of "criteria" posed as questions:
-
-#         question: {question}
-#         criteria: {criteria}
-    
-#         Create a Python dictionary structure that represents a list of criteria. Each criterion should have the following attributes:
-#         - A string attribute called "name" representing the name of the criterion.
-#         - A float attribute called "weight" representing the weight of the criterion, which should be between 1 and 10.
-#         - A list attribute called "subcriteria," which contains 3 dictionaries. Each subcriterion should have:
-#         - A string attribute called "name" representing the name of the subcriterion.
-#         - A float attribute called "weight" representing the weight of the subcriterion, also between 1 and 10.
-
-#         Format the output strictly as valid Python code with no extra comments.
-#         Example response:
-#         subcriteria_payload = {{
-#             "criteria": [
-#                 {{
-#                     "name":  "Are the assumptions clarified?",
-#                     "weight": 8.5,
-#                     "subcriteria": [
-#                         {{"name": "Has the candidate defined what constitutes a word in the context of this problem?", "weight": 7.0}},
-#                         {{"name": "Is it clarified how to handle multiple spaces between words?", "weight": 9.0}},
-#                         {{"name": "What is the expected behavior for leading or trailing spaces?", "weight": 6.5}}
-#                     ]
-#                 }},
-#                 {{
-#                     "name": "Does the candidate account for corner cases ?",
-#                     "weight": 6.0,
-#                     "subcriteria": [
-#                         {{"name": "What happens if the input sentence is empty or null?", "weight": 5.5}},
-#                         {{"name": "How does the solution handle punctuation attached to words?", "weight": 8.0}},
-#                         {{"name": "How does the solution handle punctuation attached to words?", "weight": 8.0}}
-#                     ]
-#                 }}
-#             ]
-#         }}          
-
-
-#     """
-#     subcriteria_prompt = PromptTemplate.from_template(template=subcriteria_prompt_template)
-        
-#     return subcriteria_prompt
+from langchain_core.prompts import PromptTemplate
 
 def make_prompt_from_template():
+    subcriteria_prompt_template = """
+        You are an expert interviewer with an experience in evaluating responses to interview questions about topics such as Data Structures, Algorithms and Algorithmic complexity. 
+        The response to every such question is evaluated based on the following set of "criteria" posed as questions:
+
+        question: {question}
+        criteria: {criteria}
+    
+        Format the output strictly as valid Python code with no extra comments.
+        Example response:
+        subcriteria_payload = {{
+            "criteria": [
+                {{
+                    "name":  "Are the assumptions clarified?",
+                    "weight": 8.5,
+                    "subcriteria": [
+                        {{"name": "Has the candidate defined what constitutes a word in the context of this problem?", "weight": 7.0}},
+                        {{"name": "Is it clarified how to handle multiple spaces between words?", "weight": 9.0}},
+                        {{"name": "What is the expected behavior for leading or trailing spaces?", "weight": 6.5}}
+                    ]
+                }},
+                {{
+                    "name": "Does the candidate account for corner cases ?",
+                    "weight": 6.0,
+                    "subcriteria": [
+                        {{"name": "What happens if the input sentence is empty or null?", "weight": 5.5}},
+                        {{"name": "How does the solution handle punctuation attached to words?", "weight": 8.0}},
+                        {{"name": "How does the solution handle punctuation attached to words?", "weight": 8.0}}
+                    ]
+                }}
+            ]
+        }}    
+
+        Create a Python dictionary structure that represents a list of criteria. Each criterion should have the following attributes:
+        - A string attribute called "name" representing the name of the criterion.
+        - A float attribute called "weight" representing the weight of the criterion, which should be between 1 and 10.
+        - A list attribute called "subcriteria," which contains 3 dictionaries. Each subcriterion should have:
+        - A string attribute called "name" representing the name of the subcriterion.
+        - A float attribute called "weight" representing the weight of the subcriterion, also between 1 and 10.
+
+    """
+    subcriteria_prompt = PromptTemplate.from_template(template=subcriteria_prompt_template)
+        
+    return subcriteria_prompt
+
+def make_prompt_from_template_Ritesh():
+    subcriteria_prompt_template = """
+        You are an expert interviewer with an experience in evaluating responses to interview questions about topics such as Data Structures, Algorithms and Algorithmic complexity. 
+        The response to every such question is evaluated based on the following set of "criteria" posed as questions:
+
+        question: {question}
+        criteria: {criteria}
+    
+        Create a Python dictionary structure that represents a list of criteria. Each criterion should have the following attributes:
+        - A string attribute called "name" representing the name of the criterion.
+        - A float attribute called "weight" representing the weight of the criterion, which should be between 1 and 10.
+        - A list attribute called "subcriteria," which contains 3 dictionaries. Each subcriterion should have:
+        - A string attribute called "name" representing the name of the subcriterion.
+        - A float attribute called "weight" representing the weight of the subcriterion, also between 1 and 10.
+
+        Format the output strictly as valid Python code with no extra comments.
+        Example response:
+        subcriteria_payload = {{
+            "criteria": [
+                {{
+                    "name":  "Are the assumptions clarified?",
+                    "weight": 8.5,
+                    "subcriteria": [
+                        {{"name": "Has the candidate defined what constitutes a word in the context of this problem?", "weight": 7.0}},
+                        {{"name": "Is it clarified how to handle multiple spaces between words?", "weight": 9.0}},
+                        {{"name": "What is the expected behavior for leading or trailing spaces?", "weight": 6.5}}
+                    ]
+                }},
+                {{
+                    "name": "Does the candidate account for corner cases ?",
+                    "weight": 6.0,
+                    "subcriteria": [
+                        {{"name": "What happens if the input sentence is empty or null?", "weight": 5.5}},
+                        {{"name": "How does the solution handle punctuation attached to words?", "weight": 8.0}},
+                        {{"name": "How does the solution handle punctuation attached to words?", "weight": 8.0}}
+                    ]
+                }}
+            ]
+        }}          
+
+
+    """
+    subcriteria_prompt = PromptTemplate.from_template(template=subcriteria_prompt_template)
+        
+    return subcriteria_prompt
+
+def make_prompt_from_template_27feb():
         subcriteria_prompt_template = """
         You are an expert interviewer with experience in evaluating responses to Data Structures, Algorithms and Algorithmic complexity questions. 
         Your evaluation should follow these guidelines:

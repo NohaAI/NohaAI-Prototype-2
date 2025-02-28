@@ -1,13 +1,5 @@
 from fastapi import FastAPI
-from pydantic import BaseModel, Field
-from datetime import datetime
-import psycopg2
-from psycopg2.pool import SimpleConnectionPool
-from typing import Optional
-import os
 import logging
-from contextlib import contextmanager
-from dotenv import load_dotenv
 from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
 from src.dao.exceptions import InterviewNotFoundException
 import uvicorn
@@ -38,16 +30,39 @@ async def get_interview_session_state(interview_id: int):
             
                 # SQL query to fetch final evaluation JSON details from interview_session_states table
             query = """
-                SELECT interview_session_state
-                FROM interview_session_state
+                
+                SELECT turn_number, consecutive_termination_request_count, bot_dialogue, guardrail_count, contiguous_technical_guardrail_count, contiguous_non_technical_guardrail_count, termination, current_question, next_action, question_count
+                FROM INTERVIEW_SESSION_STATE
                 WHERE interview_id = %s
+
             """
             result = execute_query(conn, query, (interview_id,), fetch_one=True)
-            
+            turn_number = result[0]
+            consecutive_termination_request_count = result[1]
+            bot_dialogue = result[2]
+            guardrail_count = result[3]
+            contiguous_technical_guardrail_count = result[4]
+            contiguous_non_technical_guardrail_count = result[5]
+            termination = result[6]
+            current_question = result[7]
+            next_action = result[8]
+            question_count = result[9]
             # Raise 404 error if no matching record is found
-            
             # Return the final evaluation JSON response with retrieved details
-            return result
+            #TODO - ADD A NULL CHECK FOR THE RESULT AND THROW AN EXCEPTION
+            return {
+                "interview_id" : interview_id,
+                "turn_number": turn_number,
+                "consecutive_termination_request_count" : consecutive_termination_request_count ,
+                "bot_dialogue" : bot_dialogue,
+                "guardrail_count" : guardrail_count,
+                "contiguous_technical_guardrail_count" : contiguous_technical_guardrail_count,
+                "contiguous_non_technical_guardrail_count" : contiguous_non_technical_guardrail_count,
+                "termination" : termination,
+                "current_question" : current_question,
+                "next_action" : next_action,
+                "question_count" : question_count
+            }
             
     except DatabaseConnectionError as e:
         raise e
@@ -58,7 +73,7 @@ async def get_interview_session_state(interview_id: int):
 
 # Endpoint to update an existing final evaluation JSON
 @app.put("/interview_session_state/{interview_id}")
-async def update_interview_session_state(interview_id: int, interview_session_state :str):
+async def update_interview_session_state(interview_id: int, turn_number:int, consecutive_termination_request_count: int, bot_dialogue: str, guardrail_count: int, contiguous_technical_guardrail_count: int, contiguous_non_technical_guardrail_count: int, termination: bool, current_question: str, next_action: str, question_count: int):
     """
     Update an existing final evaluation JSON.
 
@@ -78,32 +93,29 @@ async def update_interview_session_state(interview_id: int, interview_session_st
             try:
                 # Check if evaluation exists
                 check_query = """
-                    SELECT interview_id FROM interview_session_state 
+                    SELECT interview_id FROM interview 
                     WHERE interview_id = %s
                 """
                 exists = execute_query(conn, check_query, (interview_id,), fetch_one=True)
                 if not exists:
                     raise InterviewNotFoundException(interview_id)
-                
-                # Prepare update query with optional fields
-                
-
+               
                 # Execute the update query
                 update_query = f"""
                     UPDATE interview_session_state
-                    SET interview_session_state = %s
+                    SET turn_number=%s , consecutive_termination_request_count=%s, bot_dialogue=%s, guardrail_count=%s, contiguous_technical_guardrail_count=%s, contiguous_non_technical_guardrail_count=%s, termination=%s, current_question=%s, next_action=%s, question_count=%s
                     WHERE interview_id = %s
-                    RETURNING interview_session_state
+                    RETURNING interview_id
                 """
                 updated_record = execute_query(
                     conn, 
                     update_query, 
-                    (interview_session_state, interview_id, ), 
+                    (turn_number, consecutive_termination_request_count, bot_dialogue, guardrail_count, contiguous_technical_guardrail_count, contiguous_non_technical_guardrail_count, termination, current_question, next_action, question_count, interview_id,), 
                     fetch_one=True,
                     commit=True
                 )
                 
-                return f"INTERVIEW SESSION STATE SUCCESSFULY UPDATED : {update_interview_session_state}"
+                return f"INTERVIEW SESSION STATE SUCCESSFULY UPDATED FOR INTERVIEW_ID : {interview_id}"
             except Exception as e:
                 logger.error(f"Error updating final evaluation: {e}")
                 raise
@@ -116,7 +128,7 @@ async def update_interview_session_state(interview_id: int, interview_session_st
         
 # Endpoint to add a new final evaluation JSON for a specific interview
 @app.post("/interview_session_state")
-async def add_interview_session_state(interview_id: int, interview_session_state):
+async def add_interview_session_state(interview_id: int, turn_number:int , consecutive_termination_request_count: int, bot_dialogue: str, guardrail_count: int, contiguous_technical_guardrail_count: int, contiguous_non_technical_guardrail_count: int, termination: bool, current_question: str, next_action: str, question_count: int):
     """
     Add a new final evaluation JSON for a specific interview.
 
@@ -135,8 +147,8 @@ async def add_interview_session_state(interview_id: int, interview_session_state
         with get_db_connection() as conn:
             # Check if an existing evaluation for the interview has a null evaluation JSON
             check_query = """
-                SELECT user_id FROM Interview
-                WHERE interview_id = %s
+                SELECT interview_id FROM Interview
+                WHERE interview_id = %d
             """
             check_interview = execute_query(conn, check_query, (interview_id,), fetch_one=True)
             
@@ -144,19 +156,19 @@ async def add_interview_session_state(interview_id: int, interview_session_state
                 raise InterviewNotFoundException
                 # Update existing evaluation with the new evaluation JSON
             add_interview_session_state_query = """
-                INSERT INTO interview_session_state(interview_id,interview_session_state)
-                VALUES(%s, %s)
-                RETURNING interview_id, interview_session_state
+                INSERT INTO interview_session_state(interview_id, turn_number, consecutive_termination_request_count, bot_dialogue, guardrail_count, contiguous_technical_guardrail_count, contiguous_non_technical_guardrail_count, termination, current_question, next_action, question_count)
+                VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING interview_id
             """
             result = execute_query(
                 conn,
                 add_interview_session_state_query,
-                (interview_id, interview_session_state,),
+                (interview_id, turn_number, consecutive_termination_request_count, bot_dialogue, guardrail_count, contiguous_technical_guardrail_count, contiguous_non_technical_guardrail_count, termination, current_question, next_action, question_count,),
                 fetch_one=True,
                 commit=True
             )
             
-            return {"interview_id" : result[0], "interview_session_state" : result[1] }
+            return {f"SUCCESSFULLY ADDED DATA IN INTERVIEW_SESSION_STATE FOR interview_id : {interview_id}"}
     except DatabaseConnectionError as e:
         raise e
     except DatabaseQueryError as e:
@@ -201,11 +213,11 @@ async def delete_interview_session_state(interview_id: int):
                     raise InterviewNotFoundException(interview_id)
                 
                 # Return success message
-                return {"message": "Interview session state deleted successfully"}
+                return {f"INTERVIEW SESSION STATE DELETED FOR INTERVIEW ID : {interview_id}"}
             except Exception as e:
                 # Log any unexpected errors during evaluation JSON deletion
                 logger.error(f"Error deleting interview session state : {e}")
-                raise
+                raise e
     except DatabaseConnectionError as e:
         raise e
     except DatabaseQueryError as e:

@@ -51,20 +51,20 @@ async def evaluate_answer_wo_max_eval(input_request):
 
         assessment_payload_ready_for_computation = {}
         
-        print("SUBCRITERION LIST AFTER FETCH_CRITERIA(QUESTION_ID) CALL#####################\n")
+        logger.info("SUBCRITERION LIST AFTER FETCH_CRITERIA(QUESTION_ID) CALL#####################\n")
         for criterion in evaluation_criteria.keys():
             llm_inputs.append({"question": question, "answer": candidate_answer, "chat_history": chat_history, "subcriteria": evaluation_criteria[criterion],"eval_distribution":eval_distribution})
             subcriteria_weights.append([int(subcriterion['weight']) for subcriterion in evaluation_criteria[criterion]])
             ### rmsbegin: added code here to populate the assessment_payload
             subcriterion_question_weight_list = evaluation_criteria[criterion]    
             for dct in subcriterion_question_weight_list:
-                print(dct['subcriterion'], " ", dct['weight'])
+                logger.info(dct['subcriterion'], " ", dct['weight'])
             for elem in subcriterion_question_weight_list:
                 subcriterion_question = elem["subcriterion"]
                 subcriterion_weight = elem["weight"]
                 assessment_payload_ready_for_computation[subcriterion_question] = [subcriterion_weight]
             ### rmsend: assessment_payload is ready with foll. format {"question1":[3.0]}
-        print("################# END SUBCRITERION LIST#####################\n")
+        logger.info("################# END SUBCRITERION LIST#####################\n")
         evaluation_prompt = answer_evaluator_prompt.make_prompt_from_template()
         evaluation_llm = llm.get_openai_model(model = "gpt-4o-mini")
         evaluation_chain = evaluation_prompt | evaluation_llm
@@ -76,24 +76,24 @@ async def evaluate_answer_wo_max_eval(input_request):
 
             evaluation_results.append(json.loads(criterion_result.content)[0])
             evaluation_rationale=json.loads(criterion_result.content)[1]
-            print(f"EVALUATION RATIONALE : ##############################################################################")
-            print(json.loads(criterion_result.content)[0])
-            print(evaluation_rationale)
+            logger.info(f"EVALUATION RATIONALE : ##############################################################################")
+            logger.info(json.loads(criterion_result.content)[0])
+            logger.info(evaluation_rationale)
             evaluation_rationale_list.append(evaluation_rationale)
-        print(f"##############################################################################")
+        logger.info(f"##############################################################################")
         
             # if "json" in criterion_result.content:
             #     str1=criterion_result.content.replace("```json\n", "")
             #     str2=str1.replace("```", "")
             #     evaluation_results.append(json.loads(str2)[0])
             #     evaluation_rationale=json.loads(str2)[1]
-            #     print(f"##############################################################################")
-            #     print(evaluation_rationale)
+            #     logger.info(f"##############################################################################")
+            #     logger.info(evaluation_rationale)
             # else:
             #     evaluation_results.append(json.loads(criterion_result.content)[0])
             #     evaluation_rationale=json.loads(criterion_result.content)[1]
-            #     print(f"##############################################################################")
-            #     print(evaluation_rationale)
+            #     logger.info(f"##############################################################################")
+            #     logger.info(evaluation_rationale)
             #evaluation_results.append(json.loads(criterion_result.content))
             # subcriteria_score = (json.loads(criterion_result.content)).values()
             # criteria_scores.append(score_subcriteria(criterion_weights, subcriteria_score))
@@ -120,7 +120,7 @@ async def evaluate_answer_wo_max_eval(input_request):
                 assessment_payload_ready_for_computation[key].append(evaluation_dict_item[key])  # appending score to the weight  
 
 
-        print(assessment_payload_ready_for_computation)
+        logger.info(assessment_payload_ready_for_computation)
         answer_evaluation_payload=[interview_computation.compute_turn_score_interim(assessment_payload_ready_for_computation),evaluation_rationale_list]
         
         return(answer_evaluation_payload)
@@ -128,7 +128,7 @@ async def evaluate_answer_wo_max_eval(input_request):
         logger.critical(f"Unexpected error in evaluation process: {ex}")
         raise Exception(f"Unexpected error in evaluation process: {ex}")
     
-async def evaluate_answer(input_request, chat_history, prev_eval=None):
+async def evaluate_answer(question_id, question, candidate_answer, distilled_chat_history, assessment_payload = None):
     """
     Orchestrates the evaluation process for a given query.
     
@@ -142,122 +142,12 @@ async def evaluate_answer(input_request, chat_history, prev_eval=None):
     Returns:
         dict: A response containing the evaluation results.
     """
-    try:
-        try:
-            question_id = input_request.question_id
-            question = input_request.question
-            interview_id = input_request.interview_id
-            candidate_answer = input_request.answer
-            eval_distribution = input_request.eval_distribution
-        except AttributeError as attr_err:
-            logger.critical(f"Input object missing required attributes: {attr_err}")
-            raise AttributeError(f"Input object missing required attributes: {attr_err}") from attr_err
-        print(f"CHAT HISTORY RECIEVED IN ANSWER EVALUATOR : {chat_history}")
-        evaluation_criteria = await subcriterion.fetch_subcriteria(question_id)
-        # chat_history = await chat_history.get_chat_history(interview_id)
-        # if len(chat_history)<2:
-        #     chat_history = []
-        #     chat_history.append({"question": question, "answer": candidate_answer})
-
-        llm_inputs = []
-        subcriteria_weights = []
-        criteria_scores = []
-        evaluation_results = []
-
-        assessment_payload_ready_for_computation = {}
-        
-        # print("SUBCRITERION LIST AFTER FETCH_CRITERIA(QUESTION_ID) CALL#####################\n")
-        for criterion in evaluation_criteria.keys():
-            llm_inputs.append({"question": question, "answer": candidate_answer, "chat_history": chat_history, "subcriteria": evaluation_criteria[criterion],"eval_distribution":eval_distribution})
-            subcriteria_weights.append([int(subcriterion['weight']) for subcriterion in evaluation_criteria[criterion]])
-            ### rmsbegin: added code here to populate the assessment_payload
-            subcriterion_question_weight_list = evaluation_criteria[criterion]    
-            # for dct in subcriterion_question_weight_list:
-            #     print(dct['subcriterion'], " ", dct['weight'])
-            for elem in subcriterion_question_weight_list:
-                subcriterion_question = elem["subcriterion"]
-                subcriterion_weight = elem["weight"]
-                assessment_payload_ready_for_computation[subcriterion_question] = [subcriterion_weight]
-            ### rmsend: assessment_payload is ready with foll. format {"question1":[3.0]}
-        # print("################# END SUBCRITERION LIST#####################\n")
-        evaluation_prompt = answer_evaluator_prompt.make_prompt_from_template()
-        evaluation_llm = llm.get_openai_model(model = "gpt-4o-mini")
-        evaluation_chain = evaluation_prompt | evaluation_llm
-        print(f"INPUTS TO LLM {llm_inputs}")
-        llm_response = await evaluation_chain.abatch(llm_inputs)
-        logger.info(f"LLM RESPONSE FOR ANSWER EVALUATOR : {llm_response}")
-        #for rationale
-        evaluation_rationale_list=[]
-        for criterion_result, criterion_weights in zip(llm_response, subcriteria_weights):  
-
-            evaluation_results.append(json.loads(criterion_result.content)[0])
-            evaluation_rationale=json.loads(criterion_result.content)[1]
-            # print(f"EVALUATION RATIONALE : ##############################################################################")
-            # print(json.loads(criterion_result.content)[0])
-            # print(evaluation_rationale)
-            evaluation_rationale_list.append(evaluation_rationale)
-        # print(f"##############################################################################")
-        
-            # if "json" in criterion_result.content:
-            #     str1=criterion_result.content.replace("```json\n", "")
-            #     str2=str1.replace("```", "")
-            #     evaluation_results.append(json.loads(str2)[0])
-            #     evaluation_rationale=json.loads(str2)[1]
-            #     print(f"##############################################################################")
-            #     print(evaluation_rationale)
-            # else:
-            #     evaluation_results.append(json.loads(criterion_result.content)[0])
-            #     evaluation_rationale=json.loads(criterion_result.content)[1]
-            #     print(f"##############################################################################")
-            #     print(evaluation_rationale)
-            #evaluation_results.append(json.loads(criterion_result.content))
-            # subcriteria_score = (json.loads(criterion_result.content)).values()
-            # criteria_scores.append(score_subcriteria(criterion_weights, subcriteria_score))
-        
-        
-        #without rationale   
-        # for criterion_result, criterion_weights in zip(llm_response, subcriteria_weights):
-
-        #     if "json" in criterion_result.content:
-        #         str1=criterion_result.content.replace("```json\n", "")
-        #         str2=str1.replace("```", "")
-        #         evaluation_results.append(json.loads(str2))
-        #     else:
-        #         evaluation_results.append(json.loads(criterion_result.content))
-           
-        #logic for max eval
-
-        if prev_eval is not None:
-            evaluation_results=return_max_eval(evaluation_results,prev_eval)
-
-        ### rmsbegin: code below appends the candidate score against to each dictionary item in the existing list containg weight
-       
-        evaluation_results_dict={}
-        for dict_item in evaluation_results:
-            evaluation_results_dict.update(dict_item)
-
-        for key1,key2 in zip(evaluation_results_dict,assessment_payload_ready_for_computation):
-            assessment_payload_ready_for_computation[key2].append(evaluation_results_dict[key1])
-
-        # for evaluation_dict_item in evaluation_results:
-        #     for key in evaluation_dict_item.keys():
-        #         assessment_payload_ready_for_computation[key].append(evaluation_dict_item[key])  # appending score to the weight  
-
-        # total_score_count = sum(criteria_scores)
-        # final_score = round(total_score_count / len(evaluation_criteria.keys()), 2)
-
-        # print(assessment_payload_ready_for_computation)
-        answer_evaluation_payload=[interview_computation.compute_turn_score_interim(assessment_payload_ready_for_computation),evaluation_rationale_list]
-        # return (interview_computation.compute_turn_score_interim(assessment_payload_ready_for_computation))
-        return(answer_evaluation_payload)
-    except Exception as ex:
-        logger.critical(f"Unexpected error in evaluation process: {ex}")
-        raise Exception(f"Unexpected error in evaluation process: {ex}")
+    #TODO: returns assessment_payload and rationale
 
 def return_max_eval(eval1, eval2):
     """
     Combines two evaluation dictionaries by taking the maximum score for each question.
-    Includes print statements to compare scores from eval1, eval2, and the resulting eval3.
+    Includes logger.info statements to compare scores from eval1, eval2, and the resulting eval3.
     
     Args:
         eval1: List of dictionaries containing question-score pairs (scores as strings)

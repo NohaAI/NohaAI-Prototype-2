@@ -1,7 +1,7 @@
 from typing import Any, Dict, List
 from src.dao.criterion import fetch_criteria
 from src.dao.subcriterion import batch_insert_subcriteria, fetch_subcriteria
-from src.schemas.endpoints.schema import GenerateSubCriteriaRequest
+from src.schemas.endpoints import GenerateSubCriteriaRequest
 from src.utils.logger import get_logger
 from src.services.llm.prompts import subcriteria_generator_prompt
 from src.services.llm import llm_service
@@ -54,7 +54,7 @@ async def generate_subcriteria(input_request: GenerateSubCriteriaRequest) -> Dic
         try:
             llm_inputs_dict = {'question': question, 'criteria': criteria }
             subcriteria_prompt = subcriteria_generator_prompt.make_prompt_from_template()
-            llm_model = llm_service.get_openai_model(model = "gpt-4o-mini")
+            llm_model = llm_service.get_openai_model()
             subcriteria_generator_chain = (subcriteria_prompt | llm_model)
             subcriteria_payload = await subcriteria_generator_chain.ainvoke(llm_inputs_dict)
             subcriteria_payload = json.loads(utils.clean_response(subcriteria_payload.content))

@@ -1,0 +1,25 @@
+//TODO: populate this with values from DB MAKE 8 CRITERION 
+{
+    "assessment": [
+      "criterion": {
+        "name": "Assumptions",
+        "weight": 8.5,
+        "score": 0.0,
+        "subcriterion": [
+          {
+            "name": "depending on the efficiency DS selected by the candidate award a score of 100%",
+            "weight": 4.5,
+            "score": 0.0
+          },
+          {
+            "name": "depending on the corner cases enumerated by the candidate award a score of 50%",
+            "weight": 6.5,
+            "score": 0.0
+          }
+          {
+
+          }
+        ]
+      }
+    ]
+  }
