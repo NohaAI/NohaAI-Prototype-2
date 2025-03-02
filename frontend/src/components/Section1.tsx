@@ -14,7 +14,7 @@ const Section1: React.FC = () => {
                  bg-[url('/curve.png')] bg-no-repeat bg-contain bg-center"
     >
       {/* Navbar */}
-      <motion.nav
+      {/* <motion.nav
         initial={{ y: -100, opacity: 0 }} // Start position (above screen)
         animate={{ y: 0, opacity: 1 }} // End position (normal)
         transition={{ duration: 0.6, ease: "easeOut" }} // Smooth transition
@@ -22,7 +22,6 @@ const Section1: React.FC = () => {
       >
         <div className="text-white text-lg font-semibold px-6">Noha.ai</div>
 
-        {/* Desktop Menu */}
         <div className="hidden md:flex space-x-8 text-white">
           <a href="#" className="hover:text-gray-300">Home</a>
           <a href="#" className="hover:text-gray-300">Product</a>
@@ -30,7 +29,6 @@ const Section1: React.FC = () => {
           <a href="#" className="hover:text-gray-300">Use cases</a>
         </div>
 
-        {/* Login & Try Noha Buttons (Desktop) */}
         <div className="hidden md:flex space-x-4 pr-6">
           <button className="px-8 py-3 text-black font-semibold rounded-full bg-gradient-to-r from-[#77FFF1] to-[#0B9284] ">
             Try Noha
@@ -40,14 +38,12 @@ const Section1: React.FC = () => {
           </button>
         </div>
 
-        {/* Mobile Menu Button */}
         <button onClick={() => setIsOpen(!isOpen)} className="md:hidden text-white">
           {isOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
-      </motion.nav>
+      </motion.nav> */}
 
-      {/* Mobile Menu */}
-      {isOpen && (
+      {/* {isOpen && (
         <div className="md:hidden w-full max-w-6xl bg-[#3224A2] rounded-lg mt-3 p-4 text-center">
           <ul className="space-y-4 text-white">
             <li><a href="#" className="hover:text-gray-300">Home</a></li>
@@ -66,7 +62,7 @@ const Section1: React.FC = () => {
             </li>
           </ul>
         </div>
-      )}
+      )} */}
 
       {/* Hero Content */}
       <div className="flex flex-col md:flex-row h-screen justify-center gap-10 mt-[10%] px-6">
@@ -79,21 +75,43 @@ const Section1: React.FC = () => {
             competency-based interviews to effortlessly identify top talent—no
             more manual interviews.
           </p>
-
+          <div className="mt-4 text-center block md:hidden">
+        <Link
+          href={"https://www.youtube.com/watch?v=D_RWdG1eIAc"}
+          className=""
+        >
+          <button className="px-6 py-3 border border-[#77FFF1] text-white rounded-full">
+            Watch a demo
+          </button>
+        </Link>
+      </div>
           {/* Buttons */}
           <div className="mt-6 flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 text-center md:text-left">
-            <Link href={"/interview"}>
+            {/* <Link href={"/interview"}>
               <button className="px-8 py-3 text-black font-semibold rounded-full bg-gradient-to-r from-[#77FFF1] to-[#0B9284] ">
                 Try Noha
               </button>
-            </Link>
-            <button className="px-6 py-3 border border-[#77FFF1] text-white rounded-full">
-              Watch a demo
-            </button>
+            </Link> */}
+            {/* <Link href={"https://www.youtube.com/watch?v=D_RWdG1eIAc"}>
+              <button className="px-6 py-3 border border-[#77FFF1] text-white rounded-full">
+                Watch a demo
+              </button>
+            </Link> */}
           </div>
         </div>
         <div className="hidden md:block w-72 h-72 bg-[#16073D] rounded-full"></div>
       </div>
+      <div className="absolute top-[44%] left-[45%] hidden md:block">
+        <Link
+          href={"https://www.youtube.com/watch?v=D_RWdG1eIAc"}
+          className=""
+        >
+          <button className="px-6 py-3 border border-[#77FFF1] text-white rounded-full">
+            Watch a demo
+          </button>
+        </Link>
+      </div>
+  
     </div>
   );
 };

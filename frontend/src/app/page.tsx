@@ -2,6 +2,7 @@
 
 import AnimatedText from "@/components/AnimatedText";
 import FrontPage from "@/components/FrontPage";
+import FrontPage2 from "@/components/FrontPage2";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 
@@ -21,7 +22,8 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="h-screen w-screen">
+    <>
+    <div className="h-screen w-screen hidden md:block">
       {screen === 0 && <AnimatedText />}
       {screen === 1 && <motion.div
             initial={{ y: "-100%" }}
@@ -39,7 +41,12 @@ export default function Home() {
           />
 
         }
-      {screen === 3 && <FrontPage />}
+      {screen === 3 && <FrontPage2 />}
     </div>
+
+    <div className="block md:hidden">
+      <FrontPage2 />
+    </div>
+    </>
   );
 }
