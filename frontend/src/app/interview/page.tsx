@@ -11,8 +11,8 @@ const MyPage = () => {
     const [details, setDetails] = useState({} as any);
     const [callEnded, setCallEnded] = useState(false);
     const [backendServiceLink] = useState(
-        // "http://localhost:5000"
-        "https://apis.noha.ai"
+        "http://localhost:5000"
+        // "https://apis.noha.ai"
         );
     const [userSocket, setUserSocket] = useState<any>(null);
     const [chats, setChats] = useState<Array<any>>([]);
@@ -21,6 +21,7 @@ const MyPage = () => {
     const [isRecording, setIsRecording] = useState(false);
     const [transcribedText, setTranscribedText] = useState("");
     const [isProcessing, setIsProcessing] = useState(false); // NEW: Processing state
+    const [chatMetaData, setChatMetaData] = useState({} as any);
 
     const recognitionRef = useRef<any>(null);
 
@@ -50,15 +51,16 @@ const MyPage = () => {
 
     const startConnection2 = async (userDetails: any) => {
         try {
-            const res = await axios.get(`${backendServiceLink}/connect`);
-            const res2 = await axios.post(`${backendServiceLink}/initialize`);
-            console.log('start connection', res)
-            console.log('initialize', res2)
+            const connectRes = await axios.get(`${backendServiceLink}/connect`);
+            const initializeRes = await axios.post(`${backendServiceLink}/initialize`);
+
+            console.log('start connection', connectRes)
+            console.log('initialize data', initializeRes)
+            setChatMetaData(initializeRes.data)
             setInterviewStarted(true);
-            const greetMsg = `Hello ${userDetails.name},, I'm Noha, I'll be conducting your interview today. Let's get started with your first question: Find an index in an array where the sum of elements to the left equals the sum to the right`
-            updateChats(greetMsg);
-            speakText(greetMsg)
-            return res.data; // Return the response data
+            // const greetMsg = `Hello ${userDetails.name}, I'm Noha, I'll be conducting your interview today. Let's get started with your first question: Find an index in an array where the sum of elements to the left equals the sum to the right`
+            updateChats(initializeRes.data.message);
+            speakText(initializeRes.data.message)
 
         } catch (error) {
             console.error("Error in startConnection2:", error);
@@ -68,10 +70,10 @@ const MyPage = () => {
     
     const disconnect2 = async() =>{
         try {
-            const res = await axios.get(`${backendServiceLink}/disconnect`);
-            console.log('disconnected')
+            const res = await axios.post(`${backendServiceLink}/terminate`);
+            console.log('terminate')
         } catch (error) {
-            console.error('Error on disconnect', error)
+            console.error('Error on terminate', error)
         }
     }
 
@@ -83,10 +85,17 @@ const MyPage = () => {
 
     const handleChat = async (data: { text: string }) => {
         try {
-            const res = await axios.post(`${backendServiceLink}/chat`, data);
-            console.log("Received AI response");
-            updateChats(res.data.message);
-            speakText(res.data.message);
+            const reqBody = {
+                "response": data.text,
+                "session_state": chatMetaData.session_state,
+                "chat_history": chatMetaData.chat_history,
+                "assessment_payload_record": chatMetaData.assessment_payload_record
+            }
+            const res = await axios.post(`${backendServiceLink}/chat`, reqBody);
+            console.log("Received AI response", res.data);
+            setChatMetaData(res.data)
+            updateChats(res.data.response);
+            speakText(res.data.response);
         } catch (error) {
             console.error("Error in handleStreamBack:", error);
         }
