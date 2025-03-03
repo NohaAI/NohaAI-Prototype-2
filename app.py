@@ -63,7 +63,7 @@ def intialize():
         # chat_history = ChatHistoryRecord()
         return jsonify({
                         "message": "Interview initialized message",
-                        "session_state": "session_state",
+                        "session_state": { "name": "initialize_session_state" },
                         "assessment_payload_record": "assessment_payload_record",
                         "chat_history": "chat_history",
                         }), 200
@@ -104,7 +104,7 @@ def chat():
         # logger.info(f"ASSESSMENT PAYLOAD : {"assessment_payload_record"}")
         return jsonify({
             "response": "this is chat response",
-            "session_state": "session_state",
+            "session_state": { "name": "chat_session_state"},
             "chat_history": "chat_history",
             "assessment_payload_record": "assessment_payload_record"
         }), 200 
