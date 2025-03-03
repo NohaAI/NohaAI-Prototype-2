@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 // import { io } from "socket.io-client";
 
 const MyPage = () => {
+
     const [interviewStarted, setInterviewStarted] = useState<boolean>(false);
     const [details, setDetails] = useState({} as any);
     const [callEnded, setCallEnded] = useState(false);
@@ -140,8 +141,6 @@ const MyPage = () => {
         disconnect2()
     }
 
-
-
     const startRecording = () => {
         setIsMicOn(true);
         setIsRecording(true);
@@ -196,7 +195,7 @@ const MyPage = () => {
     }, [isRecording, isProcessing]);
 
     const sendFeedback = async (rating: number) => {
-       
+        window.location.reload();
         // try {
         //     const response = await axios.post("http://localhost:5000/feedback", { rating });
         //     console.log("Response:", response.data);
