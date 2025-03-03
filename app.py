@@ -76,6 +76,7 @@ def chat():
     try:
         candidate_request = request.get_json()
         print('REQUEST BODY', request.get_json())
+        candidate_response = candidate_request['response']
         # logger.info(f"REQUEST BODY RECIEVED FROM USER : {candidate_request} ")
         # if not candidate_request:
         #     return jsonify({"error": "Missing request body"}), 400
@@ -103,7 +104,7 @@ def chat():
         # logger.info(f"CHAT HISTORY : {"chat_history"}")
         # logger.info(f"ASSESSMENT PAYLOAD : {"assessment_payload_record"}")
         return jsonify({
-            "response": "this is chat response",
+            "response": candidate_response,
             "session_state": { "name": "chat_session_state"},
             "chat_history": "chat_history",
             "assessment_payload_record": "assessment_payload_record"
