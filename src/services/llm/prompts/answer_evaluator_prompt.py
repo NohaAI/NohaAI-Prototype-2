@@ -1,111 +1,86 @@
 from langchain_core.prompts import ChatPromptTemplate
 
-def make_prompt_from_template():
+def make_prompt_from_template_to_be_pushed():
   eval_prompt_str = """
-    You are an expert interviewer with experience in evaluating responses to interview questions about topics such as Data Structures, Algorithms and Algorithmic complexity.
-    
-    Given the following inputs:
-      question: {question}
-      answer: {answer}
-      chat_history: {chat_history}
-      subcriteria: {subcriteria}
-      eval_distribution: {eval_distribution}
-    
-    Please evaluate the response based on the following evaluation guidelines:
-    1. Group the subcriteria received in the subcriteria payload above into seven consecutive groups of three each
-    2. For each subcriterion in the subcriteria received above, pl. give each subcriterion a score based on the following: 
-      - If the response satisfies a weak subcriterion give a score between 0 and 2, but never more than 2
-      - If the response satisfies a moderate subcriterion give a score between 0 and 5, but never more than 5 
-      - If the response satisfies a strong subcriterion give a score between 0 and 10, but never more than 10
-    
-    IMPORTANT : 
-    - Please ensure that the structure and length of the subcriteria remain the same and no new subcriterion are added because you would incur a penalty otherwise    
-    - Make sure that subcriterion question is neither truncated nor remains empty because you would incur a penalty otherwise
-    
-    YOU MUST RESPOND IN THE FOLLOWING LIST FORMAT:
-    [
-      "answer_evaluation",
-      "rationale"
-    ]
-    YOU MUST RESPOND WITH A LIST CONTAINING EXACTLY TWO ELEMENTS:
-    1. The first element must be a dictionary containing the answer evaluation scores
-    2. The second element must be a string containing the rationale
+    The following inputs are being sent as input to this prompt:
 
-    The answer_evaluation dictionary must be in strict JSON format.
+      prompt_bot_dialogue: {prompt_bot_dialogue},
+      prompt_distilled_candidate_dialogue: {prompt_distilled_candidate_dialogue},
+      prompt_distilled_chat_history: {prompt_distilled_chat_history},
+      prompt_assessment_payload: {prompt_assessment_payload}
     
-    Example:
-    [
-        {{
-            "Subcriterion question": "8",
-            "Subcriterion question": "3",
-            "Subcriterion question": "6"
-        }},
-        "rationale"
-    ]
-    INCORRECT response formats to avoid:
-  - Do not combine the evaluation and rationale into a single element
-  - Do not return more than two elements in the list
-  - Do not embed the rationale within the evaluation dictionary
+      In particular, the prompt_assessment_payload is a JSON like structure containing assessment information grouped as list of criteria and subcriteria 
+      Note that the number of criteria and subcriteria may vary and that each subcriteria has a description associated with it.
+    
+    Now, you are an expert interviewer with experience in Data Structures, Algorithms and Algorithmic complexity. Your task is to evaluate a candidate responses to interview questions asked by an AI bot and prepare a rationale for assessment
+      * Based on how each response fulfills each subcriterion description assign a positive score on a scale of 1 to 10; 1.0 where criteria is least fullfilled and 10.0 where criteria is most fulfilled by the response
+      * Append the assessment rationale for each subcriterion description in a variable "rationale" indexed from 1 onwards
+        
+    **IMPORTANT:** 
+    - Ensure that the **structure and length** of the list of `subcriteria` remain the same—no new `subcriterion` should be added, else you will incur a penalty.
+    - Ensure that `subcriteria` -> `description` is **neither truncated nor empty**, or you will incur a penalty.
 
-  Response:
+    **RESPONSE FORMAT:**  
+    You must respond ONLY in the following dictionary format:
+    {{
+      "prompt_assessment_payload": assessment_payload,
+      "rationale": rationale
+    }}
+      
+    ]
+    - The **assessment_payload** is the `prompt_assessment_payload` with updated `score` fields.
+    - The **rationale** is a string containing the rationale for assignment of scores for each subcriterion
+    
+    **INCORRECT RESPONSE FORMATS TO AVOID:**  
+    - Do **not** combine `"prompt_assessment_payload"` and `"rationale"` into a single element.
+    - Do **not** return more than two elements in the list.
+    - Do **not** embed `"rationale"` within `"prompt_assessment_payload"`.
+
+    Response:
     """
+  
   eval_prompt = ChatPromptTemplate.from_template(template=eval_prompt_str)
   return eval_prompt
 
-def make_prompt_from_template_precentage_driven():
+def make_prompt_from_template():
   eval_prompt_str = """
-    You are an expert interviewer with experience in evaluating responses to interview questions about topics such as Data Structures, Algorithms and Algorithmic complexity.
-    
-    Given the following inputs:
-      question: {question}
-      answer: {answer}
-      chat_history: {chat_history}
-      subcriteria: {subcriteria}
-      eval_distribution: {eval_distribution}
-    
-    Please evaluate the response based on the following evaluation guidelines:
-    1. Group the subcriteria received in the subcriteria payload above into seven consecutive groups of three each
-    2. Please evaluate the answer as per the instructions provided in each subcriterion and convert the percentage scores to a 0-10 scale as follows:
-      - If a criterion awards X%, convert it to (X/10) points
-      - Examples:
-        * 100% = 10 points
-        * 50% = 5 points
-        * 40% = 4 points
-        * 25% = 2.5 points
-        * 13% = 1.3 points
-        * 0% = 0 points
-    
-    IMPORTANT : 
-    - Please ensure that the structure and length of the subcriteria remain the same and no new subcriterion are added because you would incur a penalty otherwise
-    
-    - Make sure no subcriterion question is truncated because the subcriterion question is used as a key in one of the dictionaries for later processing
-    
-    YOU MUST RESPOND IN THE FOLLOWING LIST FORMAT:
-    [
-      "answer_evaluation",
-      "rationale"
-    ]
-    YOU MUST RESPOND WITH A LIST CONTAINING EXACTLY TWO ELEMENTS:
-    1. The first element must be a dictionary containing the answer evaluation scores
-    2. The second element must be a string containing the rationale
+    The following inputs are being sent as input to this prompt:
 
-    The answer_evaluation dictionary must be in strict JSON format.
+      prompt_bot_dialogue: {prompt_bot_dialogue},
+      prompt_distilled_candidate_dialogue: {prompt_distilled_candidate_dialogue},
+      prompt_distilled_chat_history: {prompt_distilled_chat_history},
+      prompt_assessment_payload: {prompt_assessment_payload}
     
-    Example:
-    [
-        {{
-            "Subcriterion question": "8",
-            "Subcriterion question": "3",
-            "Subcriterion question": "6"
-        }},
-        "rationale"
-    ]
-    INCORRECT response formats to avoid:
-  - Do not combine the evaluation and rationale into a single element
-  - Do not return more than two elements in the list
-  - Do not embed the rationale within the evaluation dictionary
+      In particular, the prompt_assessment_payload is a JSON like structure containing assessment information grouped as list of criteria and subcriteria 
+      Note that the number of criteria and subcriteria may vary and that each subcriteria has a description associated with it.
+    
+    Now, you are an expert interviewer with experience in Data Structures, Algorithms and Algorithmic complexity. Your task is to evaluate a candidate responses to interview questions asked by an AI bot and prepare a rationale for assessment
+      * Based on how each response fulfills each subcriterion description assign a positive score on a scale of 1 to 10; 1.0 where criteria is least fullfilled and 10.0 where criteria is most fulfilled by the response
+      * If scores already exist in the payload for some subcriteria then increase and update the scores if the response has improved and better fulfills the criteria
+      * Append the assessment rationale for each subcriterion description in a variable "rationale" indexed from 1 onwards
+        
+    **IMPORTANT:** 
+    - Ensure that the **structure and length** of the list of `subcriteria` remain the same—no new `subcriterion` should be added, else you will incur a penalty.
+    - Ensure that `subcriteria` -> `description` is **neither truncated nor empty**, or you will incur a penalty.
 
-  Response:
+    **RESPONSE FORMAT:**  
+    You must respond ONLY in the following dictionary format:
+    {{
+      "prompt_assessment_payload": assessment_payload,
+      "rationale": rationale
+    }}
+      
+    ]
+    - The **assessment_payload** is the `prompt_assessment_payload` with updated `score` fields.
+    - The **rationale** is a string containing the rationale for assignment of scores for each subcriterion
+    
+    **INCORRECT RESPONSE FORMATS TO AVOID:**  
+    - Do **not** combine `"prompt_assessment_payload"` and `"rationale"` into a single element.
+    - Do **not** return more than two elements in the list.
+    - Do **not** embed `"rationale"` within `"prompt_assessment_payload"`.
+
+    Response:
     """
+  
   eval_prompt = ChatPromptTemplate.from_template(template=eval_prompt_str)
   return eval_prompt

@@ -1,178 +1,97 @@
-# import statements
-import math
+from src.utils import logger
 
-def compute_interview_score():
-    return None
+# Initialize logger
+logger = logger.get_logger(__name__)
 
-def compute_turn_score_interim(turn_assessment_payload = None):
-    if turn_assessment_payload:
-        evaluation_results_list = []
-        computed_payload = {}
-        weight_base = 0
-        score_base = 0
-        weight_list = []
-        score_list = []
-        norm_score_subcriterion = 0
-        norm_score_list_subcriterion = []
-        criteria_scores = []  # Will store max scores for each group of 3
-        temp_scores = []  # Temporary list to store scores for each group of 3
-        counter = 0
-        final_score = 0
-        
-        for key in turn_assessment_payload.keys():
-            weight_base = weight_base + turn_assessment_payload[key][0] 
-            score_base = score_base + 10 
-        
-        for key in turn_assessment_payload.keys():
-            weight = turn_assessment_payload[key][0]
-            weight = round(weight, 4)
-            score = float(turn_assessment_payload[key][1])
-            score = round(score, 4)
-            norm_score_subcriterion = (weight / weight_base) * score 
-            norm_score_subcriterion = round(norm_score_subcriterion, 4)
-            weight_list.append(weight)
-            score_list.append(score)
-            norm_score_list_subcriterion.append(norm_score_subcriterion)
-            
-            computed_payload[key] = [weight, score, norm_score_subcriterion]
+async def compute_turn_score(assessment_payload=None):
+    try:
+        if not assessment_payload or not isinstance(assessment_payload, dict):
+            logger.error("Invalid assessment_payload: Expected a non-empty dictionary.")
+            return None
 
-            # Handle evaluation results list
-            subcrit_dict = {}
-            subcrit_dict[key] = turn_assessment_payload[key][1]
-            evaluation_results_list.append(subcrit_dict)
-            
-            # Store raw scores for max calculation
-            temp_scores.append(float(turn_assessment_payload[key][1]))
-            
-            # Every third item, calculate max and reset temp_scores
-            if counter % 3 == 2:
-                max_score = max(temp_scores)
-                criteria_scores.append(max_score/10)  # Normalize to 0-1 range (assuming scores are 0-10)
-                temp_scores = []
-            
-            counter += 1
+        criteria = assessment_payload.get("criteria")
+        if not criteria or not isinstance(criteria, list):
+            logger.error("Criterion list is empty or not a list.")
+            return None
 
-        # Calculate final score based on criteria_scores
-        final_score = sum(criteria_scores)   # Scale back to 0-10 range
-        
-        # print("weight_base", weight_base)
-        # print("score_base", score_base)
-        # print(weight_list)
-        # print(score_list)
-        # print(norm_score_list_subcriterion)
-        # print(criteria_scores)
-        # print("\n")
-        for key, values in computed_payload.items():
-            # print(key, values)
-            pass
+        # Iterate through criteria list
+        for count, criterion in enumerate(criteria):
+            logger.info(f"Processing criteria number: {count}")
 
-        return {
-            "evaluation_results": evaluation_results_list,
-            "criteria_scores": criteria_scores,
-            "final_score": final_score
-        }
-    else:
-        print("Turn assessment payload is empty")
+            subcriteria_weighted_running_total = 0
+            subcriteria = criterion.get("subcriteria", [])
 
-def compute_turn_score_interim_Ritesh(turn_assessment_payload = None):
-    if turn_assessment_payload:
-        evaluation_results_list = [] # earlier code sent this as a part of a dictionary from the answer_evaluator.py
-        computed_payload = {}
-        weight_base = 0
-        score_base = 0
-        weight_list = []
-        score_list = []
-        norm_score_subcriterion = 0
-        norm_score_list_subcriterion = []
-        norm_score_criterion = 0
-        norm_score_list_criterion = [] # contains normalised scores at criterion leval; only 7 values for now
-        counter = 0 # counter kept to make the 21 results grouped into 7 for matching evaluation_results ... ugh, need to del this function totally !!!
-        final_score = 0 # simply needs to be the sum of criteria_scores_list; whatever the score, it will be out of 10
-        
-        for key in turn_assessment_payload.keys():
-            weight_base = weight_base + turn_assessment_payload[key][0] 
-            score_base = score_base + 10 
-        
-        for key in turn_assessment_payload.keys():
-            weight = turn_assessment_payload[key][0]
-            weight = round(weight, 4)
-            score = float(turn_assessment_payload[key][1]) ### need to use float function because the score is a string; why?
-            score = round(score, 4)
-            norm_score_subcriterion = (weight / weight_base) * score 
-            norm_score_subcriterion = round(norm_score_subcriterion, 4)
-            weight_list.append(weight)
-            score_list.append(score)
-            norm_score_list_subcriterion.append(norm_score_subcriterion)
-            
-            computed_payload[key] = [weight, score, norm_score_subcriterion]
+            if not isinstance(subcriteria, list):
+                logger.error(f"Invalid subcriteria format in criterion {count}. Expected a list.")
+                return None
 
-            if counter % 3 == 0:
-                subcrit_dict = {}
-                subcrit_dict[key] = turn_assessment_payload[key][1]
-                evaluation_results_list.append(subcrit_dict)
-                norm_score_criterion = round(norm_score_subcriterion, 4)
-                counter = counter + 1
-            elif counter % 3 == 1:
-                subcrit_dict = {}
-                subcrit_dict[key] = turn_assessment_payload[key][1]
-                evaluation_results_list.append(subcrit_dict)
-                norm_score_criterion += round(norm_score_subcriterion, 4)
-                counter = counter + 1
-            else:
-                subcrit_dict = {}
-                subcrit_dict[key] = turn_assessment_payload[key][1]
-                evaluation_results_list.append(subcrit_dict)
-                norm_score_criterion += round(norm_score_subcriterion, 4)
-                norm_score_list_criterion.append(round(norm_score_criterion, 4))
-                counter = counter + 1
+            for subcriterion in subcriteria:
+                subcriterion_score = subcriterion.get("score")
+                subcriterion_weight = subcriterion.get("weight")
 
-        final_score = math.fsum(norm_score_list_criterion)
-        
-        # print("weight_base", weight_base)
-        # print("score_base", score_base)
-        # print(weight_list)
-        # print(score_list)
-        # print(norm_score_list_subcriterion)
-        # print(norm_score_list_criterion)
-        # print("\n")
-        for key, values in computed_payload.items():
-            # print (key, values)
-            pass
-        return {
-            "evaluation_results": evaluation_results_list,
-            "criteria_scores": norm_score_list_criterion,
-            "final_score": final_score
-        }
-    else:
-        print("Turn assessment payload is empty")
+                if subcriterion_score is None or not isinstance(subcriterion_score, (int, float)):
+                    logger.error(f"Missing or invalid 'score' in subcriterion: {subcriterion}")
+                    return None
 
-# def compute_turn_score_gold_for_later(turn_assessment_payload = None):
-#     computed_payload = {}
-#     if turn_assessment_payload:
-#         weight_base = 0
-#         score_base = 0
-#         weight_list = []
-#         score_list = []
-#         norm_score_list = []
-#         for key in turn_assessment_payload.keys():
-#             weight_base = weight_base + turn_assessment_payload[key][0] 
-#             score_base = score_base + float(turn_assessment_payload[key][1]) ### need to use float function because the score is a string; why?
-#         for key in turn_assessment_payload.keys():
-#             weight = turn_assessment_payload[key][0] 
-#             score = float(turn_assessment_payload[key][1])
-#             norm_score = (weight / weight_base) * (score / 210) # added a fix score_base of 210(21*10), this could change later
-#             #  norm_score = (weight / weight_base) * (score / score_base) 
-#             weight_list.append(weight)
-#             score_list.append(score)
-#             norm_score_list.append(norm_score)
-#             computed_payload[key] = [weight, score, norm_score]
-#         print("weight_base", weight_base)
-#         print("score_base", score_base)
-#         print(weight_list)
-#         print(score_list)
-#         print(norm_score_list)
-#         print("\n")
-#         for key, values in computed_payload.items():
-#             print (key, values)
-#     else:
-#         print("Turn assessment payload is empty")
+                if subcriterion_weight is None or not isinstance(subcriterion_weight, (int, float)):
+                    logger.error(f"Missing or invalid 'weight' in subcriterion: {subcriterion}")
+                    return None
+
+                subcriterion_weighted_score = round(subcriterion_score * (subcriterion_weight * 0.1),2)
+                subcriteria_weighted_running_total += subcriterion_weighted_score
+
+                logger.debug(f"subcriterion_weighted_score: {subcriterion_weighted_score}")
+                logger.debug(f"subcriteria_weighted_running_total: {subcriteria_weighted_running_total}")
+
+                if "subcriteria_scores" not in assessment_payload or not isinstance(assessment_payload["subcriteria_scores"], list):
+                    logger.error("Invalid or missing 'subcriteria_scores' in assessment_payload.")
+                    return None
+
+                assessment_payload["subcriteria_scores"].append(subcriterion_weighted_score)
+                logger.debug(f"Added subcriterion_weighted_score: {assessment_payload['subcriteria_scores']}")
+
+            # Validate criterion["calculated_score"]
+            if "calculated_score" not in criterion or not isinstance(criterion.get("calculated_score"), (int, float)):
+                logger.error(f"Criterion[{count}] score field is missing or invalid.")
+                return None
+
+            criterion_score = round((subcriteria_weighted_running_total / len(subcriteria)), 2)
+            criterion["calculated_score"] = criterion_score
+            logger.info(f"criterion['calculated_score']: {criterion['calculated_score']}")
+
+            # Validate criterion["weight"]
+            criterion_weight = criterion.get("weight")
+            if criterion_weight is None or not isinstance(criterion_weight, (int, float)):
+                logger.error(f"Criterion[{count}] weight field is missing or invalid.")
+                return None
+
+            criterion_weighted_score = round((criterion["calculated_score"] * (criterion_weight * 0.1)), 2)
+            logger.info(f"criterion_weighted_score: {criterion_weighted_score}")
+
+            if "criteria_scores" not in assessment_payload or not isinstance(assessment_payload["criteria_scores"], list):
+                logger.error("Invalid or missing 'criteria_scores' in assessment_payload.")
+                return None
+
+            assessment_payload["criteria_scores"].append(criterion_weighted_score)
+            logger.debug(f"Added criterion_weighted_score: {assessment_payload['criteria_scores']}")
+
+        if not assessment_payload["criteria_scores"]:
+            logger.error("No valid criteria scores found. Final score calculation aborted.")
+            return None
+
+        # Compute final score
+        criteria_final_score = sum(assessment_payload["criteria_scores"]) / len(assessment_payload["criteria_scores"])
+
+        if "final_score" not in assessment_payload or not isinstance(assessment_payload.get("final_score"), (int, float)):
+            logger.error("Invalid or missing 'final_score' in assessment_payload.")
+            return None
+
+        assessment_payload["final_score"] = round(criteria_final_score, 2)
+        logger.info(f"Final computed scores - criteria_scores: {assessment_payload['criteria_scores']}, final_score: {assessment_payload['final_score']}")
+
+        return assessment_payload
+
+    except Exception as e:
+        logger.exception(f"Unexpected error in compute_turn_score: {str(e)}")
+        return None
+

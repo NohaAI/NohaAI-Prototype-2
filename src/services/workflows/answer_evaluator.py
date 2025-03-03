@@ -3,132 +3,24 @@ This module implements the functionality for evaluating answers based on predefi
 including calculating scores using weighted averages, and storing results in a database.
 """
 
-import json
-from src.utils import logger, interview_computation
+import sys, json, asyncio
+
+print(sys.path)
+from src.utils import logger, interview_computation, json_helper
 from src.services.llm.prompts import answer_evaluator_prompt
-import src.services.llm as llm
-from src.dao import subcriterion
-from src.dao import chat_history as chat_history
+from src.services.llm import llm_service
+# from src.dao import subcriterion
+# from src.dao import chat_history as chat_history
 
 # Initialize logger
 logger = logger.get_logger(__name__)
-#We are not instructing our LLM to score the candidate on recent hint
-async def evaluate_answer_wo_max_eval(input_request):
-    """
-    Orchestrates the evaluation process for a given query.
-    
-    Args:
-        input (GenerateEvaluation): The request body containing the evaluation details.
-            - question_id (int): The unique identifier of the question to be evaluated.
-            - question (str): The text of the question.
-            - interview_id (int): The unique identifier of the interview session.
-            - answer (str): The candidate's answer to be evaluated.
-    
-    Returns:
-        dict: A response containing the evaluation results.
-    """
-    try:
-        try:
-            question_id = input_request.question_id
-            question = input_request.question
-            interview_id = input_request.interview_id
-            candidate_answer = input_request.answer
-            eval_distribution = input_request.eval_distribution
-        except AttributeError as attr_err:
-            logger.critical(f"Input object missing required attributes: {attr_err}")
-            raise AttributeError(f"Input object missing required attributes: {attr_err}") from attr_err
 
-        evaluation_criteria = await subcriterion.fetch_subcriteria(question_id)
-        chat_history = await chat_history.get_chat_history(interview_id)
-        if len(chat_history)<2:
-            chat_history = []
-            chat_history.append({"question": question, "answer": candidate_answer})
-
-        llm_inputs = []
-        subcriteria_weights = []
-        criteria_scores = []
-        evaluation_results = []
-
-        assessment_payload_ready_for_computation = {}
-        
-        logger.info("SUBCRITERION LIST AFTER FETCH_CRITERIA(QUESTION_ID) CALL#####################\n")
-        for criterion in evaluation_criteria.keys():
-            llm_inputs.append({"question": question, "answer": candidate_answer, "chat_history": chat_history, "subcriteria": evaluation_criteria[criterion],"eval_distribution":eval_distribution})
-            subcriteria_weights.append([int(subcriterion['weight']) for subcriterion in evaluation_criteria[criterion]])
-            ### rmsbegin: added code here to populate the assessment_payload
-            subcriterion_question_weight_list = evaluation_criteria[criterion]    
-            for dct in subcriterion_question_weight_list:
-                logger.info(dct['subcriterion'], " ", dct['weight'])
-            for elem in subcriterion_question_weight_list:
-                subcriterion_question = elem["subcriterion"]
-                subcriterion_weight = elem["weight"]
-                assessment_payload_ready_for_computation[subcriterion_question] = [subcriterion_weight]
-            ### rmsend: assessment_payload is ready with foll. format {"question1":[3.0]}
-        logger.info("################# END SUBCRITERION LIST#####################\n")
-        evaluation_prompt = answer_evaluator_prompt.make_prompt_from_template()
-        evaluation_llm = llm.get_openai_model(model = "gpt-4o-mini")
-        evaluation_chain = evaluation_prompt | evaluation_llm
-        llm_response = await evaluation_chain.abatch(llm_inputs)
-        #logger.info(f"LLM RESPONSE FOR ANSWER EVALUATOR : {llm_response}")
-        #for rationale
-        evaluation_rationale_list=[]
-        for criterion_result, criterion_weights in zip(llm_response, subcriteria_weights):
-
-            evaluation_results.append(json.loads(criterion_result.content)[0])
-            evaluation_rationale=json.loads(criterion_result.content)[1]
-            logger.info(f"EVALUATION RATIONALE : ##############################################################################")
-            logger.info(json.loads(criterion_result.content)[0])
-            logger.info(evaluation_rationale)
-            evaluation_rationale_list.append(evaluation_rationale)
-        logger.info(f"##############################################################################")
-        
-            # if "json" in criterion_result.content:
-            #     str1=criterion_result.content.replace("```json\n", "")
-            #     str2=str1.replace("```", "")
-            #     evaluation_results.append(json.loads(str2)[0])
-            #     evaluation_rationale=json.loads(str2)[1]
-            #     logger.info(f"##############################################################################")
-            #     logger.info(evaluation_rationale)
-            # else:
-            #     evaluation_results.append(json.loads(criterion_result.content)[0])
-            #     evaluation_rationale=json.loads(criterion_result.content)[1]
-            #     logger.info(f"##############################################################################")
-            #     logger.info(evaluation_rationale)
-            #evaluation_results.append(json.loads(criterion_result.content))
-            # subcriteria_score = (json.loads(criterion_result.content)).values()
-            # criteria_scores.append(score_subcriteria(criterion_weights, subcriteria_score))
-        
-        
-        #without rationale   
-        # for criterion_result, criterion_weights in zip(llm_response, subcriteria_weights):
-
-        #     if "json" in criterion_result.content:
-        #         str1=criterion_result.content.replace("```json\n", "")
-        #         str2=str1.replace("```", "")
-        #         evaluation_results.append(json.loads(str2))
-        #     else:
-        #         evaluation_results.append(json.loads(criterion_result.content))
-           
-        #logic for max eval
+################################################
+### RMS refactor the following evaluate_answer function based on the call from dialogue_flow, namely
+###  assessment_payload, assessment_payload_rationale = await evaluate_answer(session_state['question_id'], session_state['bot_dialogue'], distilled_candidate_dialogue, distilled_chat_history, assessment_payload)
 
 
-        ### rmsbegin: code below appends the candidate score against to each dictionary item in the existing list containg weight
-       
-        for evaluation_dict_item in evaluation_results:
-            for key in evaluation_dict_item.keys():
-                #instead of a key append it normally
-                assessment_payload_ready_for_computation[key].append(evaluation_dict_item[key])  # appending score to the weight  
-
-
-        logger.info(assessment_payload_ready_for_computation)
-        answer_evaluation_payload=[interview_computation.compute_turn_score_interim(assessment_payload_ready_for_computation),evaluation_rationale_list]
-        
-        return(answer_evaluation_payload)
-    except Exception as ex:
-        logger.critical(f"Unexpected error in evaluation process: {ex}")
-        raise Exception(f"Unexpected error in evaluation process: {ex}")
-    
-async def evaluate_answer(question_id, question, candidate_answer, distilled_chat_history, assessment_payload = None):
+async def evaluate_answer(bot_dialogue, distilled_candidate_dialogue, distilled_chat_history, assessment_payload):
     """
     Orchestrates the evaluation process for a given query.
     
@@ -143,6 +35,56 @@ async def evaluate_answer(question_id, question, candidate_answer, distilled_cha
         dict: A response containing the evaluation results.
     """
     #TODO: returns assessment_payload and rationale
+    print ("Inside evaluate_answer(...)")
+
+    prompt_bot_dialogue = bot_dialogue
+    prompt_distilled_candidate_dialogue = distilled_candidate_dialogue
+    prompt_distilled_chat_history = distilled_chat_history
+    prompt_assessment_payload = assessment_payload
+
+    llm_inputs = [] # initialize inputs for LLM preparation
+    llm_inputs.append({"prompt_bot_dialogue": prompt_bot_dialogue,"prompt_distilled_candidate_dialogue": prompt_distilled_candidate_dialogue,"prompt_distilled_chat_history": prompt_distilled_chat_history, "prompt_assessment_payload": prompt_assessment_payload})
+
+    ### Preparing, invoking and calling LLM
+    evaluation_prompt = answer_evaluator_prompt.make_prompt_from_template()
+    evaluation_llm = llm_service.get_openai_model()
+    evaluation_chain = evaluation_prompt | evaluation_llm
+    print("before calling eval_chain.abatch ...")
+    llm_response = await evaluation_chain.abatch(llm_inputs)
+    try:
+        llm_response_content = llm_response[0].content
+        # First, clean the JSON string
+        cleaned_json_string = json_helper.fix_json(llm_response_content)
+
+        # Then, attempt to parse
+        llm_response_json = json.loads(cleaned_json_string)
+
+        print("JSON parsed successfully!")
+        # You can now work with llm_response_json
+        #print(json.dumps(llm_response_json, indent=2)) # Optional: print the parsed JSON
+
+    except json.JSONDecodeError as e:
+        print(f"JSONDecodeError: {e}")
+        print("Original JSON string:")
+        print(llm_response_content)  #Print the original string for inspection
+        # Optionally, print the problematic part of the string:
+        error_position = e.pos
+        print(f"Problematic part of the string around position {error_position}:")
+        start = max(0, error_position - 50)
+        end = min(len(llm_response_content), error_position + 50)
+        print(llm_response_content[start:end])
+
+    assessment_payload = llm_response_json["prompt_assessment_payload"]
+    rationale = llm_response_json["rationale"]
+    print(json.dumps(assessment_payload, indent=3))
+    print(rationale)
+    updated_assessment_payload = await interview_computation.compute_turn_score(assessment_payload)
+    # updated_json = json.loads(updated_assessment_payload)
+    print(json.dumps(updated_assessment_payload, indent = 3))
+    return(updated_assessment_payload)
+
+    # llm_response_json = json.loads(llm_response)
+    # print("LLM_RESPONSE: ",llm_response_json)
 
 def return_max_eval(eval1, eval2):
     """
@@ -183,3 +125,74 @@ def score_subcriteria(criterion_weights, subcriteria_score):
     criterion_score = (round((weighted_score / total_weight), 2) if total_weight != 0 else 0)/10.0
     criterion_score=round(criterion_score,2)
     return criterion_score
+
+
+async def get_assessment_payload():
+    ###### Loading the file for now; the assessment json structure will later be received as an argument
+    # # Define the file path
+    file_path = "src/schemas/evaluation/assessment_payload_expt.json"  # Adjust path as needed
+
+    # Open and load the JSON file
+    with open(file_path, "r", encoding="utf-8") as file:
+        assessment_payload = json.load(file)
+
+    # Print the loaded JSON
+    # print(assessment_payload)
+    # Pretty print the JSON output
+    # print(json.dumps(assessment_payload, indent=3))
+    return assessment_payload
+
+async def main():
+    ### criteria and subcriteria scores list
+    subcriteria_scores_1 = [] # for first turn
+    subcriteria_scores_2 = [] # for second turn
+    criteria_scores_1 = [] # for first turn
+    criteria_scores_2 = [] # for second turn
+
+    ### Call the evaluate_answer function once
+    print(">>>>>>>>>>FIRST ITERATION BEGINS >>>>>>>>>")
+    question_id = "1"
+    bot_dialogue = "Return an index in an array of integers such that the left sum of integers is equal to the right sum"
+    distilled_candidate_dialogue = "I would try to use a prefix approach where I keep a running sum of the numbers as I iterate and keep checking the condition by subtracting the running total from the total sum of integers. Also this would mean O(n) time complexity and constant space complexity"
+    distilled_chat_history = []
+    print ("BOT:", bot_dialogue)
+    print ("CAND:", distilled_candidate_dialogue)
+    print ("CHAT:", distilled_chat_history)
+    assessment_payload =  await get_assessment_payload()
+    print(json.dumps(assessment_payload, indent=3))
+    updated_assessment_payload = await evaluate_answer(bot_dialogue, distilled_candidate_dialogue, distilled_chat_history, assessment_payload)
+    subcriteria_scores_1 = updated_assessment_payload['subcriteria_scores']
+    criteria_scores_1 = updated_assessment_payload['criteria_scores']
+    print("********* FIRST ITERATION OVER *******")
+
+    print(">>>>>>>>>>SECOND ITERATION BEGINS >>>>>>>>>")
+    ### Call the evaluate_answer function twice (to check the variation in scores and ensure that its monotonically increaasing)
+    question_id = "1"
+    bot_dialogue = "Elaborate on this problem of in terms of any assumptions or corner cases do you might suppose?"
+    distilled_candidate_dialogue = "I would look out for corner cases like array length of one or zero, and if there is a possibility of multiple valid indices"
+    distilled_chat_history = ["Return an index in an array of integers such that the left sum of integers is equal to the right sum",
+                              "I would try to use a prefix approach where I keep a running sum of the numbers as I iterate and keep checking the condition by subtracting the running total from the total sum of integers. Also this would mean O(n) time complexity and constant space complexity",
+                              "Elaborate on this problem of in terms of any assumptions or corner cases do you might suppose?"
+                              ]
+    print ("BOT:", bot_dialogue)
+    print ("CAND:", distilled_candidate_dialogue)
+    print ("CHAT:", distilled_chat_history)
+    # updated_assessment_payload = await interview_computation.compute_turn_score_gold_for_later(assessment_payload)
+    print(json.dumps(updated_assessment_payload, indent=3))
+    updated_assessment_payload["criteria_scores"] = []
+    updated_assessment_payload["subcriteria_scores"] = []
+    updated_assessment_payload["final_score"] = 0.0
+    updated_assessment_payload = await evaluate_answer(bot_dialogue, distilled_candidate_dialogue, distilled_chat_history, updated_assessment_payload)
+    subcriteria_scores_2 = updated_assessment_payload['subcriteria_scores']
+    criteria_scores_2 = updated_assessment_payload['criteria_scores']
+    print("********* SECOND ITERATION OVER *******")
+    
+    print(subcriteria_scores_1)
+    print(subcriteria_scores_2)
+    print(criteria_scores_1)
+    print(criteria_scores_2)
+
+if __name__ == "__main__":
+    # Preparing the arguments for the evaluate_answer function
+    # Use asyncio.run() to run the async function
+    asyncio.run(main())
