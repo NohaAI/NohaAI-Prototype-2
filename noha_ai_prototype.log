@@ -1,0 +1,15 @@
+2025-03-03 13:38:48,188:__main__:INFO:Client connected successfully.
+2025-03-03 13:39:28,186:__main__:INFO:REQUEST BODY RECIEVED FROM USER : {'assessment_payload_record': 'assessment_payload_record', 'chat_history': 'chat_history', 'message': 'Interview initialized message', 'session_state': 'session_state'} 
+2025-03-03 13:39:45,929:__main__:INFO:REQUEST BODY RECIEVED FROM USER : {'assessment_payload_record': 'assessment_payload_record', 'chat_history': 'chat_history', 'message': 'Interview initialized message', 'session_state': 'session_state'} 
+2025-03-03 13:40:27,234:__main__:INFO:REQUEST BODY RECIEVED FROM USER : {'assessment_payload_record': 'assessment_payload_record', 'chat_history': 'chat_history', 'message': 'Interview initialized message', 'session_state': 'session_state'} 
+2025-03-03 13:40:30,153:__main__:INFO:REQUEST BODY RECIEVED FROM USER : {'assessment_payload_record': 'assessment_payload_record', 'chat_history': 'chat_history', 'message': 'Interview initialized message', 'session_state': 'session_state'} 
+2025-03-03 13:41:47,567:__main__:INFO:REQUEST BODY RECIEVED FROM USER : {'assessment_payload_record': 'assessment_payload_record', 'chat_history': 'chat_history', 'message': 'Interview initialized message', 'session_state': 'session_state'} 
+2025-03-03 13:41:59,227:__main__:INFO:REQUEST BODY RECIEVED FROM USER : {'assessment_payload_record': 'assessment_payload_record', 'chat_history': 'chat_history', 'message': 'Interview initialized message', 'session_state': 'session_state'} 
+2025-03-03 13:42:31,812:__main__:INFO:REQUEST BODY RECIEVED FROM USER : {'assessment_payload_record': 'assessment_payload_record', 'chat_history': 'chat_history', 'message': 'Interview initialized message', 'session_state': 'session_state'} 
+2025-03-03 13:42:43,845:__main__:INFO:REQUEST BODY RECIEVED FROM USER : {'assessment_payload_record': 'assessment_payload_record', 'chat_history': 'chat_history', 'message': 'Interview initialized message', 'session_state': 'session_state'} 
+2025-03-03 13:54:23,287:__main__:INFO:Client connected successfully.
+2025-03-03 14:13:11,682:__main__:INFO:Client connected successfully.
+2025-03-03 14:26:47,162:__main__:INFO:Client connected successfully.
+2025-03-03 14:29:20,032:__main__:INFO:Client connected successfully.
+2025-03-03 14:33:04,285:__main__:INFO:Client connected successfully.
+2025-03-03 14:47:40,238:__main__:INFO:Client connected successfully.
