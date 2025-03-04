@@ -107,9 +107,11 @@ const MyPage = () => {
 
             // check if the flag is true call the terminate api
             if(res.data.termination) {
-                disconnect2()
-                stopRecording();
-                setCallEnded(true);
+                setTimeout(() => {
+                    disconnect2()
+                    stopRecording();
+                    setCallEnded(true);
+                }, 3000);
             }
         } catch (error) {
             console.error("Error in handleStreamBack:", error);
