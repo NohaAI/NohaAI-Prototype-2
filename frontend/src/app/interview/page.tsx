@@ -12,8 +12,8 @@ const MyPage = () => {
     const [details, setDetails] = useState({} as any);
     const [callEnded, setCallEnded] = useState(false);
     const [backendServiceLink] = useState(
-        "http://localhost:5000"
-        // "https://apis.noha.ai"
+        // "http://localhost:5000"
+        "https://apis.noha.ai"
         );
     const [userSocket, setUserSocket] = useState<any>(null);
     const [chats, setChats] = useState<Array<any>>([]);
