@@ -111,7 +111,7 @@ const MyPage = () => {
                     disconnect2()
                     stopRecording();
                     setCallEnded(true);
-                }, 3000);
+                }, 4000);
             }
         } catch (error) {
             console.error("Error in handleStreamBack:", error);
