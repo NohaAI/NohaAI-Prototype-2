@@ -72,8 +72,12 @@ const MyPage = () => {
     
     const disconnect2 = async() =>{
         try {
-            const res = await axios.post(`${backendServiceLink}/terminate`);
-            console.log('terminate')
+            const res = await axios.post(`${backendServiceLink}/terminate`, {
+                session_state: chatMetaData.session_state, 
+                chat_history : chatMetaData.chat_history, 
+                assessment_payload_record: chatMetaData.assessment_payload_record
+            });
+            console.log('terminate', res)
         } catch (error) {
             console.error('Error on terminate', error)
         }
