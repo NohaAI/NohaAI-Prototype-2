@@ -12,3 +12,4 @@ _personal/
 *__pycache__*
 pyvenv.cfg
 database.ini
+.env
