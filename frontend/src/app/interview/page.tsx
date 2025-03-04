@@ -7,11 +7,11 @@ import { useEffect, useRef, useState } from "react";
 // import { io } from "socket.io-client";
 
 const MyPage = () => {
+
     const [interviewStarted, setInterviewStarted] = useState<boolean>(false);
     const [details, setDetails] = useState({} as any);
     const [callEnded, setCallEnded] = useState(false);
     const [backendServiceLink] = useState(
-        // "http://34.47.171.19"
         "http://localhost:5000"
         // "https://apis.noha.ai"
         );
@@ -22,6 +22,7 @@ const MyPage = () => {
     const [isRecording, setIsRecording] = useState(false);
     const [transcribedText, setTranscribedText] = useState("");
     const [isProcessing, setIsProcessing] = useState(false); // NEW: Processing state
+    const [chatMetaData, setChatMetaData] = useState({} as any);
 
     const recognitionRef = useRef<any>(null);
 
@@ -51,13 +52,17 @@ const MyPage = () => {
 
     const startConnection2 = async (userDetails: any) => {
         try {
-            const res = await axios.get(`${backendServiceLink}/connect`);
-            console.log('startConnection2', res)
+            const connectRes = await axios.get(`${backendServiceLink}/connect`);
+            const initializeRes = await axios.post(`${backendServiceLink}/initialize`, { user_name: userDetails.name, user_email: userDetails.email });
+
+            console.log('start connection', connectRes)
+            console.log('initialize data', initializeRes)
+            
+            setChatMetaData(initializeRes.data)
             setInterviewStarted(true);
-            const greetMsg = `Hello ${userDetails.name},, I'm Noha, I'll be conducting your interview today. Let's get started with your first question: Find an index in an array where the sum of elements to the left equals the sum to the right`
-            updateChats(greetMsg);
-            speakText(greetMsg)
-            return res.data; // Return the response data
+          
+            updateChats(initializeRes.data.greeting);
+            speakText(initializeRes.data.greeting)
 
         } catch (error) {
             console.error("Error in startConnection2:", error);
@@ -67,10 +72,10 @@ const MyPage = () => {
     
     const disconnect2 = async() =>{
         try {
-            const res = await axios.get(`${backendServiceLink}/disconnect`);
-            console.log('disconnected')
+            const res = await axios.post(`${backendServiceLink}/terminate`);
+            console.log('terminate')
         } catch (error) {
-            console.error('Error on disconnect', error)
+            console.error('Error on terminate', error)
         }
     }
 
@@ -82,10 +87,26 @@ const MyPage = () => {
 
     const handleChat = async (data: { text: string }) => {
         try {
-            const res = await axios.post(`${backendServiceLink}/chat`, data);
-            console.log("Received AI response");
-            updateChats(res.data.message);
-            speakText(res.data.message);
+            delete chatMetaData.message;
+            delete chatMetaData.greeting;
+            delete chatMetaData.termination;
+
+            const reqBody = {
+                ...chatMetaData,
+                "candidate_dialogue": data.text
+            }
+            const res = await axios.post(`${backendServiceLink}/chat`, reqBody);
+            console.log("Received AI response", res.data);
+            setChatMetaData(res.data)
+            updateChats(res.data.bot_dialogue);
+            speakText(res.data.bot_dialogue);
+
+            // check if the flag is true call the terminate api
+            if(res.data.termination) {
+                disconnect2()
+                stopRecording();
+                setCallEnded(true);
+            }
         } catch (error) {
             console.error("Error in handleStreamBack:", error);
         }
@@ -129,8 +150,6 @@ const MyPage = () => {
         setCallEnded(true);
         disconnect2()
     }
-
-
 
     const startRecording = () => {
         setIsMicOn(true);
@@ -186,7 +205,7 @@ const MyPage = () => {
     }, [isRecording, isProcessing]);
 
     const sendFeedback = async (rating: number) => {
-       
+        window.location.reload();
         // try {
         //     const response = await axios.post("http://localhost:5000/feedback", { rating });
         //     console.log("Response:", response.data);
