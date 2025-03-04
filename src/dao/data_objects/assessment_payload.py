@@ -28,10 +28,3 @@ class AssessmentPayloadRecord(list):
                 return True
         return False
 
-assessment_payload = get_assessment_payload()
-assessment_payload_record = AssessmentPayloadRecord()
-assessment_payload_record.add_record(1, 1, 0.5, assessment_payload)
-print(f"ASSESSMENT PAYLOAD BEFORE UPDATING: {assessment_payload_record}")
-assessment_payload_record.update_record(1, 1 , 2.0, {"test_key": 1})
-print(f"ASSESSMENT PAYLOAD AFTER UPDATE : {assessment_payload_record}")
-

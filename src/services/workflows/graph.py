@@ -232,9 +232,9 @@ async def get_next_response(candidate_dialogue, session_state, chat_history, ass
         else:
             bot_dialogue_rationale, but_dialogue_subcriterion, session_state = await process_non_technical(distilled_candidate_dialogue, session_state, filtered_chat_history, assessment_payload_record, candidate_dialogue_label)
         
-    session_state, assessment_payload_record = await generate_action_overrides(session_state, assessment_payload_record)
-    
-    session_state, assessment_payload_record = await perform_actions(session_state, assessment_payload_record)
+        session_state, assessment_payload_record = await generate_action_overrides(session_state, assessment_payload_record)
+        
+        session_state, assessment_payload_record = await perform_actions(session_state, assessment_payload_record)
 
     #log_data(candidate_dialogue, distilled_candidate_dialogue, bot_dialogue_rationale, candidate_technical_dialogue_label, candidate_technical_dialogue_classification_rationale, assessment_payload_record, assessment_payload_rationale, bot_dialogue_subcriterion ,candidate_dialogue_label, session_state, candidate_dialogue_rationale) # toggle on/off if you want data to be logged
         

@@ -19,8 +19,11 @@ async def classify_candidate_dialogue(bot_dialogue, candidate_dialogue,chat_hist
 
     classification_response = await classify_candidate_dialogue_chain.ainvoke(llm_inputs)
     classification_content = json.loads(classification_response.content)
+    logger.info(f"CLASSIFICATION CONTENT FOR CANDIDATE DIALOGUE : {classification_content} \n")
+    #TODO: keep a if-else or try except to verify LLM Response
+    if len(classification_content) == 1:
+        classification_content.append("EMPTY RATIONALE FROM LLM")
     label = classification_content[0]
     rationale = classification_content[1]
     distilled_dialogue = classification_content[2]
-    #TODO: keep a if-else or try except to verify LLM Response
     return label, rationale, distilled_dialogue #where 0, 1, 2 are label, rationale and distilled dialoguer respectively     

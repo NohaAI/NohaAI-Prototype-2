@@ -17,6 +17,10 @@ async def classify_candidate_technical_dialogue(bot_dialogue, candidate_dialogue
 
     classification_response=await classify_candidate_answer_chain.ainvoke(llm_inputs)
     classification_content = json.loads(classification_response.content)
+    #TODO: prompt should return a dict instead of a list inorder to check what's actually missing
+    if len(classification_content) == 1:
+        classification_content.append("EMPTY RATIONALE FROM LLM")
+
     label = classification_content[0]
     rationale = classification_content[1]
 

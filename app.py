@@ -3,6 +3,7 @@ from flask import Flask, request, jsonify
 from src.dao.interview_session_state import add_interview_session_state
 from src.utils.logger import get_logger
 import json
+import traceback
 from src.dao.chat_history import batch_insert_chat_history
 from src.dao.interview_question_evaluation import batch_insert_interview_question_evaluation
 from flask_cors import CORS
@@ -27,8 +28,8 @@ async def connect():
 @app.route('/initialize', methods=['POST'])
 async def intialize():
     try:
-        logger.info(f"INITIALIZATION REQUEST{initialization_request}")
         initialization_request = request.get_json()
+        logger.info(f"INITIALIZATION REQUEST{initialization_request}")
         if not initialization_request:
             return jsonify({"error": "Missing request body"}), 400
         if "user_name" not in initialization_request:
@@ -42,7 +43,7 @@ async def intialize():
         user_id, interview_id = await initialize_interview(user_name, user_email)
         logger.info(f"NEW INTERVIEW ID FOR USER: {interview_id}")
         logger.info(f"USER ID FOR USER: {user_id}")
-        greeting = generate_greeting(user_id) 
+        greeting = await generate_greeting(user_id) 
 
         session_state = {
             "interview_id": interview_id,
@@ -51,7 +52,7 @@ async def intialize():
             "bot_dialogue": greeting,
             "guardrail_count": 0,
             "contiguous_technical_guardrail_count": 0,
-            "contigous_non_technical_guardrail_count": 0,
+            "contiguous_non_technical_guardrail_count": 0,
             "termination": False,
             "current_question": "",
             "next_action": "get_new_question",
@@ -63,9 +64,10 @@ async def intialize():
         assessment_payload_record = AssessmentPayloadRecord()
         chat_history = ChatHistoryRecord()
         initialization_response = jsonify({"message": f"INTERVIEW INTIALIZED WITH INTERVIEW ID : {interview_id}",
-                        "session_state": session_state,
-                        "chat_history": chat_history,
-                        "assessment_payload_record": assessment_payload_record
+                        "greeting": greeting,
+                        "session_state": json.dumps(session_state),
+                        "chat_history": json.dumps(chat_history),
+                        "assessment_payload_record": json.dumps(assessment_payload_record)
                         })
         logger.info(initialization_response)
         return initialization_response, 200
@@ -92,26 +94,39 @@ async def chat():
         if "assessment_payload_record" not in candidate_request:
             return jsonify({"error": "Missing 'assessment_payload_record' field in candidate request "}),400
        
-        session_state=candidate_request["session_state"]
         candidate_dialogue = candidate_request["candidate_dialogue"]
-        chat_history = candidate_request["chat_history"]
-        assessment_payload_record = candidate_request["assessment_payload_record"]
+        session_state_json=candidate_request["session_state"]
+        chat_history_json = candidate_request["chat_history"]
+        assessment_payload_record_json =candidate_request["assessment_payload_record"]
+
+        session_state = json.loads(session_state_json)
+
+        chat_history_data = json.loads(chat_history_json)  
+        assessment_payload_data = json.loads(assessment_payload_record_json)  
+
+        chat_history = ChatHistoryRecord()  
+        chat_history.extend(chat_history_data)  
+
+        assessment_payload_record = AssessmentPayloadRecord()  
+        assessment_payload_record.extend(assessment_payload_data)
+
         logger.info(f"TEXT RECIVED FROM THE USER : {candidate_dialogue}")
         
-        response, session_state, chat_history, assessment_payload_record = get_next_response(candidate_dialogue, session_state, chat_history, assessment_payload_record)
+        bot_dialogue, session_state, chat_history, assessment_payload_record = await get_next_response(candidate_dialogue, session_state, chat_history, assessment_payload_record)
 
-        logger.info(f"BOT RESPONSE : {response}")
+        logger.info(f"BOT RESPONSE : {bot_dialogue}")
         logger.info(f"UPDATED SESSION STATE : {session_state}")
         logger.info(f"CHAT HISTORY : {chat_history}")
         logger.info(f"ASSESSMENT PAYLOAD : {assessment_payload_record}")
         return jsonify({
-            "response": response,
-            "session_state": session_state,
-            "chat_history": chat_history,
-            "assessment_payload_record": assessment_payload_record
+            "bot_dialogue": bot_dialogue,
+            "termination": session_state['termination'],
+            "session_state": json.dumps(session_state),
+            "chat_history": json.dumps(chat_history),
+            "assessment_payload_record": json.dumps(assessment_payload_record)
         }), 200 
     except Exception as e:
-        logger.critical(f"ERROR PROCESSING CANDIDATE CHAT REQUEST : {e}")
+        logger.critical(f"ERROR PROCESSING CANDIDATE CHAT REQUEST : {e}", exc_info=True)
         return jsonify({'error': f"ERROR PROCESSING CANDIDATE CHAT REQUEST : {e}"}), 500    
 
 @app.route('/terminate', methods=['POST'])
@@ -125,9 +140,22 @@ def terminate():
         return jsonify({"error": "Missing 'chat_history' in termination_request body"}), 400 
     if "assessment_payload_record" not in termination_request:
         return jsonify({"error": "Missing 'assessment_payload_record' in termination_request body"}), 400 
-    session_state = termination_request["session_state"]
-    chat_history = termination_request["chat_history"]
-    assessment_payload_record = termination_request["assessment_payload_record"]
+    
+    session_state_json=termination_request["session_state"]
+    chat_history_json = termination_request["chat_history"]
+    assessment_payload_record_json =termination_request["assessment_payload_record"]
+
+    session_state = json.loads(session_state_json)
+
+    chat_history_data = json.loads(chat_history_json)  
+    assessment_payload_data = json.loads(assessment_payload_record_json)  
+
+    chat_history = ChatHistoryRecord()  
+    chat_history.extend(chat_history_data)  
+
+    assessment_payload_record = AssessmentPayloadRecord()  
+    assessment_payload_record.extend(assessment_payload_data)
+
     try:
         batch_insert_chat_history(chat_history)
         logger.info(f"DATA ADDED TO CHAT HISTORY TABLE")
