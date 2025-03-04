@@ -1,15 +1,11 @@
-from fastapi import FastAPI, Depends
-from pydantic import BaseModel, Field
-import psycopg2
-from psycopg2.pool import SimpleConnectionPool
-from typing import List, Optional
-import os
+from fastapi import FastAPI
+from typing import List
 import logging
 from contextlib import contextmanager
 from dotenv import load_dotenv
 import uvicorn
 from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
-from src.dao.exceptions import QuestionNotFoundException,QuestionTypeNotFoundException
+from src.dao.exceptions import QuestionNotFoundException, QuestionTypeNotFoundException, NoQuestionForComplexityException
 from src.schemas.dao import QuestionResponse,QuestionRequest
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)
@@ -37,21 +33,22 @@ async def get_question_metadata(question_id: int):
     try:
         with get_db_connection() as conn:
             question_query = """
-                SELECT question_id, question, question_type, question_type_id 
+                SELECT question_id, question, question_type, question_type_id, complexity 
                 FROM Question
                 WHERE question_id = %s
             """
-            question = execute_query(conn, question_query, (question_id,))
+            question_metadata = execute_query(conn, question_query, (question_id,))
             
-            if not question:
+            if not question_metadata:
                 logger.erro(f"Question with ID {question_id} not found in the database")
                 raise QuestionNotFoundException(question_id)
                 
             return {
-                "question_id": question[0],
-                "question": question[1],
-                "question_type": question[2],
-                "question_type_id": question[3]
+                "question_id": question_metadata[0],
+                "question": question_metadata[1],
+                "question_type": question_metadata[2],
+                "question_type_id": question_metadata[3],
+                "comeplxity": question_metadata[4]
             }
     except DatabaseConnectionError as e:
         raise e
@@ -59,23 +56,40 @@ async def get_question_metadata(question_id: int):
         raise e
     except DatabaseOperationError as e:
         raise e
-
+#TODO: SHOULD TAKE IN DIFFICULTY TYPE AND FETCH A RANDOM QUESTION
 @app.get("/question-service")
-async def get_initial_question_metadata():
+async def get_random_question_metadata(complexity: int, question_list: list[int]):
     try:
         with get_db_connection() as conn:
-            question_query = """
-                SELECT question_id, question,question_type_id FROM question
-                WHERE question_id != 0
-                ORDER BY RANDOM()
-                LIMIT 1;
-            """
-            question = execute_query(conn, question_query)
-                
+            logger.info(f"QUESTION LIST RECIEVED IN QUESTION.PY {question_list} \n")
+            logger.info(f"TYPE OF QUESTION LIST RECIEVED IN QUESTION.PY {type(question_list)} \n")
+            if len(question_list) == 0: 
+                question_query = """
+                    SELECT question_id, question,question_type_id, complexity FROM question
+                    WHERE complexity =%s
+                    ORDER BY RANDOM()
+                    LIMIT 1;
+                """
+                get_question_metadata = execute_query(conn, question_query, (complexity,))
+                if not get_question_metadata:
+                    logger.error(f"NO QUESTIONS FOUND IN THE DATABASE")
+                    raise NoQuestionForComplexityException(complexity)
+            else:
+                question_query = """
+                    SELECT question_id, question,question_type_id, complexity FROM question
+                    WHERE complexity =%s AND question_id NOT IN %s
+                    ORDER BY RANDOM()
+                    LIMIT 1;
+                """
+                get_question_metadata = execute_query(conn, question_query, (complexity, tuple(question_list),))
+                if not get_question_metadata:
+                    logger.error(f"NO QUESTIONS FOUND IN THE DATABASE")
+                    raise NoQuestionForComplexityException(complexity)
             return {
-                "question_id": question[0],
-                "question": question[1],
-                "question_type_id": question[2]
+                "question_id": get_question_metadata[0],
+                "question": get_question_metadata[1],
+                "question_type_id": get_question_metadata[2],
+                "complexity": get_question_metadata[3]
             }
     except DatabaseConnectionError as e:
         raise e

@@ -12,7 +12,7 @@ async def check_policy_violation(question ,answer , interim_chat_history,hint=No
         follow_up_question=""
     follow_up_question=hint
     policy_violation_prompt=policy_violation_prompt_template()
-    llm_model = llm_service.get_openai_model(model = "gpt-4o-mini")
+    llm_model = llm_service.get_openai_model()
     policy_violation_chain=(policy_violation_prompt|llm_model)
     check_policy_violation=await policy_violation_chain.ainvoke({'question': question, 'follow_up_question': follow_up_question, 'answer': answer,'interim_chat_history' : interim_chat_history})
     return check_policy_violation

@@ -25,7 +25,7 @@ async def generate_dialogue(label, chat_history, answer, question,answer_evaluat
             follow_up_question=""
         follow_up_question=previous_dialogue
         bot_dialogue_prompt=bot_dialogue_prompt_template()
-        llm_model = llm_service.get_openai_model(model = "gpt-4o-mini")
+        llm_model = llm_service.get_openai_model()
         bot_dialogue_prompt_chain=(bot_dialogue_prompt|llm_model)
         bot_dialogue=await bot_dialogue_prompt_chain.ainvoke({'class': label, 'question': question, 'follow_up_question': follow_up_question, 'answer': answer,'chat_history' : chat_history})
         return bot_dialogue
@@ -45,7 +45,7 @@ async def generate_dialogue(label, chat_history, answer, question,answer_evaluat
         hint_prompt_a=hint_prompt_template_algorithms()
         hint_prompt_tc=hint_prompt_template_time_complexity()
         hint_prompt_sc=hint_prompt_template_space_complexity()
-        llm_model = llm_service.get_openai_model(model = "gpt-4o-mini")
+        llm_model = llm_service.get_openai_model()
 
         logger.info(f"ANSWER EVALUATION {answer_evaluation}")
         logger.info(f"HINT COUNT AFTER {len(chat_history)} : {hint_count}")

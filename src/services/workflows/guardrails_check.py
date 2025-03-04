@@ -10,7 +10,7 @@ app=FastAPI()
 async def guardrails_check(question ,answer):
 
     guardrails_check_prompt=guardrails_check_prompt_template()
-    llm_model = llm_service.get_openai_model(model = "gpt-4o-mini")
+    llm_model = llm_service.get_openai_model()
     guardrails_check_chain=(guardrails_check_prompt|llm_model)
     guardrails_check=await guardrails_check_chain.ainvoke({'question': question,'answer': answer})
     return guardrails_check

@@ -1,41 +1,22 @@
 from fastapi import FastAPI
-from pydantic import BaseModel, Field
-from datetime import datetime
-import psycopg2
-from psycopg2.extras import execute_values
-from psycopg2.pool import SimpleConnectionPool
-from typing import Optional
-import os
 import logging
-from contextlib import contextmanager
-from dotenv import load_dotenv
 import uvicorn
 import json
-import httpx
-from typing import List, Optional,Dict
-from src.dao.question import get_question_metadata
+from psycopg2.extras import execute_values
 from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
 from src.dao.exceptions import ChatHistoryNotFoundException,InterviewNotFoundException,QuestionNotFoundException
 from src.schemas.dao import ChatHistoryRequest,ChatHistoryResponse
-
+from src.dao.data_objects.chat_history import ChatHistoryRecord
 # Configure application-wide logging to track and record application events and errors
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-async def refine_chat_history(chat_history):
-    refined_chat_history = []
-    for row in chat_history:
-        refined_chat_history.append({
-            row[2]: row[0],     # turn_input_type: turn_input
-            "answer": row[1]     # turn_output
-        })
-    return refined_chat_history
 
 # Initialize FastAPI application for creating chat history service endpoints
 app = FastAPI()
 
-@app.get("/chat_history", response_model=list[dict])
+@app.get("/chat_history")
 async def get_chat_history(interview_id: int):
     """
     Retrieve the complete chat history for a specific interview, including questions and answers.
@@ -57,26 +38,22 @@ async def get_chat_history(interview_id: int):
     """
     try:
         with get_db_connection() as conn:
-            try:
-                interview_check_query="SELECT interview_id FROM interview WHERE interview_id = %s"
-                interview=execute_query(conn,interview_check_query,(interview_id,))
-                if not interview:
-                    raise InterviewNotFoundException
-                chat_history_query = """
-                    SELECT turn_input, turn_output,turn_input_type
-                    FROM chat_history
-                    WHERE interview_id = %s
-                """
-                result = execute_query(conn, chat_history_query, (interview_id,), fetch_one=False)
-                
-                if not result:
-                    return []
-                
-                refined_chat_history = await refine_chat_history(result)
-                return refined_chat_history
-            except Exception as e:
-                logger.error(f"Error retrieving Chat History: {e}")
-                raise Exception(f"Error retrieving Chat History: {e}")
+            
+            chat_history_query = """ 
+                SELECT interview_id, question_id, turn_input_type, turn_input, turn_output, distilled_turn_output 
+                FROM chat_history
+                WHERE interview_id = %s    
+            """
+            chat_history_records = execute_query(
+                conn,
+                chat_history_query,
+                (interview_id,),
+                fetch_one = False
+            )
+            chat_history = ChatHistoryRecord()
+            for record in chat_history_records:
+                chat_history.add_record(*record)
+            return chat_history
     except DatabaseConnectionError as e:
         raise e
     except DatabaseQueryError as e:
@@ -158,7 +135,7 @@ async def update_candidate_answer(chat_history_turn_id: int, chat_history_reques
         raise e
 
 @app.post("/chat_history", response_model=dict)
-async def add_chat_history(interview_id: int, question_id: int, turn_input: str,turn_output: str ,turn_input_type: str):
+async def add_chat_history(interview_id: int, question_id: int, turn_input: str,turn_output: str, distilled_turn_output: str ,turn_input_type: str):
     """
     Add a new chat history for a specific interview and question.
     
@@ -191,9 +168,9 @@ async def add_chat_history(interview_id: int, question_id: int, turn_input: str,
             if not question:
                 raise QuestionNotFoundException
             insert_query = """
-                INSERT INTO chat_history (interview_id, question_id, turn_input, turn_output, turn_input_type)
-                VALUES (%s, %s, %s, %s, %s)
-                RETURNING chat_history_turn_id, interview_id, question_id, turn_input, turn_output, turn_input_type
+                INSERT INTO chat_history (interview_id, question_id, turn_input, turn_output, distilled_turn_output,turn_input_type)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                RETURNING chat_history_turn_id, interview_id, question_id, turn_input, turn_output, distilled_turn_output,turn_input_type
             """
             result = execute_query(
                 conn,
@@ -209,7 +186,8 @@ async def add_chat_history(interview_id: int, question_id: int, turn_input: str,
                 "question_id": result[2],
                 "turn_input": result[3],
                 "turn_output": result[4],
-                "turn_input_type": result[5]
+                "distilled_turn_output": result[5],
+                "turn_input_type": result[6]
             } 
     except DatabaseConnectionError as e:
         raise e
@@ -218,68 +196,51 @@ async def add_chat_history(interview_id: int, question_id: int, turn_input: str,
     except DatabaseOperationError as e:
         raise e
 
-from psycopg2.extras import execute_values
-
-@app.post("/batch_chat_history", response_model=dict)
-async def batch_insert_chat_history(interview_id: int, question_id: int, chat_history_data):
-    if isinstance (chat_history_data,str):
-        chat_history_data=json.loads(chat_history_data)
+@app.post("/batch_chat_history")
+async def batch_insert_chat_history(chat_history_data):
     try:
         with get_db_connection() as conn:
-            # Validate interview exists
-            interview_check_query = "SELECT interview_id FROM interview WHERE interview_id = %s"
-            interview = execute_query(conn, interview_check_query, (interview_id,))
-            if not interview:
-                raise InterviewNotFoundException()
-            
-            # Validate question exists
-            question_check_query = "SELECT question FROM question WHERE question_id = %s"
-            question = execute_query(conn, question_check_query, (question_id,))
-            if not question:
-                raise QuestionNotFoundException()
-
-            # Prepare data for batch insert
-            data_tuples = []
-            for entry in chat_history_data:
-                # Get the single key that isn't 'answer'
-                turn_input_type = next(k for k in entry.keys() if k != 'answer')
-                turn_input = entry[turn_input_type]
-                turn_output = entry.get('answer', '')
+            values = []
+            for record in chat_history_data:
+                interview_id = record["interview_id"]
+                question_id = record["question_id"]
+                turn_input_type = record["turn_input_type"]
+                turn_input = record["turn_input"]
+                turn_output = record["turn_output"]
+                distilled_turn_output = record["distilled_turn_output"]
                 
-                data_tuples.append((
+                values.append((
                     interview_id,
                     question_id,
                     turn_input_type,
                     turn_input,
-                    turn_output
+                    turn_output,
+                    distilled_turn_output
                 ))
-
-            # Batch insert using execute_values
-            with conn.cursor() as cursor:
-                execute_values(
-                    cursor,
-                    """INSERT INTO chat_history 
-                        (interview_id, question_id, turn_input_type, turn_input, turn_output)
-                        VALUES %s""",
-                    data_tuples,
-                    template="(%s, %s, %s, %s, %s)",
-                    page_size=100
-                )
-                conn.commit()
-
-            return {
-                "message": "Batch insert successful",
-                "inserted_count": len(data_tuples),
-                "interview_id": interview_id,
-                "question_id": question_id
-            }
+                
+            if not values:
+                return f"NO CHAT HISTORY TO INSERT"
             
+            query = """
+            INSERT INTO chat_history 
+            (interview_id, question_id, turn_input_type, turn_input, turn_output, distilled_turn_output) 
+            VALUES %s
+            """
+            
+            cursor = conn.cursor()
+            
+            execute_values(cursor, query, values)
+           
+            conn.commit()
+            
+            return f"CHAT HISTORY ADDED TO THE DATABASE"
     except DatabaseConnectionError as e:
         raise e
     except DatabaseQueryError as e:
         raise e
     except DatabaseOperationError as e:
         raise e
+    
 @app.delete("/chat_history/{interview_id}")
 async def delete_chat_history(interview_id: int):
     """

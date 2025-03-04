@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
 import logging
-
+import re
 import uvicorn
 #from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,
 from src.dao.utils.execute_query import execute_query
@@ -13,6 +13,10 @@ from datetime import datetime
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+def is_valid_email(email):
+    pattern = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+    return re.match(pattern, email) is not None
 
 async def initialize_interview(user_name, user_email):
     """
@@ -28,33 +32,51 @@ async def initialize_interview(user_name, user_email):
         HTTPException: 500 for errors
     """
     try:
+        #TODO: CHECK USER_ID FIRST IF DOESN'T CREATE NEW
         with get_db_connection() as conn:
-            
+            if not is_valid_email(user_email):
+                raise ValueError("INVALID EMAIL FORMAT !!")
+            if not user_name:
+                raise ValueError("USER NAME CAN NOT BE EMPTY !!")
+            check_user_query = """
+                SELECT user_id
+                FROM Users
+                WHERE name = %s
+            """
             insert_user_query = """
                 INSERT INTO Users (name, email_id)
                 VALUES (%s, %s)
                 RETURNING user_id
             """
-            user_id = execute_query(
+            check_user = execute_query(
                 conn,
-                insert_user_query,
-                (user_name, user_email),
-                commit=True
+                check_user_query,
+                (user_name,)
             )
+            if check_user:
+                user_id = check_user[0]
+            else:
+                user_id = execute_query(
+                    conn,
+                    insert_user_query,
+                    (user_name, user_email),
+                    commit=True
+                )
+                user_id = user_id[0]
             insert_interview_query = """
                 INSERT INTO Interview (user_id, interview_date, interview_recording_url)
                 VALUES (%s, %s, %s)
                 RETURNING interview_id
             """
             interview_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-            interview_recording_url=f"https://recordings.example.com/{user_name}.mp3"
+            interview_recording_url=f"N/A"
             interview_id = execute_query(
                 conn,
                 insert_interview_query,
                 (user_id, interview_date, interview_recording_url),
                 commit=True,
             )
-            return interview_id
+            return user_id, interview_id[0] # executre query returns a tuple 
             
     except Exception as e:
         raise e

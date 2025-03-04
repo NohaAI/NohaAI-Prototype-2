@@ -5,6 +5,13 @@ class QuestionNotFoundException(Exception):
         self.message = f"No question found with question_id: {self.question_id}"
         super().__init__(self.message)
 
+class NoQuestionForComplexityException(Exception):
+    """Exception raised when a no questions is found in the database for get_random_question_metadata for a complexity."""
+    def __init__(self, complexity):
+        self.complexity = complexity
+        self.message = f"No question found with complexity: {self.complexity}"
+        super().__init__(self.message)
+
 class QuestionTypeNotFoundException(Exception):
     """Exception raised when a question type is not found in the database."""
     def __init__(self, question_type_id):
@@ -90,6 +97,13 @@ class OrganizationNotFoundException(Exception):
     def __init__(self, organization_id):
         self.organization_id = organization_id
         self.message = f"No organization found with organization_id: {self.organization_id}"
+        super().__init__(self.message)
+
+class InterviewSessionStateNotFoundException(Exception):  
+    """Exception raised when an interview_session_state is not found for a given interview_id in the database."""
+    def __init__(self, interview_id):
+        self.interview_id = interview_id
+        self.message = f"No interview_session_state found with interview_id: {self.interview_id}"
         super().__init__(self.message)
 
 class DatabaseConnectionError(Exception):

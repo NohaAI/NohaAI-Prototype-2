@@ -32,7 +32,7 @@ async def generate_hint(chat_history,answer_evaluation,hint_count):
     hint_prompt_a=hint_prompt_template_algorithms()
     hint_prompt_tc=hint_prompt_template_time_complexity()
     hint_prompt_sc=hint_prompt_template_space_complexity()
-    llm_model = llm_service.get_openai_model(model = "gpt-4o-mini")
+    llm_model = llm_service.get_openai_model()
 
     logger.info(f"ANSWER EVALUATION {answer_evaluation}")
     logger.info(f"HINT COUNT AFTER {len(chat_history)} : {hint_count}")

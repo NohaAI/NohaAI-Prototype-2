@@ -36,13 +36,16 @@ async def evaluate_answer(bot_dialogue, distilled_candidate_dialogue, distilled_
     """
     #TODO: returns assessment_payload and rationale
     print ("Inside evaluate_answer(...)")
-
+    
     prompt_bot_dialogue = bot_dialogue
     prompt_distilled_candidate_dialogue = distilled_candidate_dialogue
     prompt_distilled_chat_history = distilled_chat_history
     prompt_assessment_payload = assessment_payload
 
     llm_inputs = [] # initialize inputs for LLM preparation
+    assessment_payload["criteria_scores"] = []
+    assessment_payload["subcriteria_scores"] = []
+    assessment_payload["final_score"] = 0.0
     llm_inputs.append({"prompt_bot_dialogue": prompt_bot_dialogue,"prompt_distilled_candidate_dialogue": prompt_distilled_candidate_dialogue,"prompt_distilled_chat_history": prompt_distilled_chat_history, "prompt_assessment_payload": prompt_assessment_payload})
 
     ### Preparing, invoking and calling LLM
@@ -81,7 +84,7 @@ async def evaluate_answer(bot_dialogue, distilled_candidate_dialogue, distilled_
     updated_assessment_payload = await interview_computation.compute_turn_score(assessment_payload)
     # updated_json = json.loads(updated_assessment_payload)
     print(json.dumps(updated_assessment_payload, indent = 3))
-    return(updated_assessment_payload)
+    return(updated_assessment_payload, rationale)
 
     # llm_response_json = json.loads(llm_response)
     # print("LLM_RESPONSE: ",llm_response_json)

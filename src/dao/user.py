@@ -12,7 +12,7 @@ import uvicorn
 from src.dao.utils.execute_query import execute_query
 from src.dao.utils.connect import get_db_connection
 from src.dao.exceptions import UserNotFoundException
-from src.schemas.dao.schema import UserRequest,UserResponse
+from src.schemas.dao import UserRequest,UserResponse
 from src.dao.exceptions import DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError
 
 # Logging Configuration

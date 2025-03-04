@@ -1,7 +1,7 @@
 from typing import Any
 from fastapi.responses import JSONResponse
 from fastapi import status
-
+import json
 def decorate_response(succeeded: bool, message: Any, status_code: int = status.HTTP_200_OK) -> JSONResponse:
     """Creates a standardized JSON response.
 
@@ -27,6 +27,10 @@ def clean_response(response):
     cleaned_subcriteria = (response.replace("```python", "").replace("```'", "").replace("\n", "").replace("'", "").replace("```", "").replace("json", ""))
     return cleaned_subcriteria
 
+def get_assessment_payload():
+    with open("src\\schemas\\evaluation\\assessment_payload.json", "r") as file:
+        assessment_payload = json.load(file)  
+        return assessment_payload
 
 
 def transform_subcriteria(input_data):

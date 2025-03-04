@@ -1,17 +1,12 @@
 from fastapi import FastAPI
-from pydantic import BaseModel, Field
-from typing import Optional
-import psycopg2
-from psycopg2.pool import SimpleConnectionPool
-import os
 import logging
-from contextlib import contextmanager
-from dotenv import load_dotenv
 import uvicorn
 import json
+from psycopg2.extras import execute_values
 from src.dao.exceptions import QuestionEvaluationNotFoundException,QuestionNotFoundException,InterviewNotFoundException
 from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
 from src.schemas.dao import QuestionEvaluationUpdateRequest,QuestionEvaluationResponse,QuestionEvaluationRequest
+from src.dao.data_objects.assessment_payload import AssessmentPayloadRecord
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -23,7 +18,7 @@ app = FastAPI()
 
 # API endpoint to fetch question evaluation details by ID
 @app.get("/question_evaluation/{question_evaluation_id}")
-async def get_question_evaluation(interview_id: int,question_id: int):
+async def get_question_evaluation(interview_id: int):
     """
     Retrieves data of question evaluation table.
 
@@ -49,24 +44,20 @@ async def get_question_evaluation(interview_id: int,question_id: int):
                 if not interview_exists:
                     raise InterviewNotFoundException(interview_id)
                 
-                # Validate question existence
-                question_check_query = """
-                    SELECT question_id FROM Question 
-                    WHERE question_id = %s
-                """
-                question_exists = execute_query(conn, question_check_query, (question_id,), fetch_one=True)
-                if not question_exists:
-                    raise QuestionNotFoundException(question_id)
-                query = """
-                    SELECT question_evaluation_json
+                assessment_payload_records_query = """
+                    SELECT interview_id, question_id, score, assessment_payload_json
                     FROM Interview_Question_Evaluation
-                    WHERE interview_id = %s and question_id = %s
+                    WHERE interview_id = %s
                 """
-                result = execute_query(conn, query, (interview_id,question_id,), fetch_one=False)
-                logger.info(f"RESULTS FROM INTERVIEW QUESTION EVALUATION {result}")
-                if not result:
-                    raise QuestionEvaluationNotFoundException(question_evaluation_id)
-                return result
+                assessment_payload_records = execute_query(conn, assessment_payload_records_query, (interview_id,), fetch_one=False)
+
+                assessment_payload = AssessmentPayloadRecord()
+                for record in assessment_payload_records: 
+                    record = list(record) # tuple doesnt allow assignments so need to convert to list before doing a json.dumps
+                    record[3] = json.loads(record[3])  # Parse the JSON string
+                    assessment_payload.add_record(*record)
+                return assessment_payload
+
             except Exception as e:
                 logger.error(f"Error retrieving evaluation: {e}")
                 raise
@@ -76,6 +67,48 @@ async def get_question_evaluation(interview_id: int,question_id: int):
         raise e
     except DatabaseOperationError as e:
         raise e
+    
+@app.post("/batch_insert_interview_question_evaluation")
+async def batch_insert_interview_question_evaluation(assessment_payload_record):
+    try:
+        with get_db_connection() as conn:
+            values = []
+            for record in assessment_payload_record:
+                interview_id = record["interview_id"]
+                question_id = record["question_id"]
+                final_score = record['final_score']
+                assessment_payload = json.dumps(record['assessment_payload'])
+                
+                values.append((
+                    interview_id,
+                    question_id,
+                    final_score,
+                    assessment_payload
+                ))
+                
+            if not values:
+                return f"NO CHAT HISTORY TO INSERT"
+            
+            query = """
+            INSERT INTO interview_question_evaluation
+            (interview_id, question_id, score, assessment_payload_json) 
+            VALUES %s
+            """
+            
+            cursor = conn.cursor()
+            
+            execute_values(cursor, query, values)
+           
+            conn.commit()
+            
+            return f"INTERVIEW QUESTION EVALUATION ADDED TO THE DATABASE FOR INTERVIEW ID {interview_id}"
+    except DatabaseConnectionError as e:
+        raise e
+    except DatabaseQueryError as e:
+        raise e
+    except DatabaseOperationError as e:
+        raise e
+
 # API endpoint to update an existing question evaluation
 @app.put("/question_evaluation/{question_evaluation_id}", response_model=QuestionEvaluationResponse)
 async def update_question_evaluation(question_evaluation_id: int,evaluation_request: QuestionEvaluationUpdateRequest):
@@ -111,9 +144,9 @@ async def update_question_evaluation(question_evaluation_id: int,evaluation_requ
                 if evaluation_request.score is not None:
                     update_fields.append("score = %s")
                     update_params.append(evaluation_request.score)
-                if evaluation_request.question_evaluation_json is not None:
-                    update_fields.append("question_evaluation_json = %s")
-                    update_params.append(evaluation_request.question_evaluation_json)
+                if evaluation_request.assessment_payload_json is not None:
+                    update_fields.append("assessment_payload_json = %s")
+                    update_params.append(evaluation_request.assessment_payload_json)
                 if not update_fields:
                     raise Exception("No update fields provided")
                 update_params.append(question_evaluation_id)
@@ -123,7 +156,7 @@ async def update_question_evaluation(question_evaluation_id: int,evaluation_requ
                     UPDATE Interview_Question_Evaluation
                     SET {', '.join(update_fields)}
                     WHERE question_evaluation_id = %s
-                    RETURNING question_evaluation_id, interview_id, question_id, score, question_evaluation_json
+                    RETURNING question_evaluation_id, interview_id, question_id, score, assessment_payload_json
                 """
                 updated_record = execute_query(
                     conn, 
@@ -137,7 +170,7 @@ async def update_question_evaluation(question_evaluation_id: int,evaluation_requ
                     interview_id=updated_record[1],
                     question_id=updated_record[2],
                     score=updated_record[3],
-                    question_evaluation_json=updated_record[4]
+                    assessment_payload_json=updated_record[4]
                 )
             except Exception as e:
                 logger.error(f"Error updating evaluation: {e}")
@@ -195,9 +228,9 @@ async def add_question_evaluation(interview_id: int, question_id: int, score: fl
                         interview_id, 
                         question_id, 
                         score, 
-                        question_evaluation_json
+                        assessment_payload_json
                     ) VALUES (%s, %s, %s, %s)
-                    RETURNING question_evaluation_id, interview_id, question_id, score, question_evaluation_json
+                    RETURNING question_evaluation_id, interview_id, question_id, score, assessment_payload_json
                 """
                 result = execute_query(
                     conn,
@@ -211,7 +244,7 @@ async def add_question_evaluation(interview_id: int, question_id: int, score: fl
                     interview_id=result[1],
                     question_id=result[2],
                     score=result[3],
-                    question_evaluation_json=result[4]
+                    assessment_payload_json=result[4]
                 )
             except Exception as e:
                 logger.error(f"Error adding evaluation: {e}")
