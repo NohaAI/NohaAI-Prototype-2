@@ -234,27 +234,91 @@ async def get_next_response(candidate_dialogue, session_state, chat_history, ass
 
     candidate_dialogue_label, candidate_dialogue_rationale, distilled_candidate_dialogue = await classify_candidate_dialogue(session_state['bot_dialogue'], candidate_dialogue, chat_history.filtered_chat_history(session_state['interview_id'], None))
 
+
+    logger.info(f"get_next_response(): Candidate Dialogue Label: {candidate_dialogue_label}")
+    logger.info(f"get_next_response(): Candidate Dialogue Rationale: {candidate_dialogue_rationale}")
+    logger.info(f"get_next_response: Distilled Candidate Dialogue: {distilled_candidate_dialogue}")
+    
+
+    logger.info(f"Checking questions_asked length: {len(session_state['questions_asked'])}")
+
     if len(session_state['questions_asked']) == 0:
-       
+        logger.info("No questions have been asked yet.")
+        
         if candidate_dialogue_label == 'confirmation':
+            logger.info("Candidate dialogue label is 'confirmation'. Performing actions...")
             session_state, assessment_payload_record = await perform_actions(session_state, assessment_payload_record)
-            chat_history.add_record(session_state['interview_id'], session_state['questions_asked'][-1], session_state['bot_dialogue_type'], session_state['bot_dialogue'], candidate_dialogue, distilled_candidate_dialogue) #DISTITLLATION FOR CANDIDATES WILLINGNESS IS NOT NECESSARY         
+            
+            logger.info(f"Updated session_state after actions: {session_state}")
+            chat_history.add_record(
+                session_state['interview_id'], 
+                session_state['questions_asked'][-1], 
+                session_state['bot_dialogue_type'], 
+                session_state['bot_dialogue'], 
+                candidate_dialogue, 
+                distilled_candidate_dialogue
+            )
+            logger.info("Added record to chat history after confirmation.")
         else:
-            chat_history.add_record(session_state['interview_id'], None, session_state['bot_dialogue_type'], session_state['bot_dialogue'], candidate_dialogue, distilled_candidate_dialogue) #at the moment you dont have question_id so it will be none
-        session_state['turn_number'] += 1 
+            logger.info("Candidate dialogue label is not 'confirmation'. Adding record with question_id as None.")
+            chat_history.add_record(
+                session_state['interview_id'], 
+                None, 
+                session_state['bot_dialogue_type'], 
+                session_state['bot_dialogue'], 
+                candidate_dialogue, 
+                distilled_candidate_dialogue
+            )
+        
+        session_state['turn_number'] += 1
+        logger.info(f"Turn number incremented: {session_state['turn_number']}")
     else:
-        chat_history.add_record(session_state['interview_id'], session_state['questions_asked'][-1], session_state['bot_dialogue_type'], session_state['bot_dialogue'], candidate_dialogue, distilled_candidate_dialogue)
+        logger.info(f"Questions have been asked. Last question ID: {session_state['questions_asked'][-1]}")
+
+        chat_history.add_record(
+            session_state['interview_id'], 
+            session_state['questions_asked'][-1], 
+            session_state['bot_dialogue_type'], 
+            session_state['bot_dialogue'], 
+            candidate_dialogue, 
+            distilled_candidate_dialogue
+        )
+        logger.info("Added record to chat history for an existing question.")
+
         filtered_chat_history = chat_history.filtered_chat_history(session_state['interview_id'], session_state['questions_asked'][-1])
+        logger.info(f"Filtered chat history retrieved for interview ID {session_state['interview_id']}.")
 
         if candidate_dialogue_label in TECHNICAL_LABELS:
-            candidate_technical_dialogue_label, candidate_technical_dialogue_classification_rationale,  bot_dialogue_rationale, bot_dialogue_subcriterion, assessment_payload_rationale, session_state, assessment_payload_record = await process_technical(distilled_candidate_dialogue, session_state, filtered_chat_history, assessment_payload_record)
+            logger.info(f"Candidate dialogue label '{candidate_dialogue_label}' is in TECHNICAL_LABELS. Processing as technical dialogue.")
+            (
+                candidate_technical_dialogue_label, 
+                candidate_technical_dialogue_classification_rationale,  
+                bot_dialogue_rationale, 
+                bot_dialogue_subcriterion, 
+                assessment_payload_rationale, 
+                session_state, 
+                assessment_payload_record
+            ) = await process_technical(distilled_candidate_dialogue, session_state, filtered_chat_history, assessment_payload_record)
+
+            logger.info(f"Processed technical dialogue. Label: {candidate_technical_dialogue_label}, Rationale: {candidate_technical_dialogue_classification_rationale}")
         else:
-            bot_dialogue_rationale, bot_dialogue_subcriterion, session_state = await process_non_technical(distilled_candidate_dialogue, session_state, filtered_chat_history, assessment_payload_record, candidate_dialogue_label)
-            #for process_non_techincal there won't be candidate_technical_dialogue_label, candidate_technical_dialogue_classification_rationale and assessment_payload_rationale but log_data() expects it; passing None str for it atm there can be seperate rationale logging funcs for process_technical and process_non_technical
+            logger.info(f"Candidate dialogue label '{candidate_dialogue_label}' is not technical. Processing as non-technical dialogue.")
+            (
+                bot_dialogue_rationale, 
+                bot_dialogue_subcriterion, 
+                session_state
+            ) = await process_non_technical(distilled_candidate_dialogue, session_state, filtered_chat_history, assessment_payload_record, candidate_dialogue_label)
+
             candidate_technical_dialogue_label = "None"
             candidate_technical_dialogue_classification_rationale = "None"
             assessment_payload_rationale = "None"
+            logger.info("Non-technical processing completed. Assigned 'None' values for missing technical fields.")
+
         session_state, assessment_payload_record = await generate_action_overrides(session_state, assessment_payload_record)
+        logger.info("Generated action overrides.")
+
+    # logger.info(f"Final session_state: {session_state}")
+
         
         session_state, assessment_payload_record = await perform_actions(session_state, assessment_payload_record)
         log_data(candidate_dialogue, distilled_candidate_dialogue, bot_dialogue_rationale, candidate_technical_dialogue_label, candidate_technical_dialogue_classification_rationale, assessment_payload_record, assessment_payload_rationale, bot_dialogue_subcriterion ,candidate_dialogue_label, session_state, candidate_dialogue_rationale) # toggle on/off if you want data to be logged
