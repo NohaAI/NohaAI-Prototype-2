@@ -161,35 +161,56 @@ const MyPage = () => {
         setIsMicOn(true);
         setIsRecording(true);
         setIsProcessing(true); // Show dot on mic icon
-
+    
         if (!("webkitSpeechRecognition" in window)) {
             alert("Your browser does not support speech recognition. Please try Chrome.");
             return;
         }
-
+    
         const recognition = new (window as any).webkitSpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
-        recognition.lang = "en-US";
-
+        recognition.lang = "en-IN";
+        recognition.maxAlternatives = 3; // Get up to 3 alternative transcriptions
+    
         recognition.onresult = (event: any) => {
             let finalTranscript = "";
+            
             for (let i = event.resultIndex; i < event.results.length; i++) {
                 if (event.results[i].isFinal) {
-                    finalTranscript += event.results[i][0].transcript + " ";
+                    const alternatives = event.results[i]; // Get all alternatives
+                    
+                    // Find the alternative with the highest confidence
+                    let bestAlternative = alternatives[0]; // Default to the first
+                    for (let j = 1; j < alternatives.length; j++) {
+                        if (alternatives[j].confidence > bestAlternative.confidence) {
+                            bestAlternative = alternatives[j];
+                        }
+                    }
+    
+                    finalTranscript += bestAlternative.transcript + " "; // Pick the most confident result
+    
+                    // Log all alternatives and their confidence scores
+                    console.log("Alternatives:");
+                    for (let j = 0; j < alternatives.length; j++) {
+                        console.log(`Alternative ${j + 1}: "${alternatives[j].transcript}" (Confidence: ${alternatives[j].confidence})`);
+                    }
+                    console.log(`✅ Selected: "${bestAlternative.transcript}" (Confidence: ${bestAlternative.confidence})`);
                 }
             }
+    
             setTranscribedText((prev) => prev + finalTranscript);
         };
-
+    
         recognition.onend = () => {
             console.log("Recognition ended, processing final text...");
             setIsProcessing(false); // Hide dot when processing is done
         };
-
+    
         recognitionRef.current = recognition;
         recognition.start();
     };
+    
 
     const stopRecording = () => {
         setIsRecording(false);
