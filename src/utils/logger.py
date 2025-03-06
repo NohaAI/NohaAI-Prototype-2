@@ -1,5 +1,5 @@
 import logging
-from src.schemas.const_logging import ENABLE_LOGGING
+from src.config import logging_config as LOGCONF
 
 def get_logger(name: str) -> logging.Logger:
     """Configures and returns a logger instance.
@@ -13,7 +13,7 @@ def get_logger(name: str) -> logging.Logger:
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
 
-    if ENABLE_LOGGING:
+    if LOGCONF.ENABLE_LOGGING:
         formatter = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s')
         file_handler = logging.FileHandler('noha_ai_prototype.log')
         file_handler.setFormatter(formatter)

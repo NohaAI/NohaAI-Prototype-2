@@ -10,7 +10,7 @@ THRESHOLD_COMPLEXITY = 1
 THRESHOLD_TOTAL_NUMBER_OF_QUESTIONS = 2
 
 # BOT CANNED DIALOGUES
-GREETING = "HI"
+GREETING_SUFFIX = "I am Noha! I am your interviewer today. We have planned a data structures and algorithms interview with you, are you good to go?"
 QUESTION_SOLVED = "Since you have solved this question, can you now start writing code for it?"
 GUARDRAIL_TRIGGERED_QUESTIONS_LEFT = "It seems there is a lack of clarity. Let us move on to the next question : "
 GUARDRAIL_TRIGGERED_NO_QUESTIONS_LEFT = "It seems there is a lack of clarity. Let us conclude here."
@@ -27,3 +27,18 @@ NON_TECHNICAL_LABELS= [
 ] #fill it later on
 TECHNICAL_LABELS_TO_BE_EVALUATED = ['doubt(problem)', 'solution']
 TECHNICAL_LABELS_NOT_TO_BE_EVALUATED= ['doubt(concept)']
+
+# SESSION INITIALIZATION DEFAULTS
+DEF_INTERVIEW_ID = None  # Set dynamically
+DEF_TURN_NUMBER = 0
+DEF_CONSECUTIVE_TERMINATION_REQUEST_COUNT = 0
+DEF_BOT_DIALOGUE = None  # Set dynamically
+DEF_GUARDRAIL_COUNT = 0
+DEF_CONTIGUOUS_TECHNICAL_GUARDRAIL_COUNT = 0
+DEF_CONTIGUOUS_NON_TECHNICAL_GUARDRAIL_COUNT = 0
+DEF_TERMINATION = False
+DEF_CURRENT_QUESTION = ""
+DEF_NEXT_ACTION = "Pass"
+DEF_QUESTIONS_ASKED = []
+DEF_BOT_DIALOGUE_TYPE = "greeting"
+DEF_COMPLEXITY = 1
