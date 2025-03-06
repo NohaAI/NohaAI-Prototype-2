@@ -51,7 +51,7 @@ const MyPage = () => {
 
             setChatMetaData(() => chatResponse)
             updateChats(chatResponse.bot_dialogue);
-            speakText(chatResponse.bot_dialogue);
+            speakText(chatResponse.bot_dialogue, { termination: chatResponse.termination });
 
             // if(chatResponse.termination) {
             //     setTimeout(() => {
@@ -106,7 +106,7 @@ const MyPage = () => {
         ]);
     };
 
-    const speakText = (text: string): void => {
+    const speakText = (text: string, info?: any): void => {
         if (!window.speechSynthesis) {
             console.error("Speech synthesis is not supported in this browser.");
             return;
@@ -117,15 +117,15 @@ const MyPage = () => {
         utterance.rate = 1;
         utterance.pitch = 1;
 
-            // Event when speech starts
+    // Event when speech starts
     utterance.onstart = () => {
         console.log("Speech started");
     };
  
     // Event when speech ends
     utterance.onend = () => {
-        console.log("Speech finished", chatMetaData);
-        if(chatMetaData.termination) {
+        console.log("Speech finished", info);
+        if(info?.termination) {
                 disconnect()
                 stopRecording();
                 setCallEnded(true);
@@ -135,6 +135,14 @@ const MyPage = () => {
 
         window.speechSynthesis.speak(utterance);
     };
+
+    useEffect(() => {
+
+        return()=>{
+            window.speechSynthesis.cancel();
+        }
+
+    }, [])
 
     const handleSubmit = (data: { name: string; email: string }) => {
         setDetails({ ...data });
