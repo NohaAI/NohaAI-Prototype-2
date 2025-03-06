@@ -7,7 +7,7 @@ class AssessmentPayloadRecord(list):
         self.append({
             "interview_id": interview_id,
             "question_id": question_id,
-            "final_score": final_score,
+            "final_score": final_score, 
             "assessment_payload": assessment_payload
         }
         )

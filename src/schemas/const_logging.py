@@ -1,0 +1,2 @@
+
+ENABLE_LOGGING = True  # Toggle this to enable/disable logging. NOTE: This only disables logging output; logging calls will still be executed. To eliminate latency from log statements, remove them from the production code.
