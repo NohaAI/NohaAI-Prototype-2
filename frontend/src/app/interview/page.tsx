@@ -170,7 +170,7 @@ const MyPage = () => {
         const recognition = new (window as any).webkitSpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
-        recognition.lang = "en-IN";
+        recognition.lang = "en-US";
         recognition.maxAlternatives = 3; // Get up to 3 alternative transcriptions
     
         recognition.onresult = (event: any) => {
