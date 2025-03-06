@@ -3,7 +3,7 @@ import Feedback from "@/components/feedback";
 import InterviewDetails from "@/components/InterviewDetails";
 import LiveInterview from "@/components/LiveInterview";
 import axios from "axios";
-import { useEffect, useRef, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
 const MyPage = () => {
@@ -36,41 +36,48 @@ const MyPage = () => {
         });
 
         socketConnection.on('initialize', (data: any) => {
-            console.log('Received AI response', data);
+            console.log(' initialize Received AI response', data);
             setChatMetaData(data);
-            updateChats(data.bot_dialogue);
-            speakText(data.bot_dialogue);
+            updateChats(data.greeting);
+            speakText(data.greeting);
         });
 
         socketConnection.on("disconnect", () => {
             console.log("Client disconnected from server");
         });
 
-        socketConnection.on("chat", (data: any) => {
-            console.log('Received AI response', data);
-            updateChats(data.message);
-            speakText(data.message);
+        socketConnection.on("chat", (chatResponse: any) => {
+            console.log('Chat  Received AI response', chatResponse);
+
+            setChatMetaData(chatResponse)
+            updateChats(chatResponse.bot_dialogue);
+            speakText(chatResponse.bot_dialogue);
+
+            if(chatResponse.termination) {
+                setTimeout(() => {
+                    disconnect()
+                    stopRecording();
+                    setCallEnded(true);
+                }, 4000);
+            }
+
         });
 
         setUserSocket(socketConnection);
     };
     
-    const disconnect2 = async() =>{
-        try {
-            const res = await axios.post(`${backendServiceLink}/terminate`, {
-                session_state: chatMetaData.session_state, 
-                chat_history : chatMetaData.chat_history, 
-                assessment_payload_record: chatMetaData.assessment_payload_record
-            });
-            console.log('terminate', res)
-        } catch (error) {
-            console.error('Error on terminate', error)
+    const disconnect = async() =>{
+        const reqBody = {
+            session_state: chatMetaData.session_state,
+            chat_history: chatMetaData.chat_history,
+            assessment_payload_record: chatMetaData.assessment_payload_record
         }
+        userSocket?.emit('terminate', reqBody);
     }
 
     useEffect(()=>{
         return ()=>{
-            disconnect2()
+            disconnect()
         }
     }, [])
 
@@ -84,20 +91,9 @@ const MyPage = () => {
                 ...chatMetaData,
                 "candidate_dialogue": data.text
             }
-            const res = await axios.post(`${backendServiceLink}/chat`, reqBody);
-            console.log("Received AI response", res.data);
-            setChatMetaData(res.data)
-            updateChats(res.data.bot_dialogue);
-            speakText(res.data.bot_dialogue);
 
-            // check if the flag is true call the terminate api
-            if(res.data.termination) {
-                setTimeout(() => {
-                    disconnect2()
-                    stopRecording();
-                    setCallEnded(true);
-                }, 4000);
-            }
+            userSocket.emit('chat', reqBody);
+            
         } catch (error) {
             console.error("Error in handleStreamBack:", error);
         }
@@ -129,16 +125,10 @@ const MyPage = () => {
         startConnection({...data})
     };
 
-    // const onCancelCall = () => {
-    //     stopRecording();
-    //     setCallEnded(true);
-    //     userSocket?.disconnect();
-    // };
-
-    const onCancelCall2 = () =>{
+    const onCancelCall = () =>{
         stopRecording();
         setCallEnded(true);
-        disconnect2()
+        disconnect()
     }
 
     const startRecording = () => {
@@ -235,7 +225,7 @@ const MyPage = () => {
                 <LiveInterview
                     chats={chats}
                     name={details.name}
-                    onCancelCall={onCancelCall2}
+                    onCancelCall={onCancelCall}
                     userSocket={userSocket}
                     isMicOn={isMicOn}
                     startRecording={startRecording}
