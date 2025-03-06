@@ -49,17 +49,17 @@ const MyPage = () => {
         socketConnection.on("chat", (chatResponse: any) => {
             console.log('Chat  Received AI response', chatResponse);
 
-            setChatMetaData(chatResponse)
+            setChatMetaData(() => chatResponse)
             updateChats(chatResponse.bot_dialogue);
             speakText(chatResponse.bot_dialogue);
 
-            if(chatResponse.termination) {
-                setTimeout(() => {
-                    disconnect()
-                    stopRecording();
-                    setCallEnded(true);
-                }, 4000);
-            }
+            // if(chatResponse.termination) {
+            //     setTimeout(() => {
+            //         disconnect()
+            //         stopRecording();
+            //         setCallEnded(true);
+            //     }, 4000);
+            // }
 
         });
 
@@ -116,6 +116,22 @@ const MyPage = () => {
         utterance.lang = "en-IN";
         utterance.rate = 1;
         utterance.pitch = 1;
+
+            // Event when speech starts
+    utterance.onstart = () => {
+        console.log("Speech started");
+    };
+ 
+    // Event when speech ends
+    utterance.onend = () => {
+        console.log("Speech finished", chatMetaData);
+        if(chatMetaData.termination) {
+                disconnect()
+                stopRecording();
+                setCallEnded(true);
+        }
+    };
+
 
         window.speechSynthesis.speak(utterance);
     };
