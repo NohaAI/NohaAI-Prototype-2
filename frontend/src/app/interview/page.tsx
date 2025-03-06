@@ -4,7 +4,7 @@ import InterviewDetails from "@/components/InterviewDetails";
 import LiveInterview from "@/components/LiveInterview";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
-// import { io } from "socket.io-client";
+import { io } from "socket.io-client";
 
 const MyPage = () => {
 
@@ -12,7 +12,7 @@ const MyPage = () => {
     const [details, setDetails] = useState({} as any);
     const [callEnded, setCallEnded] = useState(false);
     const [backendServiceLink] = useState(
-        "http://localhost:5000"
+        "http://localhost:2000"
         // "https://apis.noha.ai"
         );
     const [userSocket, setUserSocket] = useState<any>(null);
@@ -26,48 +26,33 @@ const MyPage = () => {
 
     const recognitionRef = useRef<any>(null);
 
-    // const startConnection = async (userDetails: any) => {
-    //     const socketConnection = io(backendServiceLink + '/guest', { transports: ["websocket"] });
-    //     const greetMsg: string = `Hi ${userDetails.name}, Find an index in an array where the sum of elements to the left equals the sum to the right.`;
+    const startConnection = async (userDetails: any) => {
+        const socketConnection = io(backendServiceLink + '/guest', { transports: ["websocket"] });
 
-    //     socketConnection.on("connect", () => {
-    //         console.log('Connected');
-    //         if (!interviewStarted) speakText(greetMsg);
-    //         setInterviewStarted(true);
-    //         updateChats(greetMsg);
-    //     });
+        socketConnection.on("connect", () => {
+            console.log('Connected');
+            // setInterviewStarted(true);
+            // socketConnection.emit('initialize', { user_email: userDetails.email, user_name: userDetails.name });
+        });
 
-    //     socketConnection.on("disconnect", () => {
-    //         console.log("Client disconnected from server");
-    //     });
+        socketConnection.on('initialize', (data: any) => {
+            console.log('Received AI response', data);
+            setChatMetaData(data);
+            updateChats(data.bot_dialogue);
+            speakText(data.bot_dialogue);
+        });
 
-    //     socketConnection.on("streamBack", (data) => {
-    //         console.log('Received AI response');
-    //         updateChats(data);
-    //         speakText(data);
-    //     });
+        socketConnection.on("disconnect", () => {
+            console.log("Client disconnected from server");
+        });
 
-    //     setUserSocket(socketConnection);
-    // };
+        socketConnection.on("chat", (data: any) => {
+            console.log('Received AI response', data);
+            updateChats(data.message);
+            speakText(data.message);
+        });
 
-    const startConnection2 = async (userDetails: any) => {
-        try {
-            const connectRes = await axios.get(`${backendServiceLink}/connect`);
-            const initializeRes = await axios.post(`${backendServiceLink}/initialize`, { user_name: userDetails.name, user_email: userDetails.email });
-
-            console.log('start connection', connectRes)
-            console.log('initialize data', initializeRes)
-            
-            setChatMetaData(initializeRes.data)
-            setInterviewStarted(true);
-          
-            updateChats(initializeRes.data.greeting);
-            speakText(initializeRes.data.greeting)
-
-        } catch (error) {
-            console.error("Error in startConnection2:", error);
-            throw error; 
-        }
+        setUserSocket(socketConnection);
     };
     
     const disconnect2 = async() =>{
@@ -141,8 +126,7 @@ const MyPage = () => {
 
     const handleSubmit = (data: { name: string; email: string }) => {
         setDetails({ ...data });
-        // startConnection(data);
-        startConnection2({...data})
+        startConnection({...data})
     };
 
     // const onCancelCall = () => {
