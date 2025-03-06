@@ -31,8 +31,8 @@ const MyPage = () => {
 
         socketConnection.on("connect", () => {
             console.log('Connected');
-            // setInterviewStarted(true);
-            // socketConnection.emit('initialize', { user_email: userDetails.email, user_name: userDetails.name });
+            setInterviewStarted(true);
+            socketConnection.emit('initialize', { user_email: userDetails.email, user_name: userDetails.name });
         });
 
         socketConnection.on('initialize', (data: any) => {
