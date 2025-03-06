@@ -37,7 +37,7 @@ async def connect():
     return {"message": "Connected successfully"}
     
 @app.post('/initialize')
-async def intialize(request: Request):
+async def initialize(request: Request):
     try:
         initialization_request = await request.json()
         logger.info(f"INITIALIZATION REQUEST{initialization_request}")
@@ -151,7 +151,7 @@ async def chat(request: Request):
         return chat_response
     except Exception as e:
         logger.critical(f"ERROR PROCESSING CANDIDATE CHAT REQUEST : {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"ERROR PROCESSING CANDIDATE CHAT REQUEST : {e}")    
+        raise HTTPException(status_code=500, detail=f"ERROR PROCESSING CANDIDATE CHAT REQUEST : {e}") from e   
 
 @app.post('/terminate')
 async def terminate(request: Request):
