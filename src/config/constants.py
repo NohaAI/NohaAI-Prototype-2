@@ -42,3 +42,11 @@ DEF_NEXT_ACTION = "Pass"
 DEF_QUESTIONS_ASKED = []
 DEF_BOT_DIALOGUE_TYPE = "greeting"
 DEF_COMPLEXITY = 1
+
+# CHAT HISTORY DEFAULTS
+DEF_INTERVIEW_ID = None # Set dynamically
+DEF_QUESTION_ID = None # Set later dynamically in get_next_question function
+DEF_BOT_DIALOGUE_TYPE = 'greeting'
+DEF_BOT_DIALOGUE = None # Set dynamically
+DEF_CANDIDATE_DIALOGUE = None # Set dynamically from client as response to first greeting message
+DEF_DISTILLED_CANDIDATE_DIALOGUE = None # Set dynamically from candidate_classifier
