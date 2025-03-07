@@ -1,5 +1,5 @@
 'use client'
-import Feedback from "@/components/feedback";
+// import Feedback from "@/components/feedback";
 import InterviewDetails from "@/components/InterviewDetails";
 import LiveInterview from "@/components/LiveInterview";
 import axios from "axios";
@@ -12,7 +12,7 @@ const MyPage = () => {
     const [details, setDetails] = useState({} as any);
     const [callEnded, setCallEnded] = useState(false);
     const [backendServiceLink] = useState(
-        "http://localhost:5000"
+        "http://localhost:5001"
         // "https://apis.noha.ai"
         );
     const [userSocket, setUserSocket] = useState<any>(null);
@@ -61,8 +61,8 @@ const MyPage = () => {
             setChatMetaData(initializeRes.data)
             setInterviewStarted(true);
           
-            updateChats(initializeRes.data.greeting);
-            speakText(initializeRes.data.greeting)
+            updateChats(initializeRes.data.session_state.bot_dialogue);
+            speakText(initializeRes.data.session_state.bot_dialogue)
 
         } catch (error) {
             console.error("Error in startConnection2:", error);
