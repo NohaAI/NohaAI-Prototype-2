@@ -12,7 +12,7 @@ from src.schemas.endpoints.schema import GenerateSubCriteriaRequest,EvaluateAnsw
 from src.services.workflows import subcriteria_generator,answer_evaluator
 from src.utils.logger import get_logger
 from typing import List
-from src.utils.response_helper import decorate_response
+from src.utils.helper import decorate_response
 from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
 from src.dao.question import get_question_metadata
 from src.dao.exceptions import QuestionNotFoundException,InterviewNotFoundException

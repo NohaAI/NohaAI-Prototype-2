@@ -1,4 +1,4 @@
-from src.utils.response_helper import get_assessment_payload
+from src.utils.helper import get_assessment_payload
 class AssessmentPayloadRecord(list):
     def __init__(self):
         super().__init__()

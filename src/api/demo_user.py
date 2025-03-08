@@ -7,7 +7,7 @@ import uvicorn
 from src.dao.utils.execute_query import execute_query
 from src.dao.utils.connect import get_db_connection
 from src.schemas.dao import UserRequest
-from src.utils.response_helper import decorate_response
+from src.utils.helper import decorate_response
 from fastapi import status
 from datetime import datetime
 # Logging Configuration
