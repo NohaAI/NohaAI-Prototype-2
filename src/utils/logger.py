@@ -42,3 +42,4 @@ def get_logger_prev(name: str) -> logging.Logger:
     logger.addHandler(file_handler)
 
     return logger
+
