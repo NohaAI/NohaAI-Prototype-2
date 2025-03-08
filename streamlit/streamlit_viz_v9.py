@@ -21,7 +21,7 @@ from src.services.workflows.policy_violation import check_policy_violation
 from src.services.workflows.candidate_dialogue_classifier import classify_candidate_dialogue
 from src.services.workflows.bot_dialogue_generatorv2 import generate_dialogue 
 from src.dao.chat_history import batch_insert_chat_history
-from src.services.workflows.answer_classifer import classify_candidate_answer
+from src.services.workflows.candidate_solution_classifier import classify_candidate_answer
 from src.dao.interview_question_evaluation import add_question_evaluation
 async def async_add_question_evaluation(interview_id, question_id, score, evaluation_results):
     return await add_question_evaluation(interview_id, question_id, score, evaluation_results)
