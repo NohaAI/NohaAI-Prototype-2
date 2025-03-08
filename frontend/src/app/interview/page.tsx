@@ -95,23 +95,25 @@ const MyPage = () => {
             delete chatMetaData.greeting;
             delete chatMetaData.termination;
 
-            const reqBody = {
-                ...chatMetaData,
-                "candidate_dialogue": data.text
-            }
-            const res = await axios.post(`${backendServiceLink}/chat`, reqBody);
+            // Directly update the candidate_dialogue field in chatMetaData
+            console.log("RMS=>:data.text");
+            chatMetaData.session_state.candidate_dialogue = data.text;
+            chatMetaData.chat_history[0].candidate_dialogue = data.text;
+            console.log("rms=>:chatMetaData:", chatMetaData);
+
+            const res = await axios.post(`${backendServiceLink}/chat`, chatMetaData);
             console.log("Received AI response", res.data);
+            
             setChatMetaData(res.data)
             updateChats(res.data.bot_dialogue);
-            speakText(res.data.bot_dialogue);
+            
+            await speakText(res.data.bot_dialogue);
 
             // check if the flag is true call the terminate api
             if(res.data.termination) {
-                setTimeout(() => {
-                    disconnect2()
-                    stopRecording();
-                    setCallEnded(true);
-                }, 4000);
+                disconnect2()
+                stopRecording();
+                setCallEnded(true);
             }
         } catch (error) {
             console.error("Error in handleStreamBack:", error);
@@ -125,18 +127,26 @@ const MyPage = () => {
         ]);
     };
 
-    const speakText = (text: string): void => {
-        if (!window.speechSynthesis) {
-            console.error("Speech synthesis is not supported in this browser.");
-            return;
-        }
+    const speakText = (text: string): Promise<void> => {
+        return new Promise((resolve) => {
+            if (!window.speechSynthesis) {
+                console.error("Speech synthesis is not supported in this browser.");
+                resolve();
+                return;
+            }
+        
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = "en-IN";
+            utterance.rate = 1;
+            utterance.pitch = 1;
 
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = "en-IN";
-        utterance.rate = 1;
-        utterance.pitch = 1;
+            utterance.onend = () => {
+                console.log("Speech finished");
+                resolve();
+            };
 
-        window.speechSynthesis.speak(utterance);
+            window.speechSynthesis.speak(utterance);
+        });
     };
 
     const handleSubmit = (data: { name: string; email: string }) => {
