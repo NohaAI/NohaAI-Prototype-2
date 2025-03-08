@@ -208,7 +208,7 @@ class QuestionEvaluationUpdateRequest(BaseModel):
     question_evaluation_json: Optional[str] = Field(default=None,min_length=2,max_length=500    )
 
 # Define the schema for adding new evaluations
-class QuestionEvaluationRequest(QuestionEvaluationUpdateRequest):
+class AssessmentRequest(QuestionEvaluationUpdateRequest):
     """
     Request model for adding question evaluation.
 
@@ -220,22 +220,22 @@ class QuestionEvaluationRequest(QuestionEvaluationUpdateRequest):
     question_id: int
 
 # Define the response schema for question evaluations
-class QuestionEvaluationResponse(BaseModel):
+class AssessmentResponse(BaseModel):
     """
     Response model for question evaluation.
 
     Attributes:
-        question_evaluation_id (int): Unique identifier for interview question evaluation table
+        assessment_id (int): Unique identifier for interview question evaluation table
         interview_id (int): ID of the interview
         question_id (int): ID of the question that was asked in interview with provided interview_id
         score (Optional[float]): Score obtained by the candidate
-        question_evaluation_json (Optional[str]): A string that contains question evaluation in a JSON format
+        assessment_payload_json (Optional[str]): A string that contains question evaluation in a JSON format
     """
-    question_evaluation_id: int
+    assessment_id: int
     interview_id: int
     question_id: int
     score: Optional[float]
-    question_evaluation_json: Optional[str]
+    assessment_payload_json: Optional[str]
 
 # Pydantic model to define the response structure for final evaluation JSON with input validation
 class FinalEvaluationResponse(BaseModel):
