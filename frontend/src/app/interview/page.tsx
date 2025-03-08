@@ -105,9 +105,9 @@ const MyPage = () => {
             console.log("Received AI response", res.data);
             
             setChatMetaData(res.data)
-            updateChats(res.data.bot_dialogue);
+            updateChats(res.data.session_state.bot_dialogue);
             
-            await speakText(res.data.bot_dialogue);
+            await speakText(res.data.session_state.bot_dialogue);
 
             // check if the flag is true call the terminate api
             if(res.data.termination) {
