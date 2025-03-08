@@ -4,12 +4,17 @@ from src.services.workflows.answer_evaluator import evaluate_answer
 from src.dao.question import get_random_question_metadata
 from src.services.workflows.candidate_dialogue_classifier import classify_candidate_dialogue
 from src.services.workflows.bot_dialogue_generatorv2 import generate_dialogue
-from src.services.workflows.answer_classifer import classify_candidate_technical_dialogue
+from src.services.workflows.candidate_solution_classifier import classify_candidate_solution
 from src.utils.logger import get_logger
 from src.utils import helper as helper
 from src.config import constants as CONST
 
 logger = get_logger(__name__)
+
+
+###############################################################################################################################
+################################################### VALIDATE INPUT ############################################################
+###############################################################################################################################
 
 def validate_input(session_state, chat_history, assessment_payload_record):
     if chat_history is None:
@@ -40,14 +45,21 @@ def validate_input(session_state, chat_history, assessment_payload_record):
         if key not in session_state or not isinstance(session_state[key], expected_type):
             raise ValueError(f"{key} is missing, null, or not of type {expected_type}")
         
+
+###############################################################################################################################
+################################################### PROCESS TECHNICAL #########################################################
+###############################################################################################################################  
     
-async def process_technical(distilled_candidate_dialogue, session_state, filtered_chat_history, assessment_payload_record):
+async def process_technical(session_state, chat_history, assessment):
     logger.info("\n\n>>>>>>>>>>>FUNCTION [process_technical] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+
+    helper.pretty_log("session_state", session_state)
+    helper.pretty_log("chat_history", chat_history)
+
     session_state['contiguous_non_technical_guardrail_count'] = 0
 
     ##### CALL CLASSIFY DIALOGUE (II CLASSIFICATION) #######
-    candidate_technical_dialogue_label, candidate_technical_dialogue_classification_rationale = await classify_candidate_technical_dialogue(session_state['bot_dialogue'], distilled_candidate_dialogue, filtered_chat_history, session_state['current_question']) # refactor into candidate tech dialogue
-    # bot_dialogue, candidate_dialogue, distilled_chat_history, question
+    candidate_technical_dialogue_label, candidate_technical_dialogue_classification_rationale = await classify_candidate_solution(session_state, chat_history, assessment)
     
     if candidate_technical_dialogue_label in CONST.TECHNICAL_LABELS_TO_BE_EVALUATED:
         logger.info(f"ENTERED EVALUATE ANSWER FOR TURN {session_state['turn_number']}")
@@ -71,31 +83,35 @@ async def process_technical(distilled_candidate_dialogue, session_state, filtere
     return candidate_technical_dialogue_label, candidate_technical_dialogue_classification_rationale,  bot_dialogue_rationale, bot_dialogue_subcriterion, assessment_payload_rationale, session_state, assessment_payload_record
 
 
+###############################################################################################################################
+################################################### PROCESS NON TECHNICAL  ####################################################
+###############################################################################################################################
 
-async def process_non_technical(session_state, chat_history, assessment, label_class1):
+async def process_non_technical(session_state, chat_history, assessment, candidate_dialogue_rationale):
     logger.info("\n\n>>>>>>>>>>>FUNCTION [process_non_technical] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 
-    pretty
-    if label_class1 == 'request(termination)':
+    helper.pretty_log("session_state", session_state)
+    helper.pretty_log("chat_history", chat_history)
+    
+    if session_state['label_class1'] == 'request(termination)':
         session_state['consecutive_termination_request_count'] +=1
     else:
         session_state['consecutive_termination_request_count'] = 0
 
     
     ##### CALL GENERATE DIALOGUE IN PROCESS NON-TECHNICAL ######
-    bot_dialogue, bot_dialogue_rationale, but_dialogue_subcriterion, session_state['next_action'] = await generate_dialogue(session_state, chat_history, assessment, label_class1, rationale = None)
+    bot_dialogue_rationale, bot_dialogue_causal_subcriterion = await generate_dialogue(session_state, chat_history, assessment, candidate_dialogue_rationale)
 
     session_state['bot_dialogue_type'] = 'follow-up'
-    
-    logger.info(f"EXITED BOT DIALOGUE GENERATOR FOR TURN {session_state['turn_number']}")
-    
-    session_state['bot_dialogue']=bot_dialogue
     session_state['turn_number'] += 1
     
-    return bot_dialogue_rationale, but_dialogue_subcriterion, session_state
+    logger.info(">>>>>>>>>>>FUNCTION EXIT [process_non_technical] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
+    return bot_dialogue_rationale, bot_dialogue_causal_subcriterion
 
 
-
+###############################################################################################################################
+############################################### GENERATE ACTION OVERRIDES #####################################################
+###############################################################################################################################
 
 async def generate_action_overrides(session_state, assessment_payload_record):
     final_score = assessment_payload_record.return_final_score(session_state['interview_id'], session_state['questions_asked'][-1]) #getting final score from assessment_payload_record for an interview_id and question_id 
@@ -127,7 +143,9 @@ async def generate_action_overrides(session_state, assessment_payload_record):
 
 
 
-
+###############################################################################################################################
+################################################### PERFORM ACTIONS ###########################################################
+###############################################################################################################################
 
 async def perform_actions(session_state, assessment_payload_record):
     if(session_state['next_action'] == "terminate_interview_confirmation"):
@@ -240,7 +258,9 @@ def log_data(candidate_dialogue, distilled_candidate_dialogue, bot_dialogue_rati
 
 
 
-
+###############################################################################################################################
+################################################### GET NEXT RESPONSE #########################################################
+###############################################################################################################################
 
 async def get_next_response(session_state, chat_history, assessment):
     logger.info("\n\n>>>>>>>>>>>FUNCTION [get_next_response] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
@@ -252,15 +272,15 @@ async def get_next_response(session_state, chat_history, assessment):
     #### ENABLE THE VALIDATE_INPUT() LATER IF REQUIRED
     #### validate_input(session_state, chat_history_record, assessment_payload_record) #used for validating inputs received in get_next_response
     
-    label_class1, candidate_dialogue_rationale = await classify_candidate_dialogue(session_state, chat_history)
+    candidate_dialogue_rationale = await classify_candidate_dialogue(session_state, chat_history)
 
-   
-    helper.pretty_log("candidate_dialogue_label", label_class1)
     helper.pretty_log("candidate_dialogue_rationale", candidate_dialogue_rationale)
     helper.pretty_log("session_state}", session_state)
 
-    if label_class1 in CONST.TECHNICAL_LABELS:
-        logger.info("Candidate dialogue label '%s' is in TECHNICAL_LABELS. Processing as technical dialogue.", label_class1)
+    if session_state["label_class1"] in CONST.TECHNICAL_LABELS:
+        
+        logger.info("Candidate dialogue label '%s' is in TECHNICAL_LABELS. Processing as technical dialogue.", session_state["label_class1"])
+
         (
             candidate_technical_dialogue_label, 
             candidate_technical_dialogue_classification_rationale,  
@@ -269,25 +289,22 @@ async def get_next_response(session_state, chat_history, assessment):
             assessment_payload_rationale, 
             session_state, 
             assessment
-        ) = await process_technical(distilled_candidate_dialogue, session_state, chat_history, assessment)
+        ) = await process_technical(session_state, chat_history, assessment)
 
         logger.info("Processed technical dialogue. Label: %s, Rationale: %s", candidate_technical_dialogue_label, candidate_technical_dialogue_classification_rationale)
 
-    elif label_class1 in CONST.NON_TECHNICAL_LABELS:
-        logger.info("Candidate dialogue label '%s' is not technical. Processing as non-technical dialogue.", label_class1)
-
+    elif session_state["label_class1"] in CONST.NON_TECHNICAL_LABELS:
+        logger.info("Candidate dialogue label '%s' is not technical. Processing as non-technical dialogue.", session_state['label_class1'])
         (
             bot_dialogue_rationale, 
-            bot_dialogue_subcriterion
-        ) = await process_non_technical(session_state, chat_history, assessment, label_class1)
+            bot_dialogue_causal_subcriterion
+        ) = await process_non_technical(session_state, chat_history, assessment, candidate_dialogue_rationale)
 
-        candidate_technical_dialogue_label = "None"
-        candidate_technical_dialogue_classification_rationale = "None"
-        assessment_payload_rationale = "None"
-        logger.info("Non-technical processing completed. Assigned 'None' values for missing technical fields.")
-
+        helper.pretty_log("bot_dialogue_rationale", bot_dialogue_rationale)
+        helper.pretty_log("bot_dialogue_causal_subcriterion", bot_dialogue_causal_subcriterion)
     else:
-        logger.info("Candidate dialogue label '%s' is neither technical nor non-technical.", label_class1)
+        logger.info("Candidate dialogue label '%s' is neither technical nor non-technical.", session_state['label_class1'])
+    return session_state, chat_history, assessment
 
 
 # async def get_next_response_old(candidate_dialogue, session_state, chat_history, assessment_payload_record):
