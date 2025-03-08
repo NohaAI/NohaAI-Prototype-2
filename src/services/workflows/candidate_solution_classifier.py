@@ -4,7 +4,7 @@ from src.services.llm import llm_service
 from src.services.llm.prompts.answer_classifier_prompt import classify_candidate_answer_prompt_template
 logger = logger.get_logger(__name__)
 
-async def classify_candidate_technical_dialogue(bot_dialogue, candidate_dialogue, distilled_chat_history, question):
+async def classify_candidate_solution(bot_dialogue, candidate_dialogue, distilled_chat_history, question):
     classify_candidate_answer_prompt=classify_candidate_answer_prompt_template() #TODO refactor same as the func above
     llm_model = llm_service.get_openai_model()
     classify_candidate_answer_chain=(classify_candidate_answer_prompt|llm_model)
