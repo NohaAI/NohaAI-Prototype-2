@@ -13,15 +13,17 @@ def classify_candidate_dialogue_prompt_template():
   chat_history: {chat_history}
   distilled_candidate_dialogue: {distilled_candidate_dialogue}
   
-  Before beginning to classify the candidate_dialogue please normalize the candidate_dialogue text as follows : 
-    * For confimatory responses like "yes", "no" etc. do not make any changes   
-    * For other kinds of texts summarize the candidate dialogue 
-    * Also make grammatical corrections (including typos, punctuations) to candidate_dialogue  
-  Assign the normalized text to it "distilled_candidate_dialogue".  
-                   
+  Before beginning to classify the candidate_dialogue please preprocess the contents of candidate_dialogue as per the following instructions:
+    * If candidate_dialogue contains confimatory responses like "yes", "no" etc. 
+      - assign the response to distilled_candidate_dialogue without any preprocessing
+    * If candidate_dialogue contains other kinds of texts summarize them and
+      - assign the summarised text to distilled_candidate_dialogue
+    * If candidate_dialogue contains grammatical errors, make the corrections (including typos, punctuations) to the text and
+      - assign it finally to distilled_candidate_dialogue
+  
   The following is the list of classes alongwith their definitions
   
-  When classifying the candidate_dialogue the 'class' must be one of:
+  When classifying, the distilled_candidate_dialogue will be used and               the 'class' must be one of:
   - technical - Candidate has attempted to solve this question 
   - illegible - Possibly some gibberish output or non-standard words coming from STT
   - irrelevant - Candidate responses that are irrelevant to the conversation
@@ -107,7 +109,16 @@ def classify_candidate_dialogue_prompt_template():
     * The candidate explicitly states they do not know how to proceed or solve a problem
 
   You must respond ONLY in this exact format:
-  ["class", "rationale", "distilled_candidate_dialogue"] where 'rationale' is your reasoning for classifying it as such
+  ["class", "rationale", "distilled_candidate_dialogue"] 
+
+  Requirements:
+  1. List must contain exactly 3 elements
+  2. No element must be empty otherwise you will be penalized
+  3. Elements are defined as:
+    - class: Classification or category
+    - rationale: Your reasoning for generating the response
+    - distilled_candidate_dialogue: the refined and corrected text
+  
   """
   classify_candidate_dialogue_prompt=ChatPromptTemplate.from_template(template=prompt)
   return classify_candidate_dialogue_prompt
@@ -214,6 +225,8 @@ def classify_candidate_dialogue_prompt_template_prod():
 
   You must respond ONLY in this exact format:
   ["class", "rationale","distilled_candidate_dialogue"] where 'rationale' is your reasoning for classifying it as such
+
+  The list format must be preserved exactly as shown above.
   """
   classify_candidate_dialogue_prompt=ChatPromptTemplate.from_template(template=prompt)
   return classify_candidate_dialogue_prompt
