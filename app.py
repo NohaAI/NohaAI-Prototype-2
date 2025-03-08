@@ -2,19 +2,23 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import json
+import importlib.resources as res
 import traceback
 from typing import Dict, Any
 
 # Import statements remain the same as in the original Flask app
-from src.dao.interview_session_state import add_interview_session_state
+# from src.dao.interview_session_state import add_interview_session_state
 from src.utils.logger import get_logger
-from src.dao.chat_history import batch_insert_chat_history
-from src.dao.interview_question_evaluation import batch_insert_interview_question_evaluation
+from src.api.chat_history import batch_insert_chat_history
+# from src.dao.interview_question_evaluation import batch_insert_interview_question_evaluation
 from src.services.workflows.graph import get_next_response
 from src.api.demo_user import initialize_interview
 from src.services.workflows.candidate_greeter import generate_greeting
-from src.dao.data_objects.chat_history import ChatHistoryRecord
-from src.dao.data_objects.assessment_payload import AssessmentPayloadRecord
+from src.dao.chat_history_data.chat_history_record import ChatHistoryRecord
+from src.dao.assessment_data.assessment_record import AssessmentRecord
+from src.config import constants as CONST
+from src.dao.chat_history import ChatHistoryDAO
+from src.dao.assessment import AssessmentDAO
 
 # Ensure logs are visible
 logger = get_logger(__name__)
@@ -33,14 +37,15 @@ app.add_middleware(
 @app.get('/connect')
 async def connect():
     #TODO: USE ONLY FOR WEBSOCKETS
-    logger.info("Client connected successfully.")
+    logger.info("\n\n\n Client connected successfully.............................")
     return {"message": "Connected successfully"}
     
 @app.post('/initialize')
 async def initialize(request: Request):
+    logger.info("\n>>>>>>>>>>>FUNCTION [initialize] >>>>>>>>>>>>>>>>>>>>>>>>>>")
     try:
         initialization_request = await request.json()
-        logger.info(f"INITIALIZATION REQUEST{initialization_request}")
+        logger.info(f"INITIALIZATION REQUEST FROM CLIENT {initialization_request}")
         
         if not initialization_request:
             raise HTTPException(status_code=400, detail="Missing request body")
@@ -59,34 +64,86 @@ async def initialize(request: Request):
         logger.info(f"USER ID FOR USER: {user_id}")
         greeting = await generate_greeting(user_id) 
 
+
         session_state = {
+            "interview_id": interview_id,   # has to be dynamically assigned
+            "bot_dialogue": greeting,   # has to be dynamically assigned
+            "candidate_dialogue": CONST.DEF_CANDIDATE_DIALOGUE, # has to be dynamically assigned
+            "turn_number": CONST.DEF_TURN_NUMBER,
+            "consecutive_termination_request_count": CONST.DEF_CONSECUTIVE_TERMINATION_REQUEST_COUNT,
+            "guardrail_count": CONST.DEF_GUARDRAIL_COUNT,
+            "contiguous_technical_guardrail_count": CONST.DEF_CONTIGUOUS_TECHNICAL_GUARDRAIL_COUNT,
+            "contiguous_non_technical_guardrail_count": CONST.DEF_CONTIGUOUS_NON_TECHNICAL_GUARDRAIL_COUNT,
+            "termination": CONST.DEF_TERMINATION,
+            "current_question": CONST.DEF_CURRENT_QUESTION,
+            "next_action": CONST.DEF_NEXT_ACTION,
+            "questions_asked": CONST.DEF_QUESTIONS_ASKED,
+            "bot_dialogue_type": CONST.DEF_BOT_DIALOGUE_TYPE,
+            "complexity": CONST.DEF_COMPLEXITY,
+            "label_class1": CONST.DEF_LABEL_CLASS1,
+            "label_class2": CONST.DEF_LABEL_CLASS2
+        }
+
+        chat_history_record = {
             "interview_id": interview_id,
-            "turn_number": 0,
-            "consecutive_termination_request_count": 0,
+            "question_id": CONST.DEF_QUESTION_ID,
+            "bot_dialogue_type": CONST.DEF_BOT_DIALOGUE_TYPE,
             "bot_dialogue": greeting,
-            "guardrail_count": 0,
-            "contiguous_technical_guardrail_count": 0,
-            "contiguous_non_technical_guardrail_count": 0,
-            "termination": False,
-            "current_question": "",
-            "next_action": "get_new_question",
-            "questions_asked": [],
-            "bot_dialogue_type": "greeting",
-            "complexity": None
+            "candidate_dialogue": CONST.DEF_CANDIDATE_DIALOGUE,
+            "distilled_candidate_dialogue": CONST.DEF_DISTILLED_CANDIDATE_DIALOGUE
         }
+
+        assessment_record = {
+            "interview_id": interview_id,
+            "question_id": CONST.DEF_QUESTION_ID,
+            "score": CONST.DEF_SCORE,
+            "assessment_payload": json.load(res.open_text("src.schemas.evaluation", "assessment_payload.json"))  
+        }
+
+        # refactor this entire assessment payload record similar to chat_history refactoring above
+        # create a structure assessment_data/assessment_record.py to model assessment record
+        # create a DAO class and decouple the FastAPI code and DAO code accordingly
+        # initialize the assessment payload record for the first turn here as above for chat_history
+        # assign DEFAULT constants like again above for chat_history
+        # For now, continuing with the original flow in interest of time and debugging other issues
+        # assessment_payload_record = AssessmentPayloadRecord()
         
-        assessment_payload_record = AssessmentPayloadRecord()
-        chat_history = ChatHistoryRecord()
-        
+
+        # initialize an instance each of ChatHistoryDAO and (later for AssessmentPayloadDAO) 
+        chat_history_dao = ChatHistoryDAO()
+        chat_history = chat_history_dao.get_chat_history(interview_id=interview_id)
+        chat_history.append(chat_history_record)
+
+        logger.info("CHAT HISTORY PREPARED TO BE ADDED TO INITIALIZATION RESPONSE: %s", json.dumps(chat_history, indent=4))
+
+        assessment_dao = AssessmentDAO()
+        assessment = assessment_dao.get_assessments(interview_id=interview_id)
+        assessment.append(assessment_record)
+
         initialization_response = {
-            "message": f"INTERVIEW INTIALIZED WITH INTERVIEW ID : {interview_id}",
-            "greeting": greeting,
-            "session_state": json.dumps(session_state),
-            "chat_history": json.dumps(chat_history),
-            "assessment_payload_record": json.dumps(assessment_payload_record)
+            "session_state": session_state,
+            "chat_history": chat_history,
+            "assessment": assessment
         }
+
+
+        ################## THE FOLLOWING CODE ALONGWITH THE LARGE RESPONSE, IS IT REQUIRED?? ############
+        # assessment_payload_record = AssessmentPayloadRecord()
+
+        # chat_history_dao = ChatHistoryDAO()
+        # chat_history_record = ChatHistoryRecord()
         
-        logger.info(f"INITIALIZEATION RESPONSE : {initialization_response}")
+        # initialization_response = {
+        #     "message": f"INTERVIEW INTIALIZED WITH INTERVIEW ID : {interview_id}",
+        #     "greeting": greeting,
+        #     "session_state": json.dumps(session_state),
+        #     "chat_history": json.dumps(chat_history_record),
+        #     "assessment_payload_record": json.dumps(assessment_payload_record)
+        # }
+        ############ END BLOCK, DISCUSS AND DELETE ##################
+
+
+        logger.info("INITIALIZATION RESPONSE FOR CLIENT : %s", json.dumps(initialization_response, indent=4))
         return initialization_response
     except Exception as e:
         logger.critical(f"ERROR INITIALIZING THE INTERVIEW : {e}")
@@ -95,59 +152,53 @@ async def initialize(request: Request):
 
 @app.post('/chat')
 async def chat(request: Request):
+    logger.info("\n>>>>>>>>>>>FUNCTION [chat] >>>>>>>>>>>>>>>>>>>>>>>>>>")
     try:
-        candidate_request = await request.json()
-        logger.info(f"REQUEST BODY RECIEVED FROM USER : {candidate_request} ")
+        chat_request = await request.json()
+        logger.info(f"CHAT REQUEST FROM CLIENT : {json.dumps(chat_request, indent=4)} ")
         
         # Validate request body
-        if not candidate_request:
+        if not chat_request:
             raise HTTPException(status_code=400, detail="Missing request body")
         
         required_fields = [
-            "candidate_dialogue", 
             "session_state", 
             "chat_history", 
-            "assessment_payload_record"
+            "assessment",
         ]
         
         for field in required_fields:
-            if field not in candidate_request:
+            if field not in chat_request:
                 raise HTTPException(status_code=400, detail=f"Missing '{field}' field in candidate request")
         
-        candidate_dialogue = candidate_request["candidate_dialogue"]
-        session_state = json.loads(candidate_request["session_state"])
-        chat_history_data = json.loads(candidate_request["chat_history"])
-        assessment_payload_data = json.loads(candidate_request["assessment_payload_record"])
+        session_state = chat_request["session_state"]
+        chat_history = chat_request["chat_history"]
+        assessment = chat_request["assessment"]
 
-        chat_history = ChatHistoryRecord()  
-        chat_history.extend(chat_history_data)  
+        # chat_history = ChatHistoryRecord()  
+        # chat_history.extend(chat_history_data)  
 
-        assessment_payload_record = AssessmentPayloadRecord()  
-        assessment_payload_record.extend(assessment_payload_data)
-
-        logger.info(f"TEXT RECIVED FROM THE USER : {candidate_dialogue}")
+        # assessment_payload_record = AssessmentPayloadRecord()  
+        # assessment_payload_record.extend(assessment_payload_data)
         
-        bot_dialogue, session_state, chat_history, assessment_payload_record = await get_next_response(
-            candidate_dialogue, 
+        logger.info("\n CHAT PAYLOAD FOR BACKEND:::(GET_NEXT_RESPONSE): >>>>>>>>> \n %s \n %s \n %s", json.dumps(session_state, indent=4), json.dumps(chat_history, indent = 4), json.dumps(assessment, indent = 4))
+        
+        session_state, chat_history, assessment = await get_next_response( 
             session_state, 
             chat_history, 
-            assessment_payload_record
+            assessment
         )
 
-        logger.info(f"BOT RESPONSE : {bot_dialogue}")
-        logger.info(f"UPDATED SESSION STATE : {session_state}")
-        logger.info(f"CHAT HISTORY : {chat_history}")
-        logger.info(f"ASSESSMENT PAYLOAD : {assessment_payload_record}")
+        logger.info("\n CHAT PAYLOAD FROM BACKEND:::(GET_NEXT_RESPONSE): <<<<<<<<<< \n  %s \n %s \n %s", json.dumps(session_state, indent=4), json.dumps(chat_history, indent = 4), json.dumps(assessment, indent = 4))
         
         chat_response = {
-            "bot_dialogue": bot_dialogue,
-            "termination": session_state['termination'],
-            "session_state": json.dumps(session_state),
-            "chat_history": json.dumps(chat_history),
-            "assessment_payload_record": json.dumps(assessment_payload_record)
+            "session_state": session_state,
+            "chat_history": chat_history,
+            "assessment": assessment
         }
         
-        logger.info(f"CHAT RESPONSE : {chat_response}")
+        logger.info(f"CHAT REQUEST FROM CLIENT : {json.dumps(chat_response, indent=4)} ")
+
         return chat_response
     except Exception as e:
         logger.critical(f"ERROR PROCESSING CANDIDATE CHAT REQUEST : {e}", exc_info=True)
@@ -155,6 +206,7 @@ async def chat(request: Request):
 
 @app.post('/terminate')
 async def terminate(request: Request):
+    logger.info("\n>>>>>>>>>>>FUNCTION [terminate] >>>>>>>>>>>>>>>>>>>>>>>>>>")
     termination_request = await request.json()
     
     # Validate request body
@@ -212,9 +264,9 @@ async def terminate(request: Request):
 
 @app.get('/disconnect')
 async def disconnect():
-    logger.info("Client disconnect successfull.")
-    return {"message": "disconnect successfully"}
+    logger.info("Client disconnect successfully......................................\n\n\n")
+    return {"message": "Disconnected successfully"}
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run(app, host='0.0.0.0', port=5000)
+    uvicorn.run(app, host='0.0.0.0', port=5001)
