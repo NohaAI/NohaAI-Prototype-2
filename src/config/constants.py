@@ -46,6 +46,7 @@ DEF_BOT_DIALOGUE_TYPE = "greeting"
 DEF_COMPLEXITY = 1
 DEF_LABEL_CLASS1 = None
 DEF_LABEL_CLASS2 = None
+DEF_SOLUTION_CLASSIFIER_EXECUTED = False
 
 # CHAT HISTORY DEFAULTS ###########################################################
 ### DEF_INTERVIEW_ID = None # have been already defined in session defaults section
