@@ -81,7 +81,8 @@ async def initialize(request: Request):
             "bot_dialogue_type": CONST.DEF_BOT_DIALOGUE_TYPE,
             "complexity": CONST.DEF_COMPLEXITY,
             "label_class1": CONST.DEF_LABEL_CLASS1,
-            "label_class2": CONST.DEF_LABEL_CLASS2
+            "label_class2": CONST.DEF_LABEL_CLASS2,
+            "solution_classifier_executed": CONST.DEF_SOLUTION_CLASSIFIER_EXECUTED
         }
 
         chat_history_record = {
