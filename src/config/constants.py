@@ -13,11 +13,11 @@ THRESHOLD_TOTAL_NUMBER_OF_QUESTIONS = 2
 GREETING_SUFFIX = "Ready?"
 GREETING_SUFFIX_ORIG = "I am Noha! I am your interviewer today. We have planned a data structures and algorithms interview with you, are you good to go?"
 QUESTION_SOLVED = "Since you have solved this question, can you now start writing code for it?"
-GUARDRAIL_TRIGGERED_QUESTIONS_LEFT = "It seems there is a lack of clarity. Let us move on to the next question : "
-GUARDRAIL_TRIGGERED_NO_QUESTIONS_LEFT = "It seems there is a lack of clarity. Let us conclude here."
+GUARDRAIL_TRIGGERED_QUESTIONS_REMAIN = "It seems there is a lack of clarity. Let us move on to the next question : "
+GUARDRAIL_TRIGGERED_NO_QUESTIONS_REMAIN = "It seems there is a lack of clarity. Let us conclude here."
 TERMINATION = "Thank you for your participation"
-MAX_TURNS_TRIGGERED_QUESTIONS_LEFT = "So far so good, let us move on to the next question : "
-MAX_TURNS_TRIGGERED_NO_QUESTIONS_LEFT = "We appreciate your effort on the problem! Now, can you code it for us? Let us know when you're ready."
+MAX_TURNS_TRIGGERED_QUESTIONS_REMAIN = "So far so good, let us move on to the next question : "
+MAX_TURNS_TRIGGERED_NO_QUESTIONS_REMAIN = "We appreciate your effort on the problem! Now, can you code it for us? Let us know when you're ready."
 ALL_QUESTIONS_ANSWERED = "Thank you for your participation"
 
 # LIST OF LABELS ################################################################
@@ -39,7 +39,7 @@ DEF_GUARDRAIL_COUNT = 0
 DEF_CONTIGUOUS_TECHNICAL_GUARDRAIL_COUNT = 0
 DEF_CONTIGUOUS_NON_TECHNICAL_GUARDRAIL_COUNT = 0
 DEF_TERMINATION = False
-DEF_CURRENT_QUESTION = None
+DEF_PRIMARY_QUESTION = None
 DEF_NEXT_ACTION = "Pass"
 DEF_QUESTIONS_ASKED = []
 DEF_BOT_DIALOGUE_TYPE = "greeting"
