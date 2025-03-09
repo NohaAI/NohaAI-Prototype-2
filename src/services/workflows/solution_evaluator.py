@@ -20,7 +20,7 @@ logger = logger.get_logger(__name__)
 ###  assessment_payload, assessment_payload_rationale = await evaluate_answer(session_state['question_id'], session_state['bot_dialogue'], distilled_candidate_dialogue, distilled_chat_history, assessment_payload)
 
 
-async def evaluate_answer(bot_dialogue, distilled_candidate_dialogue, distilled_chat_history, assessment_payload):
+async def evaluate_answer(session_state, chat_history, assessment):
     """
     Orchestrates the evaluation process for a given query.
     
