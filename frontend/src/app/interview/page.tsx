@@ -21,7 +21,7 @@ const MyPage = () => {
     const [isMicOn, setIsMicOn] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
     const [transcribedText, setTranscribedText] = useState("");
-    const [isProcessing, setIsProcessing] = useState(false); // NEW: Processing state
+    const [isProcessing, setIsProcessing] = useState(false);  
     const [chatMetaData, setChatMetaData] = useState({} as any);
 
     const [isAudioPlaying, setIsAudioPlaying] = useState(false);
@@ -54,14 +54,6 @@ const MyPage = () => {
             setChatMetaData(() => chatResponse)
             updateChats(chatResponse.bot_dialogue);
             speakText(chatResponse.bot_dialogue, { termination: chatResponse.termination });
-
-            // if(chatResponse.termination) {
-            //     setTimeout(() => {
-            //         disconnect()
-            //         stopRecording();
-            //         setCallEnded(true);
-            //     }, 4000);
-            // }
 
         });
 
