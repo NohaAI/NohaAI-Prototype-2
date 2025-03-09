@@ -28,10 +28,10 @@ def classify_candidate_dialogue_prompt_template():
   - illegible - Possibly some gibberish output or non-standard words coming from STT
   - irrelevant - Candidate responses that are irrelevant to the conversation
   - interview_inquiry - Candidate inquires about the interview
-  - clarification(specific) -  A candidate asks if specific knowledge is required
-  - clarification(open) - Candidate asks a generic/non-specific expecting detailed guidance or a stepwise explanation
   - confirmation - Candidate expresses his willingness in the form of confirmatory response
   - negation - Candidate expresses his unwillingness in the form of negative response
+  - clarification(specific) -  A candidate asks if specific knowledge is required
+  - clarification(open) - Candidate asks a generic/non-specific expecting detailed guidance or a stepwise explanation
   - request(new_question) - Candidate explicitly requests for a new question
   - request(termination) - Candidate explicitly requests to end the interview 
   - request(proceed) - Candidate requests for a go-ahead to solve the problem
