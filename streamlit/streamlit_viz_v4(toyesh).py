@@ -5,7 +5,7 @@ import plotly.express as px
 import asyncio
 import json
 from src.schemas.endpoints.schema import EvaluateAnswerRequest
-from src.services.workflows import answer_evaluator
+from src.services.workflows import solution_evaluator
 from src.services.workflows.hint_generator import generate_hint
 from src.dao.question import get_question_metadata
 from src.dao.chat_history import get_chat_history
@@ -51,7 +51,7 @@ async def async_classify_candidate_dialogue(question, answer, interim_chat_histo
     return await classify_candidate_dialogue(question, answer, interim_chat_history)
 
 async def async_evaluate_answer(evaluation_input,prev_eval=None):
-    return await answer_evaluator.evaluate_answer(evaluation_input,prev_eval)
+    return await solution_evaluator.evaluate_answer(evaluation_input,prev_eval)
 
 async def async_batch_insert_chat_history(interview_id,question_id,chat_history_data):
     return await batch_insert_chat_history(interview_id,question_id,chat_history_data)

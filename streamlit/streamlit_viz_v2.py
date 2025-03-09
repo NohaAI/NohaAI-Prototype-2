@@ -13,7 +13,7 @@ from src.api import endpoints
 from src.schemas.endpoints.schema import GenerateSubCriteriaRequest,EvaluateAnswerRequest, GenerateHintRequest
 from src.services.workflows.candidate_greeter import generate_greeting
 from src.services.workflows import subcriteria_generator
-from src.services.workflows import answer_evaluator
+from src.services.workflows import solution_evaluator
 from src.services.workflows.hint_generator import generate_hint
 from src.utils.logger import get_logger
 from src.utils.response_helper import decorate_response
@@ -57,7 +57,7 @@ async def async_generate_hint(chat_history, meta_payload, hint_list):
     return await generate_hint(chat_history, meta_payload, hint_list)
 
 async def async_evaluate_answer(evaluation_input):
-    return await answer_evaluator.evaluate_answer(evaluation_input)
+    return await solution_evaluator.evaluate_answer(evaluation_input)
 
 
 # Function to run the async function and return results
