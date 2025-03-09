@@ -2,7 +2,7 @@
 import { useState, useRef } from "react";
 import { Mic, MicOff, Video, VideoOff, Phone, Pause } from "lucide-react";
 
-const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecording, startRecording, isMicOn, chats }: any) => {
+const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecording, startRecording, isMicOn, chats, isAudioPlaying }: any) => {
   console.log('isRecording', isRecording);
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [isMicActive, setIsMicActive] = useState(isMicOn);
@@ -64,9 +64,15 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
       
       {/* Call Controls */}
       <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-4 p-3 bg-black/50 rounded-full">
-        <button onClick={toggleMic} className="p-3 rounded-full bg-gray-700 hover:bg-gray-600 transition">
-          {isMicActive ? <Pause className="text-white w-6 h-6" /> : <Mic className="text-white w-6 h-6" />}
-        </button>
+      <button
+        disabled={isAudioPlaying}
+        onClick={toggleMic}
+        className="p-3 rounded-full bg-gray-700 hover:bg-gray-600 transition
+                  disabled:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isMicActive ? <Pause className="text-white w-6 h-6" /> : <Mic className="text-white w-6 h-6" />}
+      </button>
+
         <button onClick={toggleCamera} className="p-3 rounded-full bg-gray-700 hover:bg-gray-600 transition">
           {isCameraOn ? <Video className="text-white w-6 h-6" /> : <VideoOff className="text-white w-6 h-6" />}
         </button>

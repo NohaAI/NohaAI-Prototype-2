@@ -24,6 +24,8 @@ const MyPage = () => {
     const [isProcessing, setIsProcessing] = useState(false); // NEW: Processing state
     const [chatMetaData, setChatMetaData] = useState({} as any);
 
+    const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+
     const recognitionRef = useRef<any>(null);
 
     const startConnection = async (userDetails: any) => {
@@ -119,11 +121,13 @@ const MyPage = () => {
 
     // Event when speech starts
     utterance.onstart = () => {
+        setIsAudioPlaying(true);
         console.log("Speech started");
     };
  
     // Event when speech ends
     utterance.onend = () => {
+        setIsAudioPlaying(false);
         console.log("Speech finished", info);
         if(info?.termination) {
                 disconnect()
@@ -255,7 +259,8 @@ const MyPage = () => {
                     startRecording={startRecording}
                     stopRecording={stopRecording}
                     isRecording={isRecording}
-                    isProcessing={isProcessing} // Pass processing state to show dot on mic
+                    isProcessing={isProcessing}
+                    isAudioPlaying={isAudioPlaying}
                 />
             ))}
             {callEnded && <Feedback sendFeedback={sendFeedback} />}
