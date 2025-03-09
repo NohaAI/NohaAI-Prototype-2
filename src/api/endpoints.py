@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 from src.schemas.endpoints.schema import GenerateSubCriteriaRequest,EvaluateAnswerRequest, GenerateHintRequest
-from src.services.workflows import subcriteria_generator,answer_evaluator
+from src.services.workflows import solution_evaluator, subcriteria_generator
 from src.utils.logger import get_logger
 from typing import List
 from src.utils.helper import decorate_response
@@ -17,7 +17,7 @@ from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConne
 from src.dao.question import get_question_metadata
 from src.dao.exceptions import QuestionNotFoundException,InterviewNotFoundException
 from src.services.workflows.candidate_greeter import generate_greeting
-from src.services.workflows import answer_evaluator
+from src.services.workflows import solution_evaluator
 from src.services.workflows.hint_generator import generate_hint
 from test.simulate_candidate_response import simulate_candidate_response
 from src.dao.chat_history import get_chat_history
@@ -94,7 +94,7 @@ async def evaluate_answer(input_request: EvaluateAnswerRequest) -> JSONResponse:
             - httpStatusCode: HTTP status code
     """
     try:
-        response = await answer_evaluator.evaluate_answer(input_request)
+        response = await solution_evaluator.evaluate_answer(input_request)
         logger.info("Successfully evaluated answer")
         # return decorate_response(True, response)
         return response
