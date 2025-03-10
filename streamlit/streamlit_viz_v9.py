@@ -61,7 +61,7 @@ async def async_classify_candidate_dialogue(question, answer, interim_chat_histo
     return await classify_candidate_dialogue(question, answer, interim_chat_history)
 
 async def async_evaluate_answer(evaluation_input, prev_eval=None):
-    return await solution_evaluator.evaluate_answer(evaluation_input, prev_eval)
+    return await solution_evaluator.evaluate_solution(evaluation_input, prev_eval)
 
 async def async_batch_insert_chat_history(interview_id,question_id,chat_history_data):
     return await batch_insert_chat_history(interview_id,question_id,chat_history_data)

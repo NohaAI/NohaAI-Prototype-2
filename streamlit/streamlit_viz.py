@@ -57,7 +57,7 @@ async def async_generate_hint(chat_history, meta_payload, hint_list):
     return await generate_hint(chat_history, meta_payload, hint_list)
 
 async def async_evaluate_answer(evaluation_input):
-    return await solution_evaluator.evaluate_answer(evaluation_input)
+    return await solution_evaluator.evaluate_solution(evaluation_input)
 
 
 # Function to run the async function and return results
