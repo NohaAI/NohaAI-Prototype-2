@@ -23,7 +23,7 @@ async def generate_dialogue(session_state, chat_history, assessment, rationale=N
     bot_dialogue_prompt_chain=(bot_dialogue_prompt|llm_model)
     
     llm_inputs = {'class_label': class_label,
-                'current_question': session_state['current_question'],
+                'primary_question': session_state['primary_question'],
                 'bot_dialogue':  session_state['bot_dialogue'],
                 'candidate_dialogue': session_state['candidate_dialogue'],
                 'chat_history' : chat_history,
@@ -34,8 +34,7 @@ async def generate_dialogue(session_state, chat_history, assessment, rationale=N
     llm_response_bot_dialogue_generator = await bot_dialogue_prompt_chain.ainvoke(llm_inputs)
     llm_content_bot_dialogue_generator = json.loads(llm_response_bot_dialogue_generator.content)
 
-    helper.pretty_log("CLASSIFY CANDIDATE DIALOGUE LLM OUTPUT", llm_content_bot_dialogue_generator)
-
+    helper.pretty_log("CLASSIFY BOT DIALOGUE LLM OUTPUT", llm_content_bot_dialogue_generator)
 
     bot_dialogue = llm_content_bot_dialogue_generator['response']
     bot_dialogue_rationale = llm_content_bot_dialogue_generator['rationale']

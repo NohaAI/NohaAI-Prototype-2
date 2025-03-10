@@ -5,7 +5,7 @@ def bot_dialogue_prompt_template():
   prompt="""
     Given:
     class_label: {class_label}
-    current_question: {current_question}
+    primary_question: {primary_question}
     bot_dialogue (if any): {bot_dialogue}
     candidate_dialogue: {candidate_dialogue}
     chat_history: {chat_history}
@@ -51,7 +51,8 @@ def bot_dialogue_prompt_template():
   - If class is 'confirmation': Consider the most recent question in the chat history to which the candidate has positively responded.
     Based on the collective question and the positive response, reason about the intention of the candidate_dialogue.
     * If the intention seems to be close to one of the following categories then, follow the respective instructions given along side:
-      - "terminate_interview_confirmation": Respond with : "Thank you for your participation!", assign next_action as "terminate_interview_confirmation" 
+      - "readiness to end the interview": Respond with : "Thank you for your participation!", assign next_action as "terminate_interview_confirmation"
+      - "willingness and readiness to continue with the interview": Respond with : "Here it is: ", assign next_action as "get_primary_question"
     * Else:
       - Based on the intention identified above provide a concise response ensuring no implementation or algorithmic details are shared, assign next_action as "Pass"
 
@@ -73,7 +74,7 @@ def bot_dialogue_prompt_template():
     * Assign next_action as "Pass"
 
   - If class is 'request(new_question)': Acknowledge the candidate's request and provide a suitable response by confirming whether they are ready for the new question.
-    * Assign next_action as "Pass"
+    * Assign next_action as "get_primary_question"
 
   - If class is 'request(termination)': Pose a clear question to the candidate confirming that they want to end or terminate the interview
     * Assign next_action as "Pass"
@@ -95,7 +96,7 @@ def bot_dialogue_prompt_template():
     * Assign next_action as "Pass"
 
   - If class is 'inability': 
-    * If the candidate would like clarification on the current question
+    * If the candidate would like clarification on the primary question
       - Provide a suitable response in the form of a query
     * If the candidate wants to try a different question
       - Provide a suitable response in the form of a query

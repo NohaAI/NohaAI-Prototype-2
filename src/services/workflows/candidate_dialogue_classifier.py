@@ -11,7 +11,6 @@ async def classify_candidate_dialogue(session_state, chat_history):
     classify_candidate_dialogue_prompt=classify_candidate_dialogue_prompt_template()
     llm_model = llm_service.get_openai_model()
     classify_candidate_dialogue_chain=(classify_candidate_dialogue_prompt|llm_model)
-    # chat_history['distilled_candidate_dialogue'] = ""  # need to initialized the distilled_candidate_dialogue field to empty string for passing to LLM
 
     llm_inputs = {'bot_dialogue': session_state["bot_dialogue"],
                 'candidate_dialogue': session_state["candidate_dialogue"],
