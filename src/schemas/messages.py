@@ -1,8 +1,0 @@
-GREETING = "HI"
-QUESTION_SOLVED = "Since you have solved this question, can you now start writing code for it?"
-GUARDRAIL_TRIGGERED_QUESTIONS_LEFT = "It seems there is a lack of clarity. Let us move on to the next question : "
-GUARDRAIL_TRIGGERED_NO_QUESTIONS_LEFT = "It seems there is a lack of clarity. Let us conclude here."
-TERMINATION = "Thank you for your participation"
-MAX_TURNS_TRIGGERED_QUESTIONS_LEFT = "So far so good, let us move on to the next question : "
-MAX_TURNS_TRIGGERED_NO_QUESTIONS_LEFT = "We appreciate your effort on the problem! Now, can you code it for us? Let us know when you're ready."
-ALL_QUESTIONS_ANSWERED = "Thank you for your participation"

@@ -1,8 +1,14 @@
 from typing import Any
+import logging
+from src.utils.logger import get_logger
+import importlib.resources as res
 from fastapi.responses import JSONResponse
 from fastapi import status
 import json
 import os
+
+ # Configure logger if not already set up
+logger = get_logger(__name__)
 
 def decorate_response(succeeded: bool, message: Any, status_code: int = status.HTTP_200_OK) -> JSONResponse:
     """Creates a standardized JSON response.
@@ -30,10 +36,16 @@ def clean_response(response):
     return cleaned_subcriteria
 
 def get_assessment_payload():
-    file_path = os.path.join("src", "schemas", "evaluation", "assessment_payload.json")
-    with open(file_path, "r") as file:
-        assessment_payload = json.load(file)  
-    return assessment_payload
+    """
+    Loads a fresh instance of the assessment_payload from the JSON schema file.
+
+    Returns:
+        dict: The loaded assessment payload.
+    """
+    try:
+        return json.load(res.open_text("src.schemas.evaluation", "assessment_payload.json")) # todo: the path of this json file has to be added to configuration constants
+    except Exception as e:
+        raise RuntimeError(f"Error loading assessment_payload.json: {e}")
 
 
 def transform_subcriteria(input_data):
@@ -58,3 +70,23 @@ def transform_subcriteria(input_data):
 
     return result
 
+def pretty_log(title: str, data, log_level=logging.INFO):
+    """
+    Logs a structured dictionary or list in a pretty JSON format.
+
+    Args:
+        title (str): A descriptive title for the log entry.
+        data (dict | list | any): The structured data to log.
+        log_level (int, optional): Logging level (default is logging.INFO).
+    """
+
+    try:
+        if isinstance(data, (dict, list)):  
+            pretty_data = json.dumps(data, indent=4, ensure_ascii=False)
+        else:
+            pretty_data = str(data)
+
+        log_message = f"\n==== {title} ====\n{pretty_data}\n================="
+        logger.log(log_level, log_message)
+    except Exception as e:
+        logger.error(f"Error while logging {title}: {e}")

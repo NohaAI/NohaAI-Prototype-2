@@ -14,4 +14,7 @@ def fix_json(json_string):
     # Handle unescaped characters (very basic, expand as needed)
     json_string = json_string.replace('\\"', '"') # replace escaped quotes
 
+     #  Escape single quotes within strings
+    json_string = json_string.replace("'", "\\'")
+
     return json_string

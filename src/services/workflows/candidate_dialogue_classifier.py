@@ -1,29 +1,36 @@
 from src.utils import logger
+from src.utils import helper as helper
 from src.services.llm import llm_service
 import json
 from src.services.llm.prompts.classify_candidate_dialogue_prompt import classify_candidate_dialogue_prompt_template
 logger = logger.get_logger(__name__)
 
-async def classify_candidate_dialogue(bot_dialogue, candidate_dialogue,chat_history):
+async def classify_candidate_dialogue(session_state, chat_history):
+    logger.info("\n\n\n>>>>>>>>>>>FUNCTION [classify_candidate_dialogue] >>>>>>>>>>>>>>>>>>>>>>>>>>")
+
     classify_candidate_dialogue_prompt=classify_candidate_dialogue_prompt_template()
     llm_model = llm_service.get_openai_model()
-    distilled_dialogue = ""
     classify_candidate_dialogue_chain=(classify_candidate_dialogue_prompt|llm_model)
-    logger.info(f"INPUTS TO CLASSIFY CANDIDATE DIALOGUE : \n bot_dialogue: {bot_dialogue} \n candidate_dialogue : {candidate_dialogue} \n chat_history : {chat_history} \n distilled_dialogue : {distilled_dialogue}")
 
-    llm_inputs = {'bot_dialogue': bot_dialogue,
-                'candidate_dialogue': candidate_dialogue,
+    llm_inputs = {'bot_dialogue': session_state["bot_dialogue"],
+                'candidate_dialogue': session_state["candidate_dialogue"],
                 'chat_history': chat_history,
-                'distilled_candidate_dialogue': distilled_dialogue 
+                'distilled_candidate_dialogue': chat_history[-1]["distilled_candidate_dialogue"] 
                 }
 
-    classification_response = await classify_candidate_dialogue_chain.ainvoke(llm_inputs)
-    classification_content = json.loads(classification_response.content)
-    logger.info(f"CLASSIFICATION CONTENT FOR CANDIDATE DIALOGUE : {classification_content} \n")
-    #TODO: keep a if-else or try except to verify LLM Response
-    if len(classification_content) == 1:
-        classification_content.append("EMPTY RATIONALE FROM LLM")
-    label = classification_content[0]
-    rationale = classification_content[1]
-    distilled_dialogue = classification_content[2]
-    return label, rationale, distilled_dialogue #where 0, 1, 2 are label, rationale and distilled dialoguer respectively     
+    llm_response_candidate_dialogue_classification = await classify_candidate_dialogue_chain.ainvoke(llm_inputs)
+    llm_content_candidate_dialogue_classification = json.loads(llm_response_candidate_dialogue_classification.content)
+
+    helper.pretty_log("CLASSIFY CANDIDATE DIALOGUE LLM OUTPUT", llm_content_candidate_dialogue_classification)
+   
+    label_class1 = llm_content_candidate_dialogue_classification[0]
+    candidate_dialogue_rationale = llm_content_candidate_dialogue_classification[1]
+    distilled_candidate_dialogue = llm_content_candidate_dialogue_classification[2]
+
+     # update the respective fields in the session_state and chat_history
+    session_state['label_class1'] = label_class1 # updates the classifier 1 label in the session state
+    session_state['candidate_dialogue'] = distilled_candidate_dialogue  # replaces the original candidate_dialogue with the refined version to carry forward hereafter
+    chat_history[-1]['distilled_candidate_dialogue'] = distilled_candidate_dialogue # adds the distilled version for update in DB to the recentmost dict record in the chat_history list
+
+    logger.info(">>>>>>>>>>>FUNCTION EXIT [classify_candidate_dialogue] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
+    return candidate_dialogue_rationale
