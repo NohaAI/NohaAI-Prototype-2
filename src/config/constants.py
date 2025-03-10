@@ -13,19 +13,23 @@ THRESHOLD_TOTAL_NUMBER_OF_QUESTIONS = 2
 GREETING_SUFFIX = "Ready?"
 GREETING_SUFFIX_ORIG = "I am Noha! I am your interviewer today. We have planned a data structures and algorithms interview with you, are you good to go?"
 QUESTION_SOLVED = "Since you have solved this question, can you now start writing code for it?"
-GUARDRAIL_TRIGGERED_QUESTIONS_REMAIN = "It seems there is a lack of clarity. Let us move on to the next question : "
-GUARDRAIL_TRIGGERED_NO_QUESTIONS_REMAIN = "It seems there is a lack of clarity. Let us conclude here."
+GUARDRAIL_TRIGGERED_QUESTIONS_REMAIN = "It seems there is a lack of clarity in your responses. Let us move on to the next question : "
+GUARDRAIL_TRIGGERED_NO_QUESTIONS_REMAIN = "It seems there is a lack of clarity in your responses. Let us conclude here."
 TERMINATION = "Thank you for your participation"
 MAX_TURNS_TRIGGERED_QUESTIONS_REMAIN = "So far so good, let us move on to the next question : "
 MAX_TURNS_TRIGGERED_NO_QUESTIONS_REMAIN = "We appreciate your effort on the problem! Now, can you code it for us? Let us know when you're ready."
 ALL_QUESTIONS_ANSWERED = "Thank you for your participation"
 
 # LIST OF LABELS ################################################################
-TECHNICAL_LABELS= ['technical', 'clarification(specific)'] #todo: refine and suitably rename the label 'technical' later
-NON_TECHNICAL_LABELS= [
+TECHNICAL_LABELS = ['technical', 'clarification(specific)'] #todo: refine and suitably rename the label 'technical' later
+NON_TECHNICAL_LABELS = [
     "illegible", "irrelevant", "interview_inquiry", "clarification(open)", "confirmation", "negation", "request(new_question)", "request(termination)", "request(proceed)", "request(break)", "disregard", 
     "illegitimate", "inability", "uncertainty"
 ] #fill it later on
+NON_TECHNICAL_UNREASONABLE_LABELS = [
+    "illegible", "irrelevant", "clarification(open)", "request(new_question)", "request(proceed)", "request(break)", "disregard", 
+    "illegitimate", "inability", "uncertainty"
+] 
 TECHNICAL_LABELS_TO_BE_EVALUATED = ['doubt(problem)', 'solution']
 TECHNICAL_LABELS_NOT_TO_BE_EVALUATED= ['doubt(concept)']
 
@@ -59,5 +63,5 @@ DEF_DISTILLED_CANDIDATE_DIALOGUE = None # Set dynamically from candidate_classif
 # ASSESSMENT DEFAULTS ###########################################################
 ### DEF_INTERVIEW_ID = None # have been already defined in session defaults section
 ### DEF_QUESTION_ID = None # have been already defined in chat history defaults section
-DEF_SCORE = 0.0
+DEF_PRIMARY_QUESTION_SCORE = 0.0
 DEF_ASSESSMENT_PAYLOAD = None 
