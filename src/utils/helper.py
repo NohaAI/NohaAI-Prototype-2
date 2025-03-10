@@ -1,6 +1,7 @@
 from typing import Any
 import logging
 from src.utils.logger import get_logger
+import importlib.resources as res
 from fastapi.responses import JSONResponse
 from fastapi import status
 import json
@@ -35,10 +36,16 @@ def clean_response(response):
     return cleaned_subcriteria
 
 def get_assessment_payload():
-    file_path = os.path.join("src", "schemas", "evaluation", "assessment_payload.json")
-    with open(file_path, "r") as file:
-        assessment_payload = json.load(file)  
-    return assessment_payload
+    """
+    Loads a fresh instance of the assessment_payload from the JSON schema file.
+
+    Returns:
+        dict: The loaded assessment payload.
+    """
+    try:
+        return json.load(res.open_text("src.schemas.evaluation", "assessment_payload.json")) # todo: the path of this json file has to be added to configuration constants
+    except Exception as e:
+        raise RuntimeError(f"Error loading assessment_payload.json: {e}")
 
 
 def transform_subcriteria(input_data):
