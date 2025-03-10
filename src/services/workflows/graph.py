@@ -1,11 +1,13 @@
 from datetime import datetime
 import json
-from src.services.workflows.answer_evaluator import evaluate_answer
+from src.services.workflows.solution_evaluator import evaluate_solution
 from src.dao.question import get_random_question_metadata
+from src.dao.assessment import AssessmentDAO
 from src.services.workflows.candidate_dialogue_classifier import classify_candidate_dialogue
 from src.services.workflows.bot_dialogue_generatorv2 import generate_dialogue
 from src.services.workflows.candidate_solution_classifier import classify_candidate_solution
 from src.utils.logger import get_logger
+from src.dao.assessment_data.assessment_record import AssessmentRecord
 from src.utils import helper as helper
 from src.config import constants as CONST
 
@@ -59,28 +61,33 @@ async def process_technical(session_state, chat_history, assessment):
     session_state['contiguous_non_technical_guardrail_count'] = 0
 
     ##### CALL CLASSIFY DIALOGUE (II CLASSIFICATION) #######
-    candidate_technical_dialogue_label, candidate_technical_dialogue_classification_rationale = await classify_candidate_solution(session_state, chat_history, assessment)
+    label_class2, candidate_solution_rationale = await classify_candidate_solution(session_state, chat_history)
+
+    #### setting the session_state 'solution classifier executed' flag to True
+    session_state["solution_classifier_executed"] = True
     
-    if candidate_technical_dialogue_label in CONST.TECHNICAL_LABELS_TO_BE_EVALUATED:
-        logger.info(f"ENTERED EVALUATE ANSWER FOR TURN {session_state['turn_number']}")
-        assessment_payload_received_from_evaluate_answer, assessment_payload_rationale = await evaluate_answer(session_state['bot_dialogue'], distilled_candidate_dialogue, filtered_chat_history, assessment_payload_record.return_assessment_payload(session_state['interview_id'], session_state['questions_asked'][-1]))
-        assessment_payload_record.update_record(session_state['interview_id'], session_state['questions_asked'][-1], assessment_payload_received_from_evaluate_answer['final_score'], assessment_payload_received_from_evaluate_answer)
-        # question_id, question, candidate_answer, eval_distribution, filtered_chat_history, prev_eval = None
-        logger.info(f"EXITED EVALUATE ANSWER FOR TURN : {session_state['turn_number']}")
+    if label_class2 in CONST.TECHNICAL_LABELS_TO_BE_EVALUATED:
+        ########################## CALL (BOTH ==> SOLUTION EVALUATOR + GENERATE DIALOGUE) IN PROCESS TECHNICAL #####################
+        
+        ##### CALL (EVALUATOR) IN PROCESS TECHNICAL ######
+        updated_assessment_payload, solution_evaluator_rationale = await evaluate_solution(session_state, chat_history, assessment)
+
+        # prepare to update the assessment record 
+        assessment_record = assessment[-1]
+        assessment_record['primary_question_score'] = updated_assessment_payload['final_score']
+        assessment_record['assessment_payload']= updated_assessment_payload
+        
+        ##### CALL (GENERATE DIALOGUE) IN PROCESS TECHNICAL ######
+        bot_dialogue_rationale, bot_dialogue_causal_subcriterion = await generate_dialogue(session_state, chat_history, assessment, solution_evaluator_rationale)
+
     else:
         session_state['contiguous_technical_guardrail_count'] +=1 
-    session_state['turn_number'] +=1
 
-    logger.info(f"ENTERED GENERATE DIALOGUE : {session_state['turn_number']}")
+        ##### CALL (GENERATE DIALOGUE) IN PROCESS TECHNICAL ######
+        bot_dialogue_rationale, bot_dialogue_causal_subcriterion = await generate_dialogue(session_state, chat_history, assessment, candidate_solution_rationale)
 
-    logger.info(f"INPUTS TO BOT DIALOGUE GENERATOR FOR TURN {session_state['turn_number']} \n CLASS LABEL : {candidate_technical_dialogue_label}\n  TECH QUESTION : {session_state['current_question']}\n BOT DIALOGUE : {session_state['bot_dialogue']} \n CANDIDATE DIALOGUE : {distilled_candidate_dialogue} \n CHAT HISTORY : {filtered_chat_history} \n CANDIDATE ANSWER CLASSIFICATION RATIONALE : {candidate_technical_dialogue_classification_rationale} \n ASSESSMENT PAYLOAD : {assessment_payload_record} ")
-
-    ##### CALL GENERATE DIALOGUE IN PROCESS TECHNICAL ######
-    bot_dialogue, bot_dialogue_rationale, bot_dialogue_subcriterion, session_state['next_action'] = await generate_dialogue(candidate_technical_dialogue_label, filtered_chat_history, distilled_candidate_dialogue,session_state['current_question'], assessment_payload_record.return_assessment_payload(session_state['interview_id'], session_state['questions_asked'][-1]), session_state['bot_dialogue'], candidate_technical_dialogue_classification_rationale)
-    session_state['bot_dialogue_type'] = 'follow-up'
-    logger.info(f"EXITED GENERATE DIALOGUE FOR {session_state['turn_number']}")
-    session_state['bot_dialogue'] = bot_dialogue
-    return candidate_technical_dialogue_label, candidate_technical_dialogue_classification_rationale,  bot_dialogue_rationale, bot_dialogue_subcriterion, assessment_payload_rationale, session_state, assessment_payload_record
+    logger.info(">>>>>>>>>>>FUNCTION EXIT [process_technical] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
+    return bot_dialogue_rationale, bot_dialogue_causal_subcriterion
 
 
 ###############################################################################################################################
@@ -93,6 +100,16 @@ async def process_non_technical(session_state, chat_history, assessment, candida
     helper.pretty_log("session_state", session_state)
     helper.pretty_log("chat_history", chat_history)
     
+    # As of 09Mar25 the labels that merit a guardrail increment are as follows
+    # NON_TECHNICAL_UNREASONABLE_LABELS = [
+    # "illegible", "irrelevant", "clarification(open)", "request(new_question)", "request(proceed)", "request(break)", "disregard", 
+    # "illegitimate", "inability", "uncertainty" ] 
+
+    if session_state['label_class1'] in CONST.NON_TECHNICAL_UNREASONABLE_LABELS:
+        session_state['contiguous_non_technical_guardrail_count'] += 1
+
+    # the non-technical but reasonable labels are not penalised but in case, required handled specially hereafter
+    # handling for class label 'request(termination)
     if session_state['label_class1'] == 'request(termination)':
         session_state['consecutive_termination_request_count'] +=1
     else:
@@ -101,9 +118,6 @@ async def process_non_technical(session_state, chat_history, assessment, candida
     
     ##### CALL GENERATE DIALOGUE IN PROCESS NON-TECHNICAL ######
     bot_dialogue_rationale, bot_dialogue_causal_subcriterion = await generate_dialogue(session_state, chat_history, assessment, candidate_dialogue_rationale)
-
-    session_state['bot_dialogue_type'] = 'follow-up'
-    session_state['turn_number'] += 1
     
     logger.info(">>>>>>>>>>>FUNCTION EXIT [process_non_technical] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
     return bot_dialogue_rationale, bot_dialogue_causal_subcriterion
@@ -113,106 +127,104 @@ async def process_non_technical(session_state, chat_history, assessment, candida
 ############################################### GENERATE ACTION OVERRIDES #####################################################
 ###############################################################################################################################
 
-async def generate_action_overrides(session_state, assessment_payload_record):
-    final_score = assessment_payload_record.return_final_score(session_state['interview_id'], session_state['questions_asked'][-1]) #getting final score from assessment_payload_record for an interview_id and question_id 
-    # Consecutive termination request count
+async def generate_action_overrides(session_state, assessment):
+    logger.info("\n\n>>>>>>>>>>>FUNCTION [generate_action_overrides] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+
+    ### reset or reinitialize the relevant values immediately after the dialogue generator which is this function call
+    session_state['turn_number'] += 1
+    session_state['bot_dialogue_type'] = 'follow-up'
+    session_state['solution_classifier_executed'] = False
+    
+    # Check if the consecutive termination count is equal to 2;  exit interview
     if session_state['consecutive_termination_request_count'] == 2:
         session_state['next_action'] == "terminate_interview_confirmation"
-    # Score threshold check
-    elif(final_score >= CONST.THRESHOLD_SCORE):
+    
+    # Check if the final score exceeds the decided threshold score; move to a new topic question
+    elif (assessment[-1]["primary_question_score"] >= CONST.THRESHOLD_SCORE):
         session_state['termination'] = True      
         session_state['bot_dialogue'] = CONST.QUESTION_SOLVED
-    # Max Conversation turns check
+    
+    # Check if max turns have exceeded the threshold decided, and all this while checking if total number of primary questions is within the limits decided
     elif session_state['turn_number'] >= (CONST.THRESHOLD_MAX_TURNS * len(session_state['questions_asked'])):
         if len(session_state['questions_asked']) <= CONST.THRESHOLD_TOTAL_NUMBER_OF_QUESTIONS:  #discuss whether to keep a list or an int that tells number of questions to be asked
-            session_state['bot_dialogue'] = CONST.MAX_TURNS_TRIGGERED_QUESTIONS_LEFT
-            session_state['next_action'] = 'get_new_question'
+            session_state['bot_dialogue'] = CONST.MAX_TURNS_TRIGGERED_QUESTIONS_REMAIN
+            session_state['next_action'] = 'get_primary_question'
         else:
+            session_state['bot_dialogue'] = CONST.MAX_TURNS_TRIGGERED_NO_QUESTIONS_REMAIN
             session_state['termination'] = True      
-            session_state['bot_dialogue'] = CONST.MAX_TURNS_TRIGGERED_NO_QUESTIONS_LEFT
             
     # Contiguous guardrail and unacceptable answer check breach check
     elif session_state['contiguous_non_technical_guardrail_count'] >= CONST.THRESHOLD_MAX_CONTIGUOUS_NON_TECHNICAL_GUARDRAIL_COUNT or session_state['contiguous_technical_guardrail_count'] >= CONST.THRESHOLD_MAX_CONTIGUOUS_TECHNICAL_GUARDRAIL_COUNT: 
         if len(session_state['questions_asked']) <= CONST.THRESHOLD_TOTAL_NUMBER_OF_QUESTIONS :
-            session_state['next_action'] = 'get_new_question'
-            session_state['bot_dialogue'] = CONST.GUARDRAIL_TRIGGERED_QUESTIONS_LEFT
+            session_state['bot_dialogue'] = CONST.GUARDRAIL_TRIGGERED_QUESTIONS_REMAIN
+            session_state['next_action'] = 'get_primary_question'
         else:                                   
+            session_state['bot_dialogue'] = CONST.GUARDRAIL_TRIGGERED_NO_QUESTIONS_REMAIN
             session_state['termination'] = True
-            session_state['bot_dialogue'] = CONST.GUARDRAIL_TRIGGERED_NO_QUESTIONS_LEFT
-    return session_state, assessment_payload_record
+    else:
+        logger.info("NO OVERRIDES TRIGGERED >>>>>>>>>>>>>>>>>>>>>>>>>")
 
+    helper.pretty_log("session_state", session_state)
+
+    logger.info(">>>>>>>>>>>FUNCTION EXIT [generate_action_overrides] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
 
 
 ###############################################################################################################################
 ################################################### PERFORM ACTIONS ###########################################################
 ###############################################################################################################################
 
-async def perform_actions(session_state, assessment_payload_record):
+async def perform_actions(session_state, assessment, chat_history):
+    logger.info("\n\n>>>>>>>>>>>FUNCTION [perform_actions] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+
     if(session_state['next_action'] == "terminate_interview_confirmation"):
-        session_state['termination']=True
         session_state['bot_dialogue'] = CONST.TERMINATION 
+        session_state['termination']=True
     
-    elif(session_state['next_action'] == 'get_new_question'):
-        if(len(session_state['questions_asked']) == 0):
-            session_state['complexity'] = CONST.DEF_COMPLEXITY #initial complexity set to 1 to be handeled later on accordingly
-            question_metadata=await get_random_question_metadata(session_state['complexity'], session_state['questions_asked']) # should take a list as parameter and check whether these lists of questions are already asked in the database
-            question=question_metadata['question']
-            question_id = question_metadata['question_id']
-            session_state['questions_asked'].append(question_id)
+    elif(session_state['next_action'] == 'get_primary_question'):
+        
+        # should take a list as parameter and check whether these lists of questions are already asked in the database
+        question_metadata=await get_random_question_metadata(session_state['complexity'], session_state['questions_asked']) 
 
-            session_state['current_question'] = question
-            session_state['bot_dialogue'] = session_state['current_question']
+        helper.pretty_log("DB fetched question_metadata:", question_metadata)
 
-            session_state = {
-            "interview_id": session_state['interview_id'],
-            "turn_number": session_state['turn_number'],
-            "consecutive_termination_request_count": 0,
-            "bot_dialogue": session_state['bot_dialogue'],
-            "guardrail_count": 0,
-            "contiguous_technical_guardrail_count": 0,
-            "contiguous_non_technical_guardrail_count": 0,
-            "termination": False,
-            "current_question": session_state['current_question'],
-            "next_action": "Pass",
-            "questions_asked": session_state['questions_asked'],
-            "bot_dialogue_type": "question",
-            "complexity": session_state['complexity']
-            }
-            assessment_payload = get_assessment_payload() #used for initializing assessement_payload for a new question
-            assessment_payload_record.add_record(session_state['interview_id'], session_state['questions_asked'][-1], assessment_payload['final_score'], assessment_payload)
-        elif len(session_state['questions_asked']) >= CONST.THRESHOLD_TOTAL_NUMBER_OF_QUESTIONS :
-            session_state['termination'] = True
-            session_state['bot_dialogue'] = CONST.ALL_QUESTIONS_ANSWERED
-        else:
-            session_state['complexity'] -= 1 #atm questions will become easier since we are not giving another question when candidate is done answering the question
-            question_metadata = await get_random_question_metadata(session_state['complexity'], session_state['questions_asked']) # should take a list as parameter and check whether these lists of questions are already asked in the database
-            question=question_metadata['question']
-            question_id = question_metadata['question_id']
-            session_state['questions_asked'].append(question_id)
+        question=question_metadata['question']
+        question_id = question_metadata['question_id']  
+        session_state['questions_asked'].append(question_id)    # reinitialize the question_id for the new question
+        session_state['primary_question'] = question    # reinitialize the primary question
+        session_state['bot_dialogue'] = question    # set bot dialogue with the new question
+        chat_history[-1]['question_id'] = question_id   # update the chat history with the question id  
 
-            session_state['current_question'] = question
-            session_state['bot_dialogue'] = session_state['bot_dialogue'] + session_state['current_question']
+        ### preparing a new assessment record
+        assessment_payload = helper.get_assessment_payload() 
+        assessment_record = AssessmentRecord(session_state['interview_id'], question_id, CONST.DEF_PRIMARY_QUESTION_SCORE, assessment_payload)
+        assessment.append(assessment_record)
+        
+        # set the next_action flag to be "Pass" again
+        session_state['next_action'] = "Pass"
 
-            session_state = {
-            "interview_id": session_state['interview_id'],
-            "turn_number": session_state['turn_number'],
-            "consecutive_termination_request_count": 0,
-            "bot_dialogue": session_state['bot_dialogue'],
-            "guardrail_count": 0,
-            "contiguous_technical_guardrail_count": 0,
-            "contiguous_non_technical_guardrail_count": 0,
-            "termination": False,
-            "current_question": session_state['current_question'],
-            "next_action": "Pass",
-            "questions_asked": session_state['questions_asked'],
-            "bot_dialogue_type": "new_question",
-            "complexity": session_state['complexity']
-            }
-            assessment_payload = get_assessment_payload() #used for initializing assessement_payload for a new question
-            assessment_payload_record.add_record(session_state['interview_id'], session_state['questions_asked'][-1], assessment_payload['final_score'], assessment_payload)
+    else:
+        logger.info("ERROR: Before exiting perform_actions()")
 
-    return session_state, assessment_payload_record
+    helper.pretty_log("session_state", session_state)
+    helper.pretty_log("chat_history", chat_history)
 
+    # elif len(session_state['questions_asked']) >= CONST.THRESHOLD_TOTAL_NUMBER_OF_QUESTIONS :
+    #     session_state['termination'] = True
+    #     session_state['bot_dialogue'] = CONST.ALL_QUESTIONS_ANSWERED
+    
+    # else:
+    #     session_state['complexity'] -= 1 #atm questions will become easier since we are not giving another question when candidate is done answering the question
+    #     question_metadata = await get_random_question_metadata(session_state['complexity'], session_state['questions_asked']) # should take a list as parameter and check whether these lists of questions are already asked in the database
+    #     question=question_metadata['question']
+    #     question_id = question_metadata['question_id']
+    #     session_state['questions_asked'].append(question_id)
+
+    #     session_state['current_question'] = question
+    #     session_state['bot_dialogue'] = session_state['bot_dialogue'] + session_state['current_question']
+
+    #     assessment_payload = get_assessment_payload() #used for initializing assessement_payload for a new question
+    #     assessment_payload_record.add_record(session_state['interview_id'], session_state['questions_asked'][-1], assessment_payload['final_score'], assessment_payload)
+    logger.info(">>>>>>>>>>>FUNCTION EXIT [perform_actions] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
 
 
 
@@ -267,7 +279,7 @@ async def get_next_response(session_state, chat_history, assessment):
     
     helper.pretty_log("session_state", session_state)
     helper.pretty_log("chat_history", chat_history)
-    helper.pretty_log("assessment", assessment)
+    # helper.pretty_log("assessment", assessment)
     
     #### ENABLE THE VALIDATE_INPUT() LATER IF REQUIRED
     #### validate_input(session_state, chat_history_record, assessment_payload_record) #used for validating inputs received in get_next_response
@@ -282,18 +294,15 @@ async def get_next_response(session_state, chat_history, assessment):
         logger.info("Candidate dialogue label '%s' is in TECHNICAL_LABELS. Processing as technical dialogue.", session_state["label_class1"])
 
         (
-            candidate_technical_dialogue_label, 
-            candidate_technical_dialogue_classification_rationale,  
             bot_dialogue_rationale, 
-            bot_dialogue_subcriterion, 
-            assessment_payload_rationale, 
-            session_state, 
-            assessment
+            bot_dialogue_causal_subcriterion
         ) = await process_technical(session_state, chat_history, assessment)
 
-        logger.info("Processed technical dialogue. Label: %s, Rationale: %s", candidate_technical_dialogue_label, candidate_technical_dialogue_classification_rationale)
+        helper.pretty_log("bot_dialogue_rationale", bot_dialogue_rationale)
+        helper.pretty_log("bot_dialogue_causal_subcriterion", bot_dialogue_causal_subcriterion)
 
     elif session_state["label_class1"] in CONST.NON_TECHNICAL_LABELS:
+
         logger.info("Candidate dialogue label '%s' is not technical. Processing as non-technical dialogue.", session_state['label_class1'])
         (
             bot_dialogue_rationale, 
@@ -304,6 +313,12 @@ async def get_next_response(session_state, chat_history, assessment):
         helper.pretty_log("bot_dialogue_causal_subcriterion", bot_dialogue_causal_subcriterion)
     else:
         logger.info("Candidate dialogue label '%s' is neither technical nor non-technical.", session_state['label_class1'])
+
+    await generate_action_overrides(session_state, assessment)
+    await perform_actions(session_state, assessment, chat_history)
+
+    logger.info(">>>>>>>>>>>FUNCTION EXIT [get_next_response] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
+
     return session_state, chat_history, assessment
 
 
