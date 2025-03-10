@@ -5,6 +5,7 @@ import json
 import importlib.resources as res
 import traceback
 from typing import Dict, Any
+from src.utils import helper as helper
 
 # Import statements remain the same as in the original Flask app
 # from src.dao.interview_session_state import add_interview_session_state
@@ -60,31 +61,34 @@ async def initialize(request: Request):
         user_email = initialization_request['user_email']   
         
         user_id, interview_id = await initialize_interview(user_name, user_email)
-        logger.info(f"NEW INTERVIEW ID FOR USER: {interview_id}")
-        logger.info(f"USER ID FOR USER: {user_id}")
+      
+        helper.pretty_log("interview_id", interview_id)
+        helper.pretty_log("user_id", user_id)
+      
         greeting = await generate_greeting(user_id) 
 
 
         session_state = {
+            "primary_question": CONST.DEF_PRIMARY_QUESTION,
             "interview_id": interview_id,   # has to be dynamically assigned
             "bot_dialogue": greeting,   # has to be dynamically assigned
             "candidate_dialogue": CONST.DEF_CANDIDATE_DIALOGUE, # has to be dynamically assigned
             "turn_number": CONST.DEF_TURN_NUMBER,
-            "consecutive_termination_request_count": CONST.DEF_CONSECUTIVE_TERMINATION_REQUEST_COUNT,
-            "guardrail_count": CONST.DEF_GUARDRAIL_COUNT,
-            "contiguous_technical_guardrail_count": CONST.DEF_CONTIGUOUS_TECHNICAL_GUARDRAIL_COUNT,
-            "contiguous_non_technical_guardrail_count": CONST.DEF_CONTIGUOUS_NON_TECHNICAL_GUARDRAIL_COUNT,
-            "termination": CONST.DEF_TERMINATION,
-            "current_question": CONST.DEF_CURRENT_QUESTION,
-            "next_action": CONST.DEF_NEXT_ACTION,
-            "questions_asked": CONST.DEF_QUESTIONS_ASKED,
-            "bot_dialogue_type": CONST.DEF_BOT_DIALOGUE_TYPE,
-            "complexity": CONST.DEF_COMPLEXITY,
             "label_class1": CONST.DEF_LABEL_CLASS1,
             "label_class2": CONST.DEF_LABEL_CLASS2,
-            "solution_classifier_executed": CONST.DEF_SOLUTION_CLASSIFIER_EXECUTED
+            "solution_classifier_executed": CONST.DEF_SOLUTION_CLASSIFIER_EXECUTED,
+            "next_action": CONST.DEF_NEXT_ACTION,
+            "termination": CONST.DEF_TERMINATION,
+            "guardrail_count": CONST.DEF_GUARDRAIL_COUNT,
+            "consecutive_termination_request_count": CONST.DEF_CONSECUTIVE_TERMINATION_REQUEST_COUNT,
+            "contiguous_technical_guardrail_count": CONST.DEF_CONTIGUOUS_TECHNICAL_GUARDRAIL_COUNT,
+            "contiguous_non_technical_guardrail_count": CONST.DEF_CONTIGUOUS_NON_TECHNICAL_GUARDRAIL_COUNT,
+            "questions_asked": CONST.DEF_QUESTIONS_ASKED,
+            "bot_dialogue_type": CONST.DEF_BOT_DIALOGUE_TYPE,
+            "complexity": CONST.DEF_COMPLEXITY
         }
 
+        # todo: check if you can replace this with ChatHistoryRecord()
         chat_history_record = {
             "interview_id": interview_id,
             "question_id": CONST.DEF_QUESTION_ID,
@@ -94,28 +98,18 @@ async def initialize(request: Request):
             "distilled_candidate_dialogue": CONST.DEF_DISTILLED_CANDIDATE_DIALOGUE
         }
 
+        # todo: check if you can replace this with AssessmentRecord()
         assessment_record = {
             "interview_id": interview_id,
             "question_id": CONST.DEF_QUESTION_ID,
-            "score": CONST.DEF_SCORE,
-            "assessment_payload": json.load(res.open_text("src.schemas.evaluation", "assessment_payload.json"))  
+            "primary_question_score": CONST.DEF_PRIMARY_QUESTION_SCORE,
+            "assessment_payload": helper.get_assessment_payload()  
         }
-
-        # refactor this entire assessment payload record similar to chat_history refactoring above
-        # create a structure assessment_data/assessment_record.py to model assessment record
-        # create a DAO class and decouple the FastAPI code and DAO code accordingly
-        # initialize the assessment payload record for the first turn here as above for chat_history
-        # assign DEFAULT constants like again above for chat_history
-        # For now, continuing with the original flow in interest of time and debugging other issues
-        # assessment_payload_record = AssessmentPayloadRecord()
         
-
-        # initialize an instance each of ChatHistoryDAO and (later for AssessmentPayloadDAO) 
+        # initialize an instance each of ChatHistoryDAO and AssessmentDAO
         chat_history_dao = ChatHistoryDAO()
         chat_history = chat_history_dao.get_chat_history(interview_id=interview_id)
         chat_history.append(chat_history_record)
-
-        logger.info("CHAT HISTORY PREPARED TO BE ADDED TO INITIALIZATION RESPONSE: %s", json.dumps(chat_history, indent=4))
 
         assessment_dao = AssessmentDAO()
         assessment = assessment_dao.get_assessments(interview_id=interview_id)
@@ -126,7 +120,6 @@ async def initialize(request: Request):
             "chat_history": chat_history,
             "assessment": assessment
         }
-
 
         ################## THE FOLLOWING CODE ALONGWITH THE LARGE RESPONSE, IS IT REQUIRED?? ############
         # assessment_payload_record = AssessmentPayloadRecord()
@@ -144,8 +137,12 @@ async def initialize(request: Request):
         ############ END BLOCK, DISCUSS AND DELETE ##################
 
 
-        logger.info("INITIALIZATION RESPONSE FOR CLIENT : %s", json.dumps(initialization_response, indent=4))
+        helper.pretty_log("session_state", session_state)
+        helper.pretty_log("chat_history", chat_history)
+        helper.pretty_log("assessment", assessment)
+
         return initialization_response
+    
     except Exception as e:
         logger.critical(f"ERROR INITIALIZING THE INTERVIEW : {e}")
         raise HTTPException(status_code=500, detail=f"ERROR INITIALIZING THE INTERVIEW : {e}")
@@ -182,24 +179,23 @@ async def chat(request: Request):
         # assessment_payload_record = AssessmentPayloadRecord()  
         # assessment_payload_record.extend(assessment_payload_data)
         
-        logger.info("\n CHAT PAYLOAD FOR BACKEND:::(GET_NEXT_RESPONSE): >>>>>>>>> \n %s \n %s \n %s", json.dumps(session_state, indent=4), json.dumps(chat_history, indent = 4), json.dumps(assessment, indent = 4))
-        
         session_state, chat_history, assessment = await get_next_response( 
             session_state, 
             chat_history, 
             assessment
         )
 
-        logger.info("\n CHAT PAYLOAD FROM BACKEND:::(GET_NEXT_RESPONSE): <<<<<<<<<< \n  %s \n %s \n %s", json.dumps(session_state, indent=4), json.dumps(chat_history, indent = 4), json.dumps(assessment, indent = 4))
-        
+        logger.info("\n>>>>>>>>>>>RE-ENTERING FUNCTION [chat] ?????????>>>>>>^^^^^^^^^>>>>>>>>?????")
+        helper.pretty_log("session_state", session_state)
+        helper.pretty_log("chat_history", chat_history)
+
         chat_response = {
             "session_state": session_state,
             "chat_history": chat_history,
             "assessment": assessment
         }
         
-        logger.info(f"CHAT REQUEST FROM CLIENT : {json.dumps(chat_response, indent=4)} ")
-
+        logger.info("\n\n>>>>>>>>>>>FUNCTION EXIT [chat] >>> SENDING PAYLOADS AS FRONT-END RESPONSE >>>>>>>>>>>>>>>>>>>>>>>\n\n")
         return chat_response
     except Exception as e:
         logger.critical(f"ERROR PROCESSING CANDIDATE CHAT REQUEST : {e}", exc_info=True)
