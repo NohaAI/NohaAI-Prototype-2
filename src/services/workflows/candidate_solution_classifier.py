@@ -1,27 +1,35 @@
 import json
 from src.utils import logger
+from src.utils import helper as helper
 from src.services.llm import llm_service
-from src.services.llm.prompts.answer_classifier_prompt import classify_candidate_answer_prompt_template
+from src.services.llm.prompts.classify_candidate_solution_prompt import classify_candidate_solution_prompt_template
 logger = logger.get_logger(__name__)
 
-async def classify_candidate_solution(bot_dialogue, candidate_dialogue, distilled_chat_history, question):
-    classify_candidate_answer_prompt=classify_candidate_answer_prompt_template() #TODO refactor same as the func above
-    llm_model = llm_service.get_openai_model()
-    classify_candidate_answer_chain=(classify_candidate_answer_prompt|llm_model)
+async def classify_candidate_solution(session_state, chat_history):
+    logger.info("\n\n\n>>>>>>>>>>>FUNCTION [classify_candidate_solution] >>>>>>>>>>>>>>>>>>>>>>>>>>")
 
-    llm_inputs={'tech_question': question,
-                'bot_dialogue': bot_dialogue,
-                'candidate_dialogue': candidate_dialogue,
-                'chat_history': distilled_chat_history 
+    classify_candidate_solution_prompt=classify_candidate_solution_prompt_template()
+    llm_model = llm_service.get_openai_model()
+    classify_candidate_solution_chain=(classify_candidate_solution_prompt|llm_model)
+
+    llm_inputs={'primary_question': session_state['primary_question'],
+                'bot_dialogue': session_state['bot_dialogue'],
+                'candidate_solution': session_state['candidate_dialogue'],
+                'chat_history': chat_history
                 }
 
-    classification_response=await classify_candidate_answer_chain.ainvoke(llm_inputs)
-    classification_content = json.loads(classification_response.content)
-    #TODO: prompt should return a dict instead of a list inorder to check what's actually missing
-    if len(classification_content) == 1:
-        classification_content.append("EMPTY RATIONALE FROM LLM")
+    llm_response_candidate_solution_classification = await classify_candidate_solution_chain.ainvoke(llm_inputs)
+    llm_content_candidate_solution_classification = json.loads(llm_response_candidate_solution_classification.content)
 
-    label = classification_content[0]
-    rationale = classification_content[1]
+    helper.pretty_log("CLASSIFY CANDIDATE SOLUTION LLM OUTPUT", llm_content_candidate_solution_classification)
 
-    return label, rationale    
+    label_class2 = llm_content_candidate_solution_classification[0]
+    candidate_solution_rationale = llm_content_candidate_solution_classification[1]
+
+    # TODO: For robustness, probably prompt should return a dict instead of a list to verify missing values
+   
+    # update the respective fields in the session _state and chat_history
+    session_state['label_class2'] = label_class2 # updates the classifier 1 label in the session state
+
+
+    return label_class2, candidate_solution_rationale

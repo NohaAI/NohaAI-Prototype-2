@@ -1,33 +1,35 @@
 from langchain_core.prompts import ChatPromptTemplate
 
-def classify_candidate_answer_prompt_template():
+def classify_candidate_solution_prompt_template():
 
   prompt = """
   You are emulating a candidate answer classifier. Your task is to label the candidate's answer into different classes as defined below and explain the rationale for classifying them as such.
 
   Given:
-  tech_question: {tech_question}
+  primary_question: {primary_question}
   bot_dialogue: {bot_dialogue}
-  candidate_dialogue: {candidate_dialogue}
+  candidate_solution: {candidate_solution}
   chat_history: {chat_history}
 
   YOU MUST RESPOND IN THE FOLLOWING FORMAT:
   ["class","rationale"]
 
-  'rationale' is your reasoning for classifying the candidate_dialogue
+  'rationale' is your reasoning for classifying the candidate_solution, which is actually a candidate_solution to the primary_question in this case
 
  class must be one of:
-  - "solution": The candidate_dialogue contains either: Complete implementation details/code, step-by-step approach, specific algorithmic elements with clear purpose, or technical approach that includes HOW components will be used
+  - "solution": The candidate_solution contains either: Complete implementation details/code, step-by-step approach, specific algorithmic elements with clear purpose, or technical approach that includes HOW components will be used
 
-  - "doubt(concept)": The candidate_dialogue seeks to clarify a doubt or doubts about fundamental programming/algorithmic concepts referenced in the tech_question or bot_dialogue (if present)
+  - "doubt(concept)": The candidate_solution seeks to clarify a doubt or doubts about fundamental programming/algorithmic concepts referenced in the primary_question or bot_dialogue (if present)
 
-  - "doubt(problem)": The candidate_dialogue seeks to clarify a specific doubt or specific doubts about the tech_question or bot_dialogue (if present)
+  - "doubt(problem)": The candidate_solution seeks to clarify a specific doubt or specific doubts about the primary_question or bot_dialogue (if present)
 
   """
   
-  # Note: Choose the most appropriate single classification based on the primary characteristic of the candidate_dialogue. If multiple categories could apply, select the most significant one that best captures the key attribute of candidate_dialogue
+  # Note: Choose the most appropriate single classification based on the primary characteristic of the candidate_solution. If multiple categories could apply, select the most significant one that best captures the key attribute of candidate_solution
   classify_candidate_answer_prompt=ChatPromptTemplate.from_template(template=prompt)
   return classify_candidate_answer_prompt
+
+
 def classify_candidate_answer_prompt_template_current():
   prompt="""
   You are emulating a candidate answer classifier. Your task is to label the candidate's answer into different classes as defined below and explain the rationale for classifying them as such.

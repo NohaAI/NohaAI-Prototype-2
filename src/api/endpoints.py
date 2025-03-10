@@ -94,7 +94,7 @@ async def evaluate_answer(input_request: EvaluateAnswerRequest) -> JSONResponse:
             - httpStatusCode: HTTP status code
     """
     try:
-        response = await solution_evaluator.evaluate_answer(input_request)
+        response = await solution_evaluator.evaluate_solution(input_request)
         logger.info("Successfully evaluated answer")
         # return decorate_response(True, response)
         return response
