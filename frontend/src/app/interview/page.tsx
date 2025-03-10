@@ -12,8 +12,8 @@ const MyPage = () => {
     const [details, setDetails] = useState({} as any);
     const [callEnded, setCallEnded] = useState(false);
     const [backendServiceLink] = useState(
-        "http://localhost:5000"
-        // "https://apis.noha.ai"
+        // "http://localhost:5000"
+        "https://apis.noha.ai"
         );
     const [userSocket, setUserSocket] = useState<any>(null);
     const [chats, setChats] = useState<Array<any>>([]);
@@ -72,7 +72,7 @@ const MyPage = () => {
     
     const disconnect2 = async() =>{
         try {
-            const res = await axios.post(`${backendServiceLink}/terminate`);
+            const res = await axios.post(`${backendServiceLink}/terminate`, {});
             console.log('terminate')
         } catch (error) {
             console.error('Error on terminate', error)
