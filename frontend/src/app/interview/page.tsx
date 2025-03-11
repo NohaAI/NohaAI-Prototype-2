@@ -107,16 +107,9 @@ const MyPage = () => {
             setNohaResponseProcessing(false);
             setChatMetaData(res.data)
             updateChats(res.data.bot_dialogue);
-            speakText(res.data.bot_dialogue);
+            speakText(res.data.bot_dialogue, { termination: res?.data?.termination });
 
-            // check if the flag is true call the terminate api
-            if(res.data.termination) {
-                setTimeout(() => {
-                    disconnect2()
-                    stopRecording();
-                    setCallEnded(true);
-                }, 4000);
-            }
+           
         } catch (error) {
             setNohaResponseProcessing(false);
             console.error("Error in handleStreamBack:", error);
@@ -130,7 +123,7 @@ const MyPage = () => {
         ]);
     };
 
-    const speakText = (text: string): void => {
+    const speakText = (text: string, info?: any): void => {
         if (!window.speechSynthesis) {
             console.error("Speech synthesis is not supported in this browser.");
             return;
@@ -140,6 +133,14 @@ const MyPage = () => {
         utterance.lang = "en-IN";
         utterance.rate = 1;
         utterance.pitch = 1;
+
+        utterance.onend = () => {
+             if(info?.termination) {
+                disconnect2()
+                stopRecording();
+                setCallEnded(true);
+            }
+        }
 
         window.speechSynthesis.speak(utterance);
     };
