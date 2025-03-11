@@ -33,8 +33,8 @@ app.add_middleware(
 @app.get('/connect')
 async def connect():
     #TODO: USE ONLY FOR WEBSOCKETS
-    logger.info("Client connected successfully.")
-    return {"message": "Connected successfully"}
+    logger.info("Client connected successfully. release branch ")
+    return {"message": "Connected successfully from release branch"}
     
 @app.post('/initialize')
 async def intialize(request: Request):
