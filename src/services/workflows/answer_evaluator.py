@@ -52,8 +52,12 @@ async def evaluate_answer(bot_dialogue, distilled_candidate_dialogue, distilled_
     evaluation_prompt = answer_evaluator_prompt.make_prompt_from_template()
     evaluation_llm = llm_service.get_openai_model()
     evaluation_chain = evaluation_prompt | evaluation_llm
-    print("before calling eval_chain.abatch ...")
-    llm_response = await evaluation_chain.abatch(llm_inputs)
+
+    tasks = [evaluation_chain.ainvoke(input) for input in llm_inputs]
+    llm_response = await asyncio.gather(*tasks)
+
+    print("before calling eval_chain.ainvoke ...")
+    # llm_response = await evaluation_chain.abatch(llm_inputs)
     try:
         llm_response_content = llm_response[0].content
         # First, clean the JSON string
