@@ -5,5 +5,5 @@ logger=get_logger(__name__)
 
 async def generate_greeting(user_id: int):
     username= await get_user_metadata(user_id)
-    greeting= f"Hi {username['name']} hope you are doing well! Shall we begin the interview?"
+    greeting= f"Hi {username['name']}, I am Noha! I am your interviewer today. We have planned a data structures and algorithms interview with you, are you good to go?"
     return greeting
