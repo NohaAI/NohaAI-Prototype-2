@@ -1,8 +1,9 @@
 'use client';
 import { useState, useRef } from "react";
 import { Mic, MicOff, Video, VideoOff, Phone, Pause } from "lucide-react";
+import { BeatLoader  } from "react-spinners";
 
-const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecording, startRecording, isMicOn, chats }: any) => {
+const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecording, startRecording, isMicOn, chats, nohaResponseProcessing }: any) => {
   console.log('isRecording', isRecording);
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [isMicActive, setIsMicActive] = useState(isMicOn);
@@ -52,6 +53,10 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
       
       {/* Chat Section */}
       <div className="bg-[#1F1F1F] rounded-lg p-4 w-full md:w-[600px] h-[600px] overflow-y-auto border border-gray-700 mt-4">
+          {nohaResponseProcessing && <div className="p-3 mb-4 rounded-lg text-sm bg-blue-800  text-white">
+            <p className="font-bold">Noha AI</p>
+            <BeatLoader color="#FFFFFF" className="my-3"/>
+          </div>}
         <div className="flex flex-col gap-4">
           {chats.map((chat: { name: string, message: string }, index: number) => (
             <div key={index} className={`p-3 rounded-lg text-sm ${chat.name === 'Noha AI' ? 'bg-blue-800 text-white' : 'bg-gray-800 text-white'}` }>

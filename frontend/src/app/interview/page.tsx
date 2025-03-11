@@ -12,8 +12,8 @@ const MyPage = () => {
     const [details, setDetails] = useState({} as any);
     const [callEnded, setCallEnded] = useState(false);
     const [backendServiceLink] = useState(
-        "http://localhost:5000"
-        // "https://apis.noha.ai"
+        // "http://localhost:5000"
+        "https://apis.noha.ai"
         );
     const [userSocket, setUserSocket] = useState<any>(null);
     const [chats, setChats] = useState<Array<any>>([]);
@@ -23,6 +23,8 @@ const MyPage = () => {
     const [transcribedText, setTranscribedText] = useState("");
     const [isProcessing, setIsProcessing] = useState(false); // NEW: Processing state
     const [chatMetaData, setChatMetaData] = useState({} as any);
+
+    const [nohaResponseProcessing, setNohaResponseProcessing] = useState<boolean>(false);
 
     const recognitionRef = useRef<any>(null);
 
@@ -91,6 +93,7 @@ const MyPage = () => {
 
     const handleChat = async (data: { text: string }) => {
         try {
+            setNohaResponseProcessing(true);
             delete chatMetaData.message;
             delete chatMetaData.greeting;
             delete chatMetaData.termination;
@@ -101,6 +104,7 @@ const MyPage = () => {
             }
             const res = await axios.post(`${backendServiceLink}/chat`, reqBody);
             console.log("Received AI response", res.data);
+            setNohaResponseProcessing(false);
             setChatMetaData(res.data)
             updateChats(res.data.bot_dialogue);
             speakText(res.data.bot_dialogue);
@@ -114,6 +118,7 @@ const MyPage = () => {
                 }, 4000);
             }
         } catch (error) {
+            setNohaResponseProcessing(false);
             console.error("Error in handleStreamBack:", error);
         }
     };
@@ -257,7 +262,8 @@ const MyPage = () => {
                     startRecording={startRecording}
                     stopRecording={stopRecording}
                     isRecording={isRecording}
-                    isProcessing={isProcessing} // Pass processing state to show dot on mic
+                    nohaResponseProcessing={nohaResponseProcessing}
+                    isProcessing={isProcessing} 
                 />
             ))}
             {callEnded && <Feedback sendFeedback={sendFeedback} />}
