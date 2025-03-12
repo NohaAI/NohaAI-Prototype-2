@@ -65,18 +65,15 @@ async def process_technical(session_state, chat_history, assessment):
 
     #### setting the session_state 'solution classifier executed' flag to True
     session_state["solution_classifier_executed"] = True
+
+    helper.pretty_log("session_state", session_state)
     
     if label_class2 in CONST.TECHNICAL_LABELS_TO_BE_EVALUATED:
         ########################## CALL (BOTH ==> SOLUTION EVALUATOR + GENERATE DIALOGUE) IN PROCESS TECHNICAL #####################
         
         ##### CALL (EVALUATOR) IN PROCESS TECHNICAL ######
-        updated_assessment_payload, solution_evaluator_rationale = await evaluate_solution(session_state, chat_history, assessment)
+        assessment, solution_evaluator_rationale = await evaluate_solution(session_state, chat_history, assessment)
 
-        # prepare to update the assessment record 
-        assessment_record = assessment[-1]
-        assessment_record['primary_question_score'] = updated_assessment_payload['final_score']
-        assessment_record['assessment_payload']= updated_assessment_payload
-        
         ##### CALL (GENERATE DIALOGUE) IN PROCESS TECHNICAL ######
         bot_dialogue_rationale, bot_dialogue_causal_subcriterion = await generate_dialogue(session_state, chat_history, assessment, solution_evaluator_rationale)
 
@@ -86,7 +83,7 @@ async def process_technical(session_state, chat_history, assessment):
         ##### CALL (GENERATE DIALOGUE) IN PROCESS TECHNICAL ######
         bot_dialogue_rationale, bot_dialogue_causal_subcriterion = await generate_dialogue(session_state, chat_history, assessment, candidate_solution_rationale)
 
-    logger.info(">>>>>>>>>>>FUNCTION EXIT [process_technical] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
+    logger.info("\n\n>>>>>>>>>>>FUNCTION EXIT [process_technical] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
     return bot_dialogue_rationale, bot_dialogue_causal_subcriterion
 
 
@@ -119,7 +116,7 @@ async def process_non_technical(session_state, chat_history, assessment, candida
     ##### CALL GENERATE DIALOGUE IN PROCESS NON-TECHNICAL ######
     bot_dialogue_rationale, bot_dialogue_causal_subcriterion = await generate_dialogue(session_state, chat_history, assessment, candidate_dialogue_rationale)
     
-    logger.info(">>>>>>>>>>>FUNCTION EXIT [process_non_technical] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
+    logger.info("\n\n>>>>>>>>>>>FUNCTION EXIT [process_non_technical] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
     return bot_dialogue_rationale, bot_dialogue_causal_subcriterion
 
 
@@ -127,26 +124,37 @@ async def process_non_technical(session_state, chat_history, assessment, candida
 ############################################### GENERATE ACTION OVERRIDES #####################################################
 ###############################################################################################################################
 
-async def generate_action_overrides(session_state, assessment):
+async def generate_action_overrides(session_state, chat_history, assessment):
     logger.info("\n\n>>>>>>>>>>>FUNCTION [generate_action_overrides] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 
-    ### reset or reinitialize the relevant values immediately after the dialogue generator which is this function call
+    ### RESET OR REINITIALIZE the relevant values immediately after the dialogue generator which is this function call
+    ############################
     session_state['turn_number'] += 1
-    session_state['bot_dialogue_type'] = 'follow-up'
     session_state['solution_classifier_executed'] = False
-    
+    if session_state['next_action'] == 'get_primary_question':
+        session_state['bot_dialogue_type'] = 'primary_question'
+        chat_history[-1]['bot_dialogue_type'] = 'primary_question'
+    else:
+        session_state['bot_dialogue_type'] = 'follow-up'
+        chat_history[-1]['bot_dialogue_type'] = 'follow-up'
+    ############################
+
     # Check if the consecutive termination count is equal to 2;  exit interview
     if session_state['consecutive_termination_request_count'] == 2:
-        session_state['next_action'] == "terminate_interview_confirmation"
+        session_state['next_action'] = "terminate_interview_confirmation"
     
     # Check if the final score exceeds the decided threshold score; move to a new topic question
     elif (assessment[-1]["primary_question_score"] >= CONST.THRESHOLD_SCORE):
         session_state['termination'] = True      
         session_state['bot_dialogue'] = CONST.QUESTION_SOLVED
     
-    # Check if max turns have exceeded the threshold decided, and all this while checking if total number of primary questions is within the limits decided
-    elif session_state['turn_number'] >= (CONST.THRESHOLD_MAX_TURNS * len(session_state['questions_asked'])):
-        if len(session_state['questions_asked']) <= CONST.THRESHOLD_TOTAL_NUMBER_OF_QUESTIONS:  #discuss whether to keep a list or an int that tells number of questions to be asked
+    # Check if max turns have exceeded the threshold decided, and all this while checking 
+    #   - length of questions asked list is greater than 0 else the threshold will evaluate to zero
+    #   - calculate threshold score while multiplying with the number of questions
+    #   - if total number of primary questions is within the limits decided
+    elif len(session_state['questions_asked']) > 0 and session_state['turn_number'] >= (CONST.THRESHOLD_MAX_TURNS * len(session_state['questions_asked'])):
+        if len(session_state['questions_asked']) <= CONST.THRESHOLD_TOTAL_NUMBER_OF_QUESTIONS:  
+            #discuss whether to keep a list or an int that tells number of questions to be asked
             session_state['bot_dialogue'] = CONST.MAX_TURNS_TRIGGERED_QUESTIONS_REMAIN
             session_state['next_action'] = 'get_primary_question'
         else:
@@ -165,15 +173,16 @@ async def generate_action_overrides(session_state, assessment):
         logger.info("NO OVERRIDES TRIGGERED >>>>>>>>>>>>>>>>>>>>>>>>>")
 
     helper.pretty_log("session_state", session_state)
+    helper.pretty_log("chat_history", chat_history)
 
-    logger.info(">>>>>>>>>>>FUNCTION EXIT [generate_action_overrides] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
+    logger.info("\n\n>>>>>>>>>>>FUNCTION EXIT [generate_action_overrides] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
 
 
 ###############################################################################################################################
 ################################################### PERFORM ACTIONS ###########################################################
 ###############################################################################################################################
 
-async def perform_actions(session_state, assessment, chat_history):
+async def perform_actions(session_state, chat_history, assessment):
     logger.info("\n\n>>>>>>>>>>>FUNCTION [perform_actions] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 
     if(session_state['next_action'] == "terminate_interview_confirmation"):
@@ -183,21 +192,45 @@ async def perform_actions(session_state, assessment, chat_history):
     elif(session_state['next_action'] == 'get_primary_question'):
         
         # should take a list as parameter and check whether these lists of questions are already asked in the database
-        question_metadata=await get_random_question_metadata(session_state['complexity'], session_state['questions_asked']) 
+        
+        
+        ### if the questions_asked id list is empty; implies the demand for first primary question; 
+        ### no new assessment record needs to be appended to the assessment because the first is initialized in the initialize/ end-point; assessment => [ {assessment_record_1} ]
+        if len(session_state['questions_asked']) == 0:
+            question_metadata=await get_random_question_metadata(session_state['complexity'], session_state['questions_asked']) 
 
-        helper.pretty_log("DB fetched question_metadata:", question_metadata)
+            helper.pretty_log("DB fetched question_metadata:", question_metadata)
+            ### untoggle this comment block for fetching random ####################
+            # question=question_metadata['question']
+            # question_id = question_metadata['question_id']  
+            # session_state['questions_asked'].append(question_id)    # reinitialize the question_id for the new question
+            # session_state['primary_question'] = question    # reinitialize the primary question
+            # session_state['bot_dialogue'] = question    # set bot dialogue in session state with the new question
+            # chat_history[-1]['bot_dialogue'] = question # set bot dialogue in chat history with the new question 
+            # chat_history[-1]['question_id'] = question_id   # update the chat history with the question id  
+            ############################# END HERE ##################################
 
-        question=question_metadata['question']
-        question_id = question_metadata['question_id']  
-        session_state['questions_asked'].append(question_id)    # reinitialize the question_id for the new question
-        session_state['primary_question'] = question    # reinitialize the primary question
-        session_state['bot_dialogue'] = question    # set bot dialogue with the new question
-        chat_history[-1]['question_id'] = question_id   # update the chat history with the question id  
+            question_id = 1
+            session_state['questions_asked'].append(1)    # reinitialize the question_id for the new question
+            session_state['primary_question'] = "Find an index in an array where the sum of elements to the left equals the sum to the right."    # reinitialize the primary question
+            session_state['bot_dialogue'] = "Find an index in an array where the sum of elements to the left equals the sum to the right."    # # set bot dialogue in session state with the new question
+            chat_history[-1]['bot_dialogue'] = "Find an index in an array where the sum of elements to the left equals the sum to the right."    # set bot dialogue in chat history with the new question
+            chat_history[-1]['question_id'] = 1   # update the chat history with the question id  
+        else:
+            ### fetch a new random question, prepare a new assessment record and append it to assessment list
+            question_metadata=await get_random_question_metadata(session_state['complexity'], session_state['questions_asked']) 
 
-        ### preparing a new assessment record
-        assessment_payload = helper.get_assessment_payload() 
-        assessment_record = AssessmentRecord(session_state['interview_id'], question_id, CONST.DEF_PRIMARY_QUESTION_SCORE, assessment_payload)
-        assessment.append(assessment_record)
+            helper.pretty_log("DB fetched question_metadata:", question_metadata)
+            question=question_metadata['question']
+            question_id = question_metadata['question_id']  
+            session_state['questions_asked'].append(question_id)    # reinitialize the question_id for the new question
+            session_state['primary_question'] = question    # reinitialize the primary question
+            session_state['bot_dialogue'] = question    # set bot dialogue with the new question
+            chat_history[-1]['question_id'] = question_id   # update the chat history with the question id  
+            ### PREPARING A NEW ASSESSMENT RECORD ###################################
+            assessment_payload = helper.get_assessment_payload() 
+            assessment_record = {'interview_id':session_state['interview_id'], 'question_id': question_id, 'primary_question_score': CONST.DEF_PRIMARY_QUESTION_SCORE, 'assessment_payload': assessment_payload }
+            assessment.append(assessment_record)
         
         # set the next_action flag to be "Pass" again
         session_state['next_action'] = "Pass"
@@ -224,7 +257,7 @@ async def perform_actions(session_state, assessment, chat_history):
 
     #     assessment_payload = get_assessment_payload() #used for initializing assessement_payload for a new question
     #     assessment_payload_record.add_record(session_state['interview_id'], session_state['questions_asked'][-1], assessment_payload['final_score'], assessment_payload)
-    logger.info(">>>>>>>>>>>FUNCTION EXIT [perform_actions] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
+    logger.info("\n\n>>>>>>>>>>>FUNCTION EXIT [perform_actions] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
 
 
 
@@ -283,11 +316,8 @@ async def get_next_response(session_state, chat_history, assessment):
     
     #### ENABLE THE VALIDATE_INPUT() LATER IF REQUIRED
     #### validate_input(session_state, chat_history_record, assessment_payload_record) #used for validating inputs received in get_next_response
-    
-    candidate_dialogue_rationale = await classify_candidate_dialogue(session_state, chat_history)
 
-    helper.pretty_log("candidate_dialogue_rationale", candidate_dialogue_rationale)
-    helper.pretty_log("session_state}", session_state)
+    candidate_dialogue_rationale = await classify_candidate_dialogue(session_state, chat_history)
 
     if session_state["label_class1"] in CONST.TECHNICAL_LABELS:
         
@@ -298,9 +328,6 @@ async def get_next_response(session_state, chat_history, assessment):
             bot_dialogue_causal_subcriterion
         ) = await process_technical(session_state, chat_history, assessment)
 
-        helper.pretty_log("bot_dialogue_rationale", bot_dialogue_rationale)
-        helper.pretty_log("bot_dialogue_causal_subcriterion", bot_dialogue_causal_subcriterion)
-
     elif session_state["label_class1"] in CONST.NON_TECHNICAL_LABELS:
 
         logger.info("Candidate dialogue label '%s' is not technical. Processing as non-technical dialogue.", session_state['label_class1'])
@@ -309,15 +336,13 @@ async def get_next_response(session_state, chat_history, assessment):
             bot_dialogue_causal_subcriterion
         ) = await process_non_technical(session_state, chat_history, assessment, candidate_dialogue_rationale)
 
-        helper.pretty_log("bot_dialogue_rationale", bot_dialogue_rationale)
-        helper.pretty_log("bot_dialogue_causal_subcriterion", bot_dialogue_causal_subcriterion)
     else:
         logger.info("Candidate dialogue label '%s' is neither technical nor non-technical.", session_state['label_class1'])
 
-    await generate_action_overrides(session_state, assessment)
-    await perform_actions(session_state, assessment, chat_history)
+    await generate_action_overrides(session_state, chat_history, assessment)
+    await perform_actions(session_state, chat_history, assessment)
 
-    logger.info(">>>>>>>>>>>FUNCTION EXIT [get_next_response] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
+    logger.info("\n\n>>>>>>>>>>>FUNCTION EXIT [get_next_response] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
 
     return session_state, chat_history, assessment
 
