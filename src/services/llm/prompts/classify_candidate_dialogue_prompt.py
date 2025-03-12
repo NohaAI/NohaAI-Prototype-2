@@ -5,7 +5,7 @@ from langchain_core.prompts import ChatPromptTemplate
 def classify_candidate_dialogue_prompt_template():
   prompt="""
   
-  You are an agent and your task is to classify the candidate's distilled_candidate_dialogue into different classes as defined below and explain the rationale for classifying them as such. Ensure that you classify the distilled_candidate_dialogue with only the labels listed below and that no new label is created.
+  You are an agent and your task is to classify the candidate's response into different classes as defined below and explain the rationale for classifying them as such. Ensure that you classify the response with only the labels listed below and that no new label is created.
 
   Given:
   bot_dialogue: {bot_dialogue}
@@ -13,7 +13,7 @@ def classify_candidate_dialogue_prompt_template():
   chat_history: {chat_history}
   distilled_candidate_dialogue: {distilled_candidate_dialogue}
   
-  Before beginning to classify the candidate_dialogue please preprocess the contents of candidate_dialogue as per the following instructions:
+  Before beginning to classify the candidate_dialogue (for now, avoid the distilled_candidate_dialogue and the chat_history, else you will incur penalty) please preprocess the contents of candidate_dialogue as per the following instructions:
     * If candidate_dialogue contains confirmatory responses like "yes", "no" etc. 
       - assign the response to distilled_candidate_dialogue without any preprocessing
     * If candidate_dialogue contains other kinds of texts summarize them and
@@ -56,7 +56,7 @@ def classify_candidate_dialogue_prompt_template():
     * References main question when follow-up question should be addressed (if follow-up exists)
 
   -Classify the distilled_candidate_dialogue as 'interview_inquiry' when the following criteria are met:
-    * The candidate asks questions related to the interview process, such as its duration, structure, or status.
+    * The candidate asks questions related to the interview process, such as its duration, structure, rescheduling or status.
     * Examples include questions like "Are we done with the interview?", "What is the duration of the interview?", "How many questions are there in this interview?", etc.
     * These inquiries are not about the specific questions being asked but focus on the overall interview process.
 
