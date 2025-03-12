@@ -10,6 +10,7 @@ from src.utils import logger, interview_computation, json_helper
 from src.services.llm.prompts import solution_evaluator_prompt
 from src.services.llm import llm_service
 from src.utils import helper as helper
+from src.config import constants as CONST
 # from src.dao import subcriterion
 # from src.dao import chat_history as chat_history
 
@@ -36,16 +37,23 @@ async def evaluate_solution(session_state, chat_history, assessment):
         dict: A response containing the evaluation results.
     """
     logger.info("\n\n\n>>>>>>>>>>>FUNCTION [evaluate_solution] >>>>>>>>>>>>>>>>>>>>>>>>>>")
-    
 
-    helper.pretty_log("session_state", session_state)
-    helper.pretty_log("chat_history", chat_history)
+    print (type(assessment))
+    print (len(assessment))
+    print (assessment[-1])
+
+    
+    assessment_record = assessment[-1]
+    assessment_payload = assessment[-1]['assessment_payload']
+    
     helper.pretty_log("assessment", assessment)
+    helper.pretty_log("criteria_scores", assessment_payload["criteria_scores"])
+    helper.pretty_log("subcriteria_scores", assessment_payload["subcriteria_scores"])
 
     prompt_bot_dialogue = session_state["bot_dialogue"]
     prompt_distilled_candidate_dialogue = session_state["candidate_dialogue"]
     prompt_distilled_chat_history = chat_history
-    prompt_assessment_payload = assessment[-1]['assessment_payload']
+    prompt_assessment_payload = assessment_payload
 
     llm_inputs = [] # initialize inputs for LLM preparation
     
@@ -65,17 +73,33 @@ async def evaluate_solution(session_state, chat_history, assessment):
     
     helper.pretty_log("EVALUATE SOLUTION LLM OUTPUT", llm_content_evaluate_solution)
     
-    assessment_payload = llm_content_evaluate_solution["prompt_assessment_payload"]
+    updated_prompt_assessment_payload = llm_content_evaluate_solution["prompt_assessment_payload"]
     solution_evaluator_rationale = llm_content_evaluate_solution["rationale"]
     print(json.dumps(assessment_payload, indent=3))
     print(solution_evaluator_rationale)
     
-    updated_assessment_payload = await interview_computation.compute_turn_score(assessment_payload)
+    computed_assessment_payload = await interview_computation.compute_turn_score(updated_prompt_assessment_payload)
     # updated_json = json.loads(updated_assessment_payload)
     
-    print(json.dumps(updated_assessment_payload, indent = 3))
+    if session_state["turn_number"] == 1:
+        assessment_record['assessment_payload'] = computed_assessment_payload
+        assessment_record['primary_question_score'] = computed_assessment_payload['final_score']
+    else:
+        logger.info("INSIDE ELSE, SUPPOSED TO APPEND A NEW RECORD TO ASSESSMENT")
+        new_assessment_payload = helper.get_assessment_payload()
+        new_assessment_record = {'interview_id':session_state['interview_id'], 'question_id': chat_history[-1]['question_id'], 'primary_question_score': CONST.DEF_PRIMARY_QUESTION_SCORE, 'assessment_payload': new_assessment_payload }
+        new_assessment_record['assessment_payload'] = computed_assessment_payload
+        new_assessment_record['primary_question_score'] = computed_assessment_payload['final_score']
+        ### append the updated assessment_payload to assessment(ltype:list)
+        assessment.append(new_assessment_record)
+
+    helper.pretty_log("session_state", session_state)
+    helper.pretty_log("chat_history", chat_history)
+    helper.pretty_log("criteria_scores", computed_assessment_payload["criteria_scores"])
+    helper.pretty_log("subcriteria_scores", computed_assessment_payload["subcriteria_scores"])
+    helper.pretty_log("assessment", assessment)
     
-    return updated_assessment_payload, solution_evaluator_rationale
+    return assessment, solution_evaluator_rationale
 
     # try:
     #     llm_content_evaluate_solution = json.loads(llm_response_evaluate_solution[0].content)
