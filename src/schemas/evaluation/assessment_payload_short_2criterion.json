@@ -1,0 +1,41 @@
+{
+  "criteria": [
+    {
+      "description": "Are the assumptions clarified?",
+      "weight": 10.0,
+      "calculated_score": 0.0,
+      "subcriteria": [
+        {
+          "description": "If the candidate explicitly clarifies technical assumptions of basic difficulty",
+          "weight": 6.0,
+          "score": 0.0
+        },
+        {
+          "description": "If the candidate explicitly clarifies technical assumptions of moderate difficulty",
+          "weight": 10.0,
+          "score": 0.0
+        }
+      ]
+    },
+    {
+      "description": "Does the candidate account for corner cases?",
+      "weight": 10.0,
+      "calculated_score": 0.0,
+      "subcriteria": [
+        {
+          "description": "If the candidate explicitly clarifies corner cases of basic difficulty",
+          "weight": 6.0,
+          "score": 0.0
+        },
+        {
+          "description": "If the candidate explicitly clarifies corner cases of moderate difficulty",
+          "weight": 10.0,
+          "score": 0.0
+        }
+      ]
+    }
+  ],
+  "criteria_scores": [],
+  "subcriteria_scores": [],
+  "final_score": 0.0
+}

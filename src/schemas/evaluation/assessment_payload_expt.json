@@ -1,0 +1,210 @@
+{
+  "criteria": [
+    {
+      "description": "Are the assumptions clarified?",
+      "weight": 10.0,
+      "calculated_score": 0.0,
+      "subcriteria": [
+        {
+          "description": "If the candidate explicitly clarifies technical assumptions of basic difficulty",
+          "weight": 3.0,
+          "score": 0.0
+        },
+        {
+          "description": "If the candidate explicitly clarifies technical assumptions of moderate difficulty",
+          "weight": 6.0,
+          "score": 0.0
+        },
+        {
+          "description": "If the candidate explicitly clarifies technical assumptions of high difficulty",
+          "weight": 10.0,
+          "score": 0.0
+        }
+      ]
+    },
+    {
+      "description": "Does the candidate account for corner cases?",
+      "weight": 10.0,
+      "calculated_score": 0.0,
+      "subcriteria": [
+        {
+          "description": "If the candidate explicitly clarifies corner cases of basic difficulty",
+          "weight": 3.0,
+          "score": 0.0
+        },
+        {
+          "description": "If the candidate explicitly clarifies corner cases of moderate difficulty",
+          "weight": 6.0,
+          "score": 0.0
+        },
+        {
+          "description": "If the candidate explicitly clarifies corner cases of high difficulty",
+          "weight": 10.0,
+          "score": 0.0
+        }
+      ]
+    },
+    {
+      "description": "Does the candidate choose the appropriate data structure for the problem?",
+      "weight": 10.0,
+      "calculated_score": 0.0,
+      "subcriteria": [
+        {
+          "description": "The candidate proposes an unsuitable data structure",
+          "weight": 3.0,
+          "score": 0.0
+        },
+        {
+          "description": "The candidate proposes a working yet suboptimal data structure",
+          "weight": 6.0,
+          "score": 0.0
+        },
+        {
+          "description": "The candidate proposes an optimal data structure",
+          "weight": 10.0,
+          "score": 0.0
+        }
+      ]
+    },
+    {
+      "description": "Does the candidate select a suitable algorithm for the task?",
+      "weight": 10.0,
+      "calculated_score": 0.0,
+      "subcriteria": [
+        {
+          "description": "The candidate proposes a suboptimal algorithm",
+          "weight": 3.0,
+          "score": 0.0
+        },
+        {
+          "description": "The candidate improves over the algorithm proposed earlier",
+          "weight": 6.0,
+          "score": 0.0
+        },
+        {
+          "description": "The candidate proposes the most optimal algorithm",
+          "weight": 10.0,
+          "score": 0.0
+        }
+      ]
+    },
+    {
+      "description": "Does the solution proposed by the candidate have optimal time complexity?",
+      "weight": 10.0,
+      "calculated_score": 0.0,
+      "subcriteria": [
+        {
+          "description": "The candidate proposes an algorithm with a worst-case time complexity",
+          "weight": 3.0,
+          "score": 0.0
+        },
+        {
+          "description": "The candidate proposes an algorithm with an average-case time complexity",
+          "weight": 6.0,
+          "score": 0.0
+        },
+        {
+          "description": "The candidate proposes an algorithm with a best-case time complexity",
+          "weight": 10.0,
+          "score": 0.0
+        }
+      ]
+    },
+    {
+      "description": "Does the solution proposed by the candidate have optimal space complexity?",
+      "weight": 10.0,
+      "calculated_score": 0.0,
+      "subcriteria": [
+        {
+          "description": "The candidate proposes an algorithm with a worst-case space complexity",
+          "weight": 3.0,
+          "score": 0.0
+        },
+        {
+          "description": "The candidate proposes an algorithm with an average-case space complexity",
+          "weight": 6.0,
+          "score": 0.0
+        },
+        {
+          "description": "The candidate proposes an algorithm with a best-case space complexity",
+          "weight": 10.0,
+          "score": 0.0
+        }
+      ]
+    },
+    {
+      "description": "Technical Communication",
+      "weight": 10.0,
+      "calculated_score": 0.0,
+      "subcriteria": [
+        {
+          "description": "The candidate provides solution without any articulation or thought",
+          "weight": 3.0,
+          "score": 0.0
+        },
+        {
+          "description": "The candidate provides a solution with scattered thoughts",
+          "weight": 6.0,
+          "score": 0.0
+        },
+        {
+          "description": "The candidate provides a solution with a structured approach and a clear chain of thought",
+          "weight": 10.0,
+          "score": 0.0
+        }
+      ]
+    },
+    {
+      "description": "Generalization",
+      "weight": 10.0,
+      "calculated_score": 0.0,
+      "subcriteria": [
+        {
+          "description": "If the candidate explicitly clarifies generalization of basic difficulty",
+          "weight": 10.0,
+          "score": 0.0
+        },
+        {
+          "description": "If the candidate explicitly clarifies generalization of moderate difficulty",
+          "weight": 10.0,
+          "score": 0.0
+        },
+        {
+          "description": "If the candidate explicitly clarifies generalization of high difficulty",
+          "weight": 10.0,
+          "score": 0.0
+        }
+      ]
+    },
+    {
+      "description": "Extra refinement conditions",
+      "weight": 10.0,
+      "calculated_score": 0.0,
+      "subcriteria": [
+        {
+          "description": "If the candidate mentions some technical aspect about data structures",
+          "weight": 10.0,
+          "score": 0.0
+        },
+        {
+          "description": "If the candidate has at replied positively",
+          "weight": 10.0,
+          "score": 0.0
+        },
+        {
+          "description": "If the candidate shows good behaviour",
+          "weight": 10.0,
+          "score": 0.0
+        },
+        {
+          "description": "If the candidate does not use bad language",
+          "weight": 10.0,
+          "score": 0.0
+        }
+      ]
+    }
+  ],
+  "criteria_scores": [],
+  "subcriteria_scores": [],
+  "final_score": 0.0
+}
