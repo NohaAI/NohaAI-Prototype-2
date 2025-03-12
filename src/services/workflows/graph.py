@@ -4,7 +4,7 @@ from src.services.workflows.solution_evaluator import evaluate_solution
 from src.dao.question import get_random_question_metadata
 from src.dao.assessment import AssessmentDAO
 from src.services.workflows.candidate_dialogue_classifier import classify_candidate_dialogue
-from src.services.workflows.bot_dialogue_generatorv2 import generate_dialogue
+from src.services.workflows.bot_dialogue_generator import generate_dialogue
 from src.services.workflows.candidate_solution_classifier import classify_candidate_solution
 from src.utils.logger import get_logger
 from src.dao.assessment_data.assessment_record import AssessmentRecord
