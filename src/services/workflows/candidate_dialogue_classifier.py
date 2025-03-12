@@ -6,7 +6,10 @@ from src.services.llm.prompts.classify_candidate_dialogue_prompt import classify
 logger = logger.get_logger(__name__)
 
 async def classify_candidate_dialogue(session_state, chat_history):
-    logger.info("\n\n\n>>>>>>>>>>>FUNCTION [classify_candidate_dialogue] >>>>>>>>>>>>>>>>>>>>>>>>>>")
+    logger.info("\n\n\n>>>>>>>>>>>FUNCTION [classify_candidate_dialogue] >>>>>>>>>>>>>>>>>>>>>>>>>>\n")
+
+    helper.pretty_log("session_state", session_state, 1)
+    helper.pretty_log("chat_history", chat_history, 1)
 
     classify_candidate_dialogue_prompt=classify_candidate_dialogue_prompt_template()
     llm_model = llm_service.get_openai_model()
@@ -21,7 +24,7 @@ async def classify_candidate_dialogue(session_state, chat_history):
     llm_response_candidate_dialogue_classification = await classify_candidate_dialogue_chain.ainvoke(llm_inputs)
     llm_content_candidate_dialogue_classification = json.loads(llm_response_candidate_dialogue_classification.content)
 
-    helper.pretty_log("CLASSIFY CANDIDATE DIALOGUE LLM OUTPUT", llm_content_candidate_dialogue_classification)
+    helper.pretty_log("CLASSIFY CANDIDATE DIALOGUE LLM OUTPUT", llm_content_candidate_dialogue_classification, 1)
    
     label_class1 = llm_content_candidate_dialogue_classification[0]
     candidate_dialogue_rationale = llm_content_candidate_dialogue_classification[1]
@@ -33,8 +36,8 @@ async def classify_candidate_dialogue(session_state, chat_history):
     chat_history[-1]['distilled_candidate_dialogue'] = distilled_candidate_dialogue # adds the distilled version for update in DB to the recentmost dict record in the chat_history list
     session_state['distilled_candidate_dialogue'] = ""
 
-    helper.pretty_log("session_state", session_state)
-    helper.pretty_log("chat_history", chat_history)
+    helper.pretty_log("session_state", session_state, 1)
+    helper.pretty_log("chat_history", chat_history, 1)
 
     logger.info("\n\n>>>>>>>>>>>FUNCTION EXIT [classify_candidate_dialogue] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
     return candidate_dialogue_rationale

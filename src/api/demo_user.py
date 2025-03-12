@@ -19,6 +19,7 @@ def is_valid_email(email):
     return re.match(pattern, email) is not None
 
 async def initialize_interview(user_name, user_email):
+    logger.info("\n>>>>>>>>>>>FUNCTION [initialize_interview] >>>>>>>>>>>>>>>>>>>>>>>>>>\n")
     """
     Create a new user with input validation.
     
@@ -32,6 +33,8 @@ async def initialize_interview(user_name, user_email):
         HTTPException: 500 for errors
     """
     try:
+        helper.pretty_log("user_name", user_name, 1)
+        helper.pretty_log("user_email", user_email, 1)
         #TODO: CHECK USER_ID FIRST IF DOESN'T CREATE NEW
         with get_db_connection() as conn:
             if not is_valid_email(user_email):

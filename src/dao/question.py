@@ -61,8 +61,8 @@ async def get_question_metadata(question_id: int):
 async def get_random_question_metadata(complexity: int, question_list: list[int]):
     try:
         with get_db_connection() as conn:
-            logger.info(f"QUESTION LIST RECIEVED IN QUESTION.PY {question_list} \n")
-            logger.info(f"TYPE OF QUESTION LIST RECIEVED IN QUESTION.PY {type(question_list)} \n")
+            logger.info(f"QUESTION LIST RECEIVED IN QUESTION.PY {question_list} \n")
+            logger.info(f"TYPE OF QUESTION LIST RECEIVED IN QUESTION.PY {type(question_list)} \n")
             if len(question_list) == 0: 
                 question_query = """
                     SELECT question_id, question,question_type_id, complexity FROM question
