@@ -70,6 +70,39 @@ def transform_subcriteria(input_data):
 
     return result
 
+def pretty_log_temp(title: str, data, log_level=logging.INFO):
+    """
+    Logs a structured dictionary or list in a pretty JSON format.
+
+    Args:
+        title (str): A descriptive title for the log entry.
+        data (dict | list | any): The structured data to log.
+        log_level (int, optional): Logging level (default is logging.INFO).
+    """
+
+    try:
+        if isinstance(data, list): 
+            if str(data) == "assessment":
+                print("INSIDE HELPER IF")
+                primary_question_score = str(data[-1]['primary_question_score'])
+                logger.log(log_level, primary_question_score)
+                criteria_scores = str(data[-1]['criteria_scores'])
+                logger.log(log_level, criteria_scores)
+                subcriteria_scores = str(data[-1]['subcriteria_scores'])
+                logger.log(log_level, subcriteria_scores)
+            else:
+                pretty_data = json.dumps(data, indent=4, ensure_ascii=False)
+        elif isinstance(data, dict):
+            pretty_data = json.dumps(data, indent=4, ensure_ascii=False)
+        else:
+            pretty_data = str(data)
+
+        log_message = f"\n==== {title} ====\n{pretty_data}\n================="
+        logger.log(log_level, log_message)
+    except Exception as e:
+        logger.error(f"Error while logging {title}: {e}")
+        
+
 def pretty_log(title: str, data, log_level=logging.INFO):
     """
     Logs a structured dictionary or list in a pretty JSON format.
@@ -90,3 +123,6 @@ def pretty_log(title: str, data, log_level=logging.INFO):
         logger.log(log_level, log_message)
     except Exception as e:
         logger.error(f"Error while logging {title}: {e}")
+
+def filter_by_key(data, key, value):
+    return [item for item in data if item.get(key) == value]
