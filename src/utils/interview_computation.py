@@ -14,6 +14,10 @@ async def compute_turn_score(assessment_payload=None):
             logger.error("Criterion list is empty or not a list.")
             return None
 
+        ### reinitialize these fields to avoid scores being appended to (n-1)th turn scores
+        assessment_payload['subcriteria_scores'] = []
+        assessment_payload['criteria_scores'] = []
+
         # Iterate through criteria list
         for count, criterion in enumerate(criteria):
             logger.info(f"Processing criteria number: {count}")
