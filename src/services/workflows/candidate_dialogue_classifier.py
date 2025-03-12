@@ -15,7 +15,7 @@ async def classify_candidate_dialogue(session_state, chat_history):
     llm_inputs = {'bot_dialogue': session_state["bot_dialogue"],
                 'candidate_dialogue': session_state["candidate_dialogue"],
                 'chat_history': chat_history,
-                'distilled_candidate_dialogue': chat_history[-1]["distilled_candidate_dialogue"] 
+                'distilled_candidate_dialogue': ""
                 }
 
     llm_response_candidate_dialogue_classification = await classify_candidate_dialogue_chain.ainvoke(llm_inputs)
@@ -31,6 +31,10 @@ async def classify_candidate_dialogue(session_state, chat_history):
     session_state['label_class1'] = label_class1 # updates the classifier 1 label in the session state
     session_state['candidate_dialogue'] = distilled_candidate_dialogue  # replaces the original candidate_dialogue with the refined version to carry forward hereafter
     chat_history[-1]['distilled_candidate_dialogue'] = distilled_candidate_dialogue # adds the distilled version for update in DB to the recentmost dict record in the chat_history list
+    session_state['distilled_candidate_dialogue'] = ""
 
-    logger.info(">>>>>>>>>>>FUNCTION EXIT [classify_candidate_dialogue] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
+    helper.pretty_log("session_state", session_state)
+    helper.pretty_log("chat_history", chat_history)
+
+    logger.info("\n\n>>>>>>>>>>>FUNCTION EXIT [classify_candidate_dialogue] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
     return candidate_dialogue_rationale
