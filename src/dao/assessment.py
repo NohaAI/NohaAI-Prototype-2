@@ -47,7 +47,7 @@ class AssessmentDAO:
 
                 # Fetch all assessment records
                 query = """
-                    SELECT interview_id, question_id, primary_question_score, assessment_payload_json
+                    SELECT interview_id, question_id, primary_question_score, assessment_payload
                     FROM assessment
                     WHERE interview_id = %s
                 """
@@ -55,8 +55,8 @@ class AssessmentDAO:
 
                 assessment_records = []
                 for record in records:
-                    interview_id, question_id, primary_question_score, assessment_payload_json = record
-                    parsed_payload = json.loads(assessment_payload_json)
+                    interview_id, question_id, primary_question_score, assessment_payload = record
+                    parsed_payload = json.loads(assessment_payload)
                     assessment_records.append(AssessmentRecord(interview_id, question_id, primary_question_score, parsed_payload))
 
                 return assessment_records
@@ -103,16 +103,16 @@ class AssessmentDAO:
                     raise KeyError(f"Question with ID {question_id} not found.")
 
                 # ✅ Convert dict to JSON string
-                assessment_payload_json = json.dumps(assessment_payload) 
+                assessment_payload = json.dumps(assessment_payload) 
 
                 # Insert new assessment
                 insert_query = """
-                    INSERT INTO assessment (interview_id, question_id, primary_question_score, assessment_payload_json)
+                    INSERT INTO assessment (interview_id, question_id, primary_question_score, assessment_payload)
                 VALUES (%s, %s, %s, %s)
-                RETURNING interview_id, question_id, primary_question_score, assessment_payload_json
+                RETURNING interview_id, question_id, primary_question_score, assessment_payload
                 """
                 inserted_record = execute_query(
-                    conn, insert_query, (interview_id, question_id, primary_question_score, assessment_payload_json), fetch_one=True, commit=True
+                    conn, insert_query, (interview_id, question_id, primary_question_score, assessment_payload), fetch_one=True, commit=True
                 )
                 print(f"DEBUG: inserted_record = {inserted_record}")
                 return AssessmentRecord(
@@ -156,7 +156,7 @@ class AssessmentDAO:
 
                 query = """
                 INSERT INTO assessment
-                (interview_id, question_id, primary_question_score, assessment_payload_json) 
+                (interview_id, question_id, primary_question_score, assessment_payload) 
                 VALUES %s
                 """
                 
@@ -201,9 +201,9 @@ class AssessmentDAO:
                 # Update the assessment
                 update_query = """
                     UPDATE assessment
-                    SET primary_question_score = %s, assessment_payload_json = %s
+                    SET primary_question_score = %s, assessment_payload = %s
                     WHERE question_evaluation_id = %s
-                    RETURNING interview_id, question_id, primary_question_score, assessment_payload_json
+                    RETURNING interview_id, question_id, primary_question_score, assessment_payload
                 """
                 updated_record = execute_query(
                     conn,
