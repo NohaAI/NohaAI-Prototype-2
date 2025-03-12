@@ -7,7 +7,7 @@ import uvicorn
 from src.dao.utils.execute_query import execute_query
 from src.dao.utils.connect import get_db_connection
 from src.schemas.dao import UserRequest
-from src.utils.helper import decorate_response
+from src.utils import helper as helper
 from fastapi import status
 from datetime import datetime
 # Logging Configuration
@@ -63,19 +63,27 @@ async def initialize_interview(user_name, user_email):
                     commit=True
                 )
                 user_id = user_id[0]
+            helper.pretty_log("inserting interview_query ...", user_id)
+            
             insert_interview_query = """
                 INSERT INTO Interview (user_id, interview_date, interview_recording_url)
                 VALUES (%s, %s, %s)
                 RETURNING interview_id
             """
+            helper.pretty_log("inserting interview_query statement ...", insert_interview_query)
             interview_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
             interview_recording_url=f"N/A"
+            helper.pretty_log("interview_date", interview_date)
+            helper.pretty_log("interview_recording_url", interview_recording_url)
+
             interview_id = execute_query(
                 conn,
                 insert_interview_query,
                 (user_id, interview_date, interview_recording_url),
                 commit=True,
             )
+            helper.pretty_log("interview_id", interview_id)
+            helper.pretty_log("interview_id"[0], interview_id[0])
             return user_id, interview_id[0] # executre query returns a tuple 
             
     except Exception as e:
