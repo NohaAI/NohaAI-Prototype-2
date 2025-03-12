@@ -18,7 +18,7 @@ from src.dao.chat_history import delete_chat_history
 from src.api.endpoints import greet_candidate
 from src.services.workflows.policy_violation import check_policy_violation
 from src.services.workflows.candidate_dialogue_classifier import classify_candidate_dialogue
-from src.services.workflows.bot_dialogue_generatorv2 import generate_dialogue 
+from src.services.workflows.bot_dialogue_generator import generate_dialogue 
 from src.dao.chat_history import batch_insert_chat_history
 from src.services.workflows.candidate_solution_classifier import classify_candidate_answer
 # Function to fetch chat history asynchronously
