@@ -11,6 +11,7 @@ class ChatHistoryDAO:
         """
         Retrieves all chat history records for a given interview ID.
         """
+
         try:
             with get_db_connection() as conn:
                 query = """
@@ -19,7 +20,14 @@ class ChatHistoryDAO:
                     WHERE interview_id = %s
                 """
                 records = execute_query(conn, query, (interview_id,), fetch_one=False)
-                return [ChatHistoryRecord(*record) for record in records]  # Map to data objects
+                if not records:
+                    logger.info(f"No chat history found for interview ID {interview_id}")
+                    return []  # Return an empty list or raise a custom exception
+            
+                # Map to data objects
+                chat_history_records = [ChatHistoryRecord(*record) for record in records]
+
+                return chat_history_records
         except DatabaseConnectionError as e:
             logger.exception("Database connection error")
             raise e
