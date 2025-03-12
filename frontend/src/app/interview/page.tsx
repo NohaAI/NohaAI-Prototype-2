@@ -25,6 +25,7 @@ const MyPage = () => {
     const [chatMetaData, setChatMetaData] = useState({} as any);
 
     const [nohaResponseProcessing, setNohaResponseProcessing] = useState<boolean>(false);
+    const [isAudioPlaying, setIsAudioPlaying] = useState<boolean>(false);
 
     const recognitionRef = useRef<any>(null);
 
@@ -134,8 +135,13 @@ const MyPage = () => {
         utterance.rate = 1;
         utterance.pitch = 1;
 
+        utterance.onstart = () => {
+            setIsAudioPlaying(true);
+        };
+
         utterance.onend = () => {
-             if(info?.termination) {
+            setIsAudioPlaying(false); 
+            if(info?.termination) {
                 disconnect2()
                 stopRecording();
                 setCallEnded(true);
@@ -264,7 +270,8 @@ const MyPage = () => {
                     stopRecording={stopRecording}
                     isRecording={isRecording}
                     nohaResponseProcessing={nohaResponseProcessing}
-                    isProcessing={isProcessing} 
+                    isProcessing={isProcessing}
+                    isAudioPlaying={isAudioPlaying} 
                 />
             ))}
             {callEnded && <Feedback sendFeedback={sendFeedback} />}
