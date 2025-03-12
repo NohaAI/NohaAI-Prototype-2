@@ -58,7 +58,7 @@ DEF_QUESTION_ID = None # Set dynamically in initialize
 ### DEF_BOT_DIALOGUE = None # have been already defined in session defaults section
 ### DEF_BOT_DIALOGUE_TYPE = 'greeting' # have been already defined in session defaults section
 ### DEF_CANDIDATE_DIALOGUE = None # Set dynamically from client as response to first greeting message
-DEF_DISTILLED_CANDIDATE_DIALOGUE = None # Set dynamically from candidate_classifier
+DEF_DISTILLED_CANDIDATE_DIALOGUE = "" # Set dynamically from candidate_classifier
 
 # ASSESSMENT DEFAULTS ###########################################################
 ### DEF_INTERVIEW_ID = None # have been already defined in session defaults section
