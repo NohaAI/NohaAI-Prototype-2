@@ -31,5 +31,6 @@ async def classify_candidate_solution(session_state, chat_history):
     # update the respective fields in the session _state and chat_history
     session_state['label_class2'] = label_class2 # updates the classifier 1 label in the session state
 
+    logger.info("\n\n>>>>>>>>>>>FUNCTION EXIT [classify_candidate_solution] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
 
     return label_class2, candidate_solution_rationale
