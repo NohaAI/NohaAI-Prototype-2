@@ -9,9 +9,6 @@ logger = get_logger(__name__)
 async def generate_dialogue(session_state, chat_history, assessment, rationale=None):
     logger.info("\n\n>>>>>>>>>>>FUNCTION [generate dialogue] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
     
-    helper.pretty_log("session_state", session_state)
-    helper.pretty_log("chat_history", chat_history)
-    helper.pretty_log("assessment", assessment)
     # non_technical_class_labels=["illegible", "irrelevant", "clarification(specific)", "clarification(open)", "request(guidance)", "request(termination)", "request(proceed)", "request(break)", "disregard", "illegitimate", "uncertainty"]
     if not session_state['solution_classifier_executed']:
         class_label = session_state['label_class1']
@@ -21,7 +18,7 @@ async def generate_dialogue(session_state, chat_history, assessment, rationale=N
     bot_dialogue_prompt=bot_dialogue_prompt_template()
     llm_model = llm_service.get_openai_model()
     bot_dialogue_prompt_chain=(bot_dialogue_prompt|llm_model)
-    
+    helper.pretty_log("assssment", assessment)
     llm_inputs = {'class_label': class_label,
                 'primary_question': session_state['primary_question'],
                 'bot_dialogue':  session_state['bot_dialogue'],
@@ -42,8 +39,13 @@ async def generate_dialogue(session_state, chat_history, assessment, rationale=N
     bot_dialogue_next_action = llm_content_bot_dialogue_generator['next_action']
 
     session_state['bot_dialogue'] = bot_dialogue
+    chat_history[-1]['bot_dialogue'] = bot_dialogue
     session_state['next_action'] = bot_dialogue_next_action
 
-    logger.info(">>>>>>>>>>>FUNCTION EXIT [bot_dialogue_generator] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
+    helper.pretty_log("session_state", session_state)
+    helper.pretty_log("chat_history", chat_history)
+    helper.pretty_log("assessment", assessment)
+
+    logger.info("\n\n>>>>>>>>>>>FUNCTION EXIT [bot_dialogue_generator] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
     return bot_dialogue_rationale, bot_dialogue_causal_subcriterion
 
