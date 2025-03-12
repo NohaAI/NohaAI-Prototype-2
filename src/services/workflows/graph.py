@@ -4,7 +4,7 @@ from src.services.workflows.solution_evaluator import evaluate_solution
 from src.dao.question import get_random_question_metadata
 from src.dao.assessment import AssessmentDAO
 from src.services.workflows.candidate_dialogue_classifier import classify_candidate_dialogue
-from src.services.workflows.bot_dialogue_generatorv2 import generate_dialogue
+from src.services.workflows.bot_dialogue_generator import generate_dialogue
 from src.services.workflows.candidate_solution_classifier import classify_candidate_solution
 from src.utils.logger import get_logger
 from src.dao.assessment_data.assessment_record import AssessmentRecord
@@ -53,10 +53,10 @@ def validate_input(session_state, chat_history, assessment_payload_record):
 ###############################################################################################################################  
     
 async def process_technical(session_state, chat_history, assessment):
-    logger.info("\n\n>>>>>>>>>>>FUNCTION [process_technical] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    logger.info("\n\n>>>>>>>>>>>FUNCTION [process_technical] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n")
 
-    helper.pretty_log("session_state", session_state)
-    helper.pretty_log("chat_history", chat_history)
+    helper.pretty_log("session_state", session_state, 1)
+    helper.pretty_log("chat_history", chat_history, 1)
 
     session_state['contiguous_non_technical_guardrail_count'] = 0
 
@@ -66,7 +66,6 @@ async def process_technical(session_state, chat_history, assessment):
     #### setting the session_state 'solution classifier executed' flag to True
     session_state["solution_classifier_executed"] = True
 
-    helper.pretty_log("session_state", session_state)
     
     if label_class2 in CONST.TECHNICAL_LABELS_TO_BE_EVALUATED:
         ########################## CALL (BOTH ==> SOLUTION EVALUATOR + GENERATE DIALOGUE) IN PROCESS TECHNICAL #####################
@@ -92,10 +91,10 @@ async def process_technical(session_state, chat_history, assessment):
 ###############################################################################################################################
 
 async def process_non_technical(session_state, chat_history, assessment, candidate_dialogue_rationale):
-    logger.info("\n\n>>>>>>>>>>>FUNCTION [process_non_technical] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    logger.info("\n\n>>>>>>>>>>>FUNCTION [process_non_technical] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n")
 
-    helper.pretty_log("session_state", session_state)
-    helper.pretty_log("chat_history", chat_history)
+    helper.pretty_log("session_state", session_state, 1)
+    helper.pretty_log("chat_history", chat_history, 1)
     
     # As of 09Mar25 the labels that merit a guardrail increment are as follows
     # NON_TECHNICAL_UNREASONABLE_LABELS = [
@@ -125,12 +124,18 @@ async def process_non_technical(session_state, chat_history, assessment, candida
 ###############################################################################################################################
 
 async def generate_action_overrides(session_state, chat_history, assessment):
-    logger.info("\n\n>>>>>>>>>>>FUNCTION [generate_action_overrides] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    logger.info("\n\n>>>>>>>>>>>FUNCTION [generate_action_overrides] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n")
+
+    helper.pretty_log("session_state", session_state, 1)
+    helper.pretty_log("chat_history", chat_history, 1)
 
     ### RESET OR REINITIALIZE the relevant values immediately after the dialogue generator which is this function call
     ############################
     session_state['turn_number'] += 1
+    session_state['label_class1'] = None    # updated to avoid carrying over of information to the next turn
+    session_state['label_class2'] = None    # updated to avoid carrying over of information to the next turn
     session_state['solution_classifier_executed'] = False
+    
     if session_state['next_action'] == 'get_primary_question':
         session_state['bot_dialogue_type'] = 'primary_question'
         chat_history[-1]['bot_dialogue_type'] = 'primary_question'
@@ -162,7 +167,8 @@ async def generate_action_overrides(session_state, chat_history, assessment):
             session_state['termination'] = True      
             
     # Contiguous guardrail and unacceptable answer check breach check
-    elif session_state['contiguous_non_technical_guardrail_count'] >= CONST.THRESHOLD_MAX_CONTIGUOUS_NON_TECHNICAL_GUARDRAIL_COUNT or session_state['contiguous_technical_guardrail_count'] >= CONST.THRESHOLD_MAX_CONTIGUOUS_TECHNICAL_GUARDRAIL_COUNT: 
+    elif (len(session_state["questions_asked"]) > 0) and \
+        (session_state['contiguous_non_technical_guardrail_count'] >= CONST.THRESHOLD_MAX_CONTIGUOUS_NON_TECHNICAL_GUARDRAIL_COUNT or session_state['contiguous_technical_guardrail_count'] >= CONST.THRESHOLD_MAX_CONTIGUOUS_TECHNICAL_GUARDRAIL_COUNT): 
         if len(session_state['questions_asked']) <= CONST.THRESHOLD_TOTAL_NUMBER_OF_QUESTIONS :
             session_state['bot_dialogue'] = CONST.GUARDRAIL_TRIGGERED_QUESTIONS_REMAIN
             session_state['next_action'] = 'get_primary_question'
@@ -170,10 +176,10 @@ async def generate_action_overrides(session_state, chat_history, assessment):
             session_state['bot_dialogue'] = CONST.GUARDRAIL_TRIGGERED_NO_QUESTIONS_REMAIN
             session_state['termination'] = True
     else:
-        logger.info("NO OVERRIDES TRIGGERED >>>>>>>>>>>>>>>>>>>>>>>>>")
+        logger.info("NO OVERRIDES TRIGGERED >>>>>>>>>>>>>>>>>>>>>>>>>\n")
 
-    helper.pretty_log("session_state", session_state)
-    helper.pretty_log("chat_history", chat_history)
+    helper.pretty_log("session_state", session_state, 1)
+    helper.pretty_log("chat_history", chat_history, 1)
 
     logger.info("\n\n>>>>>>>>>>>FUNCTION EXIT [generate_action_overrides] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
 
@@ -183,7 +189,10 @@ async def generate_action_overrides(session_state, chat_history, assessment):
 ###############################################################################################################################
 
 async def perform_actions(session_state, chat_history, assessment):
-    logger.info("\n\n>>>>>>>>>>>FUNCTION [perform_actions] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    logger.info("\n\n>>>>>>>>>>>FUNCTION [perform_actions] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n")
+
+    helper.pretty_log("session_state", session_state, 1)
+    helper.pretty_log("chat_history", chat_history, 1)
 
     if(session_state['next_action'] == "terminate_interview_confirmation"):
         session_state['bot_dialogue'] = CONST.TERMINATION 
@@ -205,16 +214,18 @@ async def perform_actions(session_state, chat_history, assessment):
             # question_id = question_metadata['question_id']  
             # session_state['questions_asked'].append(question_id)    # reinitialize the question_id for the new question
             # session_state['primary_question'] = question    # reinitialize the primary question
-            # session_state['bot_dialogue'] = question    # set bot dialogue in session state with the new question
-            # chat_history[-1]['bot_dialogue'] = question # set bot dialogue in chat history with the new question 
+            # session_state['question_id'] = question_id    # set the question_id in session state (field was added relatively later)
+            # session_state['bot_dialogue'] = session_state['bot_dialogue'] + question    # set bot dialogue in session state with the new question
+            # chat_history[-1]['bot_dialogue'] = session_state['bot_dialogue'] + question   # set bot dialogue in chat history with the new question 
             # chat_history[-1]['question_id'] = question_id   # update the chat history with the question id  
             ############################# END HERE ##################################
 
             question_id = 1
             session_state['questions_asked'].append(1)    # reinitialize the question_id for the new question
             session_state['primary_question'] = "Find an index in an array where the sum of elements to the left equals the sum to the right."    # reinitialize the primary question
-            session_state['bot_dialogue'] = "Find an index in an array where the sum of elements to the left equals the sum to the right."    # # set bot dialogue in session state with the new question
-            chat_history[-1]['bot_dialogue'] = "Find an index in an array where the sum of elements to the left equals the sum to the right."    # set bot dialogue in chat history with the new question
+            session_state['bot_dialogue'] = session_state['bot_dialogue'] + "Find an index in an array where the sum of elements to the left equals the sum to the right."    # # set bot dialogue in session state with the new question
+            chat_history[-1]['bot_dialogue'] = session_state['bot_dialogue'] + "Find an index in an array where the sum of elements to the left equals the sum to the right."    # set bot dialogue in chat history with the new question
+            session_state['question_id'] = 1    # set the question_id in session state (field was added relatively later)
             chat_history[-1]['question_id'] = 1   # update the chat history with the question id  
         else:
             ### fetch a new random question, prepare a new assessment record and append it to assessment list
@@ -225,8 +236,11 @@ async def perform_actions(session_state, chat_history, assessment):
             question_id = question_metadata['question_id']  
             session_state['questions_asked'].append(question_id)    # reinitialize the question_id for the new question
             session_state['primary_question'] = question    # reinitialize the primary question
-            session_state['bot_dialogue'] = question    # set bot dialogue with the new question
-            chat_history[-1]['question_id'] = question_id   # update the chat history with the question id  
+            session_state['bot_dialogue'] = session_state['bot_dialogue'] + question    # set bot dialogue in session_state with the new question
+            chat_history[-1]['bot_dialogue'] = session_state['bot_dialogue'] + question   # set bot dialogue in chat history with the new question 
+            session_state['question_id'] = question_id    # set the question_id in session state (field was added relatively later)
+            chat_history[-1]['question_id'] = question_id   # update the chat history with the question id 
+
             ### PREPARING A NEW ASSESSMENT RECORD ###################################
             assessment_payload = helper.get_assessment_payload() 
             assessment_record = {'interview_id':session_state['interview_id'], 'question_id': question_id, 'primary_question_score': CONST.DEF_PRIMARY_QUESTION_SCORE, 'assessment_payload': assessment_payload }
@@ -236,10 +250,10 @@ async def perform_actions(session_state, chat_history, assessment):
         session_state['next_action'] = "Pass"
 
     else:
-        logger.info("ERROR: Before exiting perform_actions()")
+        logger.info(f"session_state -> next_action FLAG: {session_state['next_action']}")
 
-    helper.pretty_log("session_state", session_state)
-    helper.pretty_log("chat_history", chat_history)
+    helper.pretty_log("session_state", session_state, 1)
+    helper.pretty_log("chat_history", chat_history, 1)
 
     # elif len(session_state['questions_asked']) >= CONST.THRESHOLD_TOTAL_NUMBER_OF_QUESTIONS :
     #     session_state['termination'] = True
@@ -308,16 +322,22 @@ def log_data(candidate_dialogue, distilled_candidate_dialogue, bot_dialogue_rati
 ###############################################################################################################################
 
 async def get_next_response(session_state, chat_history, assessment):
-    logger.info("\n\n>>>>>>>>>>>FUNCTION [get_next_response] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    logger.info("\n\n>>>>>>>>>>>FUNCTION [get_next_response] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n")
     
-    helper.pretty_log("session_state", session_state)
-    helper.pretty_log("chat_history", chat_history)
+    helper.pretty_log("session_state", session_state, 1)
+    helper.pretty_log("chat_history", chat_history, 1)
     # helper.pretty_log("assessment", assessment)
     
     #### ENABLE THE VALIDATE_INPUT() LATER IF REQUIRED
     #### validate_input(session_state, chat_history_record, assessment_payload_record) #used for validating inputs received in get_next_response
 
+    
     candidate_dialogue_rationale = await classify_candidate_dialogue(session_state, chat_history)
+
+    # post verification in case technical solution is given for a non-existent question
+    if not session_state['question_id'] and session_state['label_class1'] in CONST.TECHNICAL_LABELS:
+        session_state['label_class1'] = 'irrelevant' # overwrite the label to be 'irrelevant' and rationale too as below
+        candidate_dialogue_rationale = "Candidate has given a technical response although no question has even been asked yet"
 
     if session_state["label_class1"] in CONST.TECHNICAL_LABELS:
         
