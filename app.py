@@ -70,6 +70,7 @@ async def initialize(request: Request):
 
         session_state = {
             "primary_question": CONST.DEF_PRIMARY_QUESTION,
+            "question_id" :CONST.DEF_QUESTION_ID,
             "interview_id": interview_id,   # has to be dynamically assigned
             "bot_dialogue": greeting,   # has to be dynamically assigned
             "candidate_dialogue": CONST.DEF_CANDIDATE_DIALOGUE, # has to be dynamically assigned
@@ -195,7 +196,7 @@ async def chat(request: Request):
             "assessment": assessment
         }
         
-        logger.info("\n\n>>>>>>>>>>>FUNCTION EXIT [chat] >>> SENDING PAYLOADS AS FRONT-END RESPONSE >>>>>>>>>>>>>>>>>>>>>>>\n\n")
+        logger.info("\n\n\n\n>>>>>>>>>>>FUNCTION EXIT [chat] >>> SENDING PAYLOADS AS FRONT-END RESPONSE >>>>>>>>>>>>>>>>>>>>>>>\n\n")
         return chat_response
     except Exception as e:
         logger.critical(f"ERROR PROCESSING CANDIDATE CHAT REQUEST : {e}", exc_info=True)
