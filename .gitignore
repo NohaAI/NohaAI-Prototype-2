@@ -13,3 +13,4 @@ _personal/
 pyvenv.cfg
 database.ini
 .env
+.vscode
