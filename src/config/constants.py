@@ -12,12 +12,12 @@ THRESHOLD_TOTAL_NUMBER_OF_QUESTIONS = 2
 # BOT CANNED DIALOGUES ############################################################
 GREETING_SUFFIX = "Ready?"
 GREETING_SUFFIX_ORIG = "I am Noha! I am your interviewer today. We have planned a data structures and algorithms interview with you, are you good to go?"
-QUESTION_SOLVED = "Since you have solved this question, can you now start writing code for it?"
-GUARDRAIL_TRIGGERED_QUESTIONS_REMAIN = "It seems there is a lack of clarity in your responses. Let us move on to the next question : "
-GUARDRAIL_TRIGGERED_NO_QUESTIONS_REMAIN = "It seems there is a lack of clarity in your responses. Let us conclude here."
+QUESTION_SOLVED = "Okay, now that you have answered the algorithmic aspects, can you begin writing the code ?"
+GUARDRAIL_TRIGGERED_QUESTIONS_REMAIN = "Sorry, there seems to be a lack of clarity in your responses. Let us move on to the next question: "
+GUARDRAIL_TRIGGERED_NO_QUESTIONS_REMAIN = "Sorry, there seems to be a lack of clarity in your responses. Let us conclude here."
 TERMINATION = "Thank you for your participation"
 MAX_TURNS_TRIGGERED_QUESTIONS_REMAIN = "So far so good, let us move on to the next question : "
-MAX_TURNS_TRIGGERED_NO_QUESTIONS_REMAIN = "We appreciate your effort on the problem! Now, can you code it for us? Let us know when you're ready."
+MAX_TURNS_TRIGGERED_NO_QUESTIONS_REMAIN = "We appreciate your responses so far! Now, can you code it for us? Let us know when you're ready."
 ALL_QUESTIONS_ANSWERED = "Thank you for your participation"
 
 # LIST OF LABELS ################################################################
