@@ -49,6 +49,7 @@ const InterviewDetails: React.FC<InterviewDetailsProps> = ({ onSubmit }) => {
                             value={formData.name}
                             onChange={handleChange}
                             placeholder="Enter your name"
+                            autoFocus
                             className="w-full px-5 py-3 rounded-full bg-white text-gray-900 shadow-md outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     </div>

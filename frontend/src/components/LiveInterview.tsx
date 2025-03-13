@@ -93,7 +93,7 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
           <button
             disabled={isAudioPlaying}
             onClick={toggleMic}
-            className={`w-20 h-20 flex items-center justify-center rounded-full bg-orange-500 hover:bg-gray-600 transition disabled:bg-gray-400 ${!isAudioPlaying ? "animate-pulse" : ""
+            className={`w-20 h-20 flex items-center justify-center rounded-full bg-green-500 hover:bg-gray-600 transition disabled:bg-gray-400 ${!isAudioPlaying ? "animate-pulse" : ""
               }`}
           >
             {isMicActive ? <Pause className="text-white w-10 h-10" /> : <Mic className="text-white w-10 h-10" />}
