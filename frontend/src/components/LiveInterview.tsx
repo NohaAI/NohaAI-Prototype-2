@@ -54,7 +54,7 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
       <div className="relative bg-[#1F1F1F] rounded-lg p-4 flex flex-col justify-center items-center w-full md:w-[474px] md:h-[458px]">
         {isAudioPlaying && <ScaleLoader color="white" className="absolute right-4 top-4" />}
         <img src="noha.png" alt="User" className="w-[226px] h-[226px] object-cover " />
-        {isAudioPlaying && <p className="mt-1">{chats[0].name === 'Noha AI' && chats[0].message}</p>}
+        {isAudioPlaying && <p className="mt-1 text-white">{chats[0].name === 'Noha AI' && chats[0].message}</p>}
         <p className="text-white mt-2 absolute left-3 bottom-2">Noha</p>
       </div>
 
