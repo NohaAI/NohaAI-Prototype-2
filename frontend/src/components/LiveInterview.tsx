@@ -76,22 +76,31 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
       </div> */}
 
       {/* Call Controls */}
-      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-4 p-3 bg-black/50 rounded-full">
-        {nohaResponseProcessing ? <BounceLoader size={40} color="white" className=" border-red-400"/> : <button
-          disabled={isAudioPlaying}
-          onClick={toggleMic}
-          className={`p-3 rounded-full bg-gray-700 hover:bg-gray-600 transition disabled:bg-gray-400 ${!isAudioPlaying ? "animate-pulse" : ""
-            }`}
-        >
-          {isMicActive ? <Pause className="text-white w-6 h-6" /> : <Mic className="text-white w-6 h-6" />}
-        </button>}
-        <button onClick={toggleCamera} className="p-3 rounded-full bg-gray-700 hover:bg-gray-600 transition">
-          {isCameraOn ? <Video className="text-white w-6 h-6" /> : <VideoOff className="text-white w-6 h-6" />}
+      <div className="w-full fixed bottom-6 left-1/2 transform -translate-x-1/2 flex items-center justify-center space-x-10 p-3   rounded-full">
+
+        <button onClick={toggleCamera} className="w-14 h-14 flex items-center justify-center rounded-full bg-gray-700 hover:bg-gray-600 transition">
+          {isCameraOn ? <Video className="text-white w-7 h-7" /> : <VideoOff className="text-white w-7 h-7" />}
         </button>
-        <button onClick={onCancelCall} className="p-3 rounded-full bg-red-600 hover:bg-red-500 transition">
-          <Phone className="text-white w-6 h-6" />
+
+        {nohaResponseProcessing ? (
+          <BounceLoader size={50} color="white" className="border-red-400" />
+        ) : (
+          <button
+            disabled={isAudioPlaying}
+            onClick={toggleMic}
+            className={`w-20 h-20 flex items-center justify-center rounded-full bg-orange-500 hover:bg-gray-600 transition disabled:bg-gray-400 ${!isAudioPlaying ? "animate-pulse" : ""
+              }`}
+          >
+            {isMicActive ? <Pause className="text-white w-10 h-10" /> : <Mic className="text-white w-10 h-10" />}
+          </button>
+        )}
+
+        <button onClick={onCancelCall} className="w-14 h-14 flex items-center justify-center rounded-full bg-red-600 hover:bg-red-500 transition">
+          <Phone className="text-white w-7 h-7" />
         </button>
+
       </div>
+
     </div>
   );
 };
