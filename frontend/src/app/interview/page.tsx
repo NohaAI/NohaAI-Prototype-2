@@ -257,26 +257,39 @@ const MyPage = () => {
 
     return (
         <>
-            {!callEnded && (!interviewStarted ? (
+          {/* Display on medium and large devices */}
+          <div className="hidden lg:block">
+            {!callEnded && (
+              !interviewStarted ? (
                 <InterviewDetails onSubmit={handleSubmit} />
-            ) : (
+              ) : (
                 <LiveInterview
-                    chats={chats}
-                    name={details.name}
-                    onCancelCall={onCancelCall2}
-                    userSocket={userSocket}
-                    isMicOn={isMicOn}
-                    startRecording={startRecording}
-                    stopRecording={stopRecording}
-                    isRecording={isRecording}
-                    nohaResponseProcessing={nohaResponseProcessing}
-                    isProcessing={isProcessing}
-                    isAudioPlaying={isAudioPlaying} 
+                  chats={chats}
+                  name={details.name}
+                  onCancelCall={onCancelCall2}
+                  userSocket={userSocket}
+                  isMicOn={isMicOn}
+                  startRecording={startRecording}
+                  stopRecording={stopRecording}
+                  isRecording={isRecording}
+                  nohaResponseProcessing={nohaResponseProcessing}
+                  isProcessing={isProcessing}
+                  isAudioPlaying={isAudioPlaying}
                 />
-            ))}
+              )
+            )}
             {callEnded && <Feedback sendFeedback={sendFeedback} />}
+          </div>
+      
+          {/* Display on small devices */}
+          <div className="block lg:hidden flex items-center justify-center h-screen bg-gray-100">
+            <p className="text-center text-2xl font-bold text-gray-800 p-4">
+              This application is supported on desktops only.
+            </p>
+          </div>
         </>
-    );
+      );
+      
 };
 
 export default MyPage;
