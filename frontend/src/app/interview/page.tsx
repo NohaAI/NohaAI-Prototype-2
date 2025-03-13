@@ -130,7 +130,7 @@ const MyPage = () => {
         }
 
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = "en-IN";
+        utterance.lang = "en-US";
         utterance.rate = 1;
         utterance.pitch = 1;
 
@@ -176,7 +176,7 @@ const MyPage = () => {
         const recognition = new (window as any).webkitSpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
-        recognition.lang = "en-IN";
+        recognition.lang = "en-US";
         recognition.maxAlternatives = 3; // Get up to 3 alternative transcriptions
     
         recognition.onresult = (event: any) => {
