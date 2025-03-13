@@ -83,7 +83,7 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
         </button>
 
         {nohaResponseProcessing ? (
-          <BounceLoader size={50} color="white" className="border-red-400" />
+          <BounceLoader size={80} color="white" className="border-red-400" />
         ) : (
           <button
             disabled={isAudioPlaying}
