@@ -98,7 +98,10 @@ const MyPage = () => {
             // Directly update the candidate_dialogue field in chatMetaData
             console.log("RMS=>:data.text");
             chatMetaData.session_state.candidate_dialogue = data.text;
-            chatMetaData.chat_history[0].candidate_dialogue = data.text;
+            const lastIndex = chatMetaData.chat_history.length - 1;
+            if (lastIndex >= 0) {  // Ensure chat_history is not empty
+                 chatMetaData.chat_history[lastIndex].candidate_dialogue = data.text;
+            }
             console.log("rms=>:chatMetaData:", chatMetaData);
 
             const res = await axios.post(`${backendServiceLink}/chat`, chatMetaData);

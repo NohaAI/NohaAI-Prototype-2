@@ -6,7 +6,7 @@ from src.dao.assessment import AssessmentDAO
 from src.services.workflows.candidate_dialogue_classifier import classify_candidate_dialogue
 from src.services.workflows.bot_dialogue_generator import generate_dialogue
 from src.services.workflows.candidate_solution_classifier import classify_candidate_solution
-from src.utils.logger import get_logger
+from src.utils.logger import get_logger, write_to_report
 from src.dao.assessment_data.assessment_record import AssessmentRecord
 from src.utils import helper as helper
 from src.config import constants as CONST
@@ -130,12 +130,12 @@ async def generate_action_overrides(session_state, chat_history, assessment):
     helper.pretty_log("chat_history", chat_history, 1)
 
     ### RESET OR REINITIALIZE the relevant values immediately after the dialogue generator which is this function call
+    ### or maybe push these later in perform_actions function
     ############################
     session_state['turn_number'] += 1
-    session_state['label_class1'] = None    # updated to avoid carrying over of information to the next turn
-    session_state['label_class2'] = None    # updated to avoid carrying over of information to the next turn
     session_state['solution_classifier_executed'] = False
     
+
     if session_state['next_action'] == 'get_primary_question':
         session_state['bot_dialogue_type'] = 'primary_question'
         chat_history[-1]['bot_dialogue_type'] = 'primary_question'
@@ -144,14 +144,16 @@ async def generate_action_overrides(session_state, chat_history, assessment):
         chat_history[-1]['bot_dialogue_type'] = 'follow-up'
     ############################
 
+
     # Check if the consecutive termination count is equal to 2;  exit interview
     if session_state['consecutive_termination_request_count'] == 2:
         session_state['next_action'] = "terminate_interview_confirmation"
     
     # Check if the final score exceeds the decided threshold score; move to a new topic question
     elif (assessment[-1]["primary_question_score"] >= CONST.THRESHOLD_SCORE):
-        session_state['termination'] = True      
+        session_state['termination'] = True     #TODO: DANGEROUS looks like a wrong assignment
         session_state['bot_dialogue'] = CONST.QUESTION_SOLVED
+        chat_history[-1]['bot_dialogue'] = CONST.QUESTION_SOLVED
     
     # Check if max turns have exceeded the threshold decided, and all this while checking 
     #   - length of questions asked list is greater than 0 else the threshold will evaluate to zero
@@ -161,9 +163,11 @@ async def generate_action_overrides(session_state, chat_history, assessment):
         if len(session_state['questions_asked']) <= CONST.THRESHOLD_TOTAL_NUMBER_OF_QUESTIONS:  
             #discuss whether to keep a list or an int that tells number of questions to be asked
             session_state['bot_dialogue'] = CONST.MAX_TURNS_TRIGGERED_QUESTIONS_REMAIN
+            chat_history[-1]['bot_dialogue'] = CONST.MAX_TURNS_TRIGGERED_QUESTIONS_REMAIN
             session_state['next_action'] = 'get_primary_question'
         else:
             session_state['bot_dialogue'] = CONST.MAX_TURNS_TRIGGERED_NO_QUESTIONS_REMAIN
+            chat_history[-1]['bot_dialogue'] = CONST.MAX_TURNS_TRIGGERED_NO_QUESTIONS_REMAIN
             session_state['termination'] = True      
             
     # Contiguous guardrail and unacceptable answer check breach check
@@ -171,10 +175,23 @@ async def generate_action_overrides(session_state, chat_history, assessment):
         (session_state['contiguous_non_technical_guardrail_count'] >= CONST.THRESHOLD_MAX_CONTIGUOUS_NON_TECHNICAL_GUARDRAIL_COUNT or session_state['contiguous_technical_guardrail_count'] >= CONST.THRESHOLD_MAX_CONTIGUOUS_TECHNICAL_GUARDRAIL_COUNT): 
         if len(session_state['questions_asked']) <= CONST.THRESHOLD_TOTAL_NUMBER_OF_QUESTIONS :
             session_state['bot_dialogue'] = CONST.GUARDRAIL_TRIGGERED_QUESTIONS_REMAIN
+            chat_history[-1]['bot_dialogue'] = CONST.GUARDRAIL_TRIGGERED_QUESTIONS_REMAIN
             session_state['next_action'] = 'get_primary_question'
         else:                                   
             session_state['bot_dialogue'] = CONST.GUARDRAIL_TRIGGERED_NO_QUESTIONS_REMAIN
+            chat_history[-1]['bot_dialogue'] = CONST.GUARDRAIL_TRIGGERED_NO_QUESTIONS_REMAIN
             session_state['termination'] = True
+    
+    # Contiguous guardrail breach although no primary question has been asked yet
+    elif (len(session_state['questions_asked']) == 0) and \
+        (session_state['contiguous_non_technical_guardrail_count'] >= CONST.THRESHOLD_MAX_CONTIGUOUS_NON_TECHNICAL_NO_PRIMARY_QUESTION_GUARDRAIL_COUNT):
+            if session_state['label_class1'] not in ["confirmation"]:
+                session_state['bot_dialogue'] = CONST.GUARDRAIL_TRIGGERED_NO_PRIMARY_QUESTION
+                chat_history[-1]['bot_dialogue'] = CONST.GUARDRAIL_TRIGGERED_NO_PRIMARY_QUESTION
+            else:
+                session_state['bot_dialogue'] = "-"
+                chat_history[-1]['bot_dialogue'] = "-"
+    
     else:
         logger.info("NO OVERRIDES TRIGGERED >>>>>>>>>>>>>>>>>>>>>>>>>\n")
 
@@ -210,23 +227,23 @@ async def perform_actions(session_state, chat_history, assessment):
 
             helper.pretty_log("DB fetched question_metadata:", question_metadata)
             ### untoggle this comment block for fetching random ####################
-            # question=question_metadata['question']
-            # question_id = question_metadata['question_id']  
-            # session_state['questions_asked'].append(question_id)    # reinitialize the question_id for the new question
-            # session_state['primary_question'] = question    # reinitialize the primary question
-            # session_state['question_id'] = question_id    # set the question_id in session state (field was added relatively later)
-            # session_state['bot_dialogue'] = session_state['bot_dialogue'] + question    # set bot dialogue in session state with the new question
-            # chat_history[-1]['bot_dialogue'] = session_state['bot_dialogue'] + question   # set bot dialogue in chat history with the new question 
-            # chat_history[-1]['question_id'] = question_id   # update the chat history with the question id  
+            question=question_metadata['question']
+            question_id = question_metadata['question_id']  
+            session_state['questions_asked'].append(question_id)    # reinitialize the question_id for the new question
+            session_state['primary_question'] = question    # reinitialize the primary question
+            session_state['question_id'] = question_id    # set the question_id in session state (field was added relatively later)
+            session_state['bot_dialogue'] = session_state['bot_dialogue'] + question    # set bot dialogue in session state with the new question
+            chat_history[-1]['bot_dialogue'] = session_state['bot_dialogue'] + question   # set bot dialogue in chat history with the new question 
+            chat_history[-1]['question_id'] = question_id   # update the chat history with the question id  
             ############################# END HERE ##################################
 
-            question_id = 1
-            session_state['questions_asked'].append(1)    # reinitialize the question_id for the new question
-            session_state['primary_question'] = "Find an index in an array where the sum of elements to the left equals the sum to the right."    # reinitialize the primary question
-            session_state['bot_dialogue'] = session_state['bot_dialogue'] + "Find an index in an array where the sum of elements to the left equals the sum to the right."    # # set bot dialogue in session state with the new question
-            chat_history[-1]['bot_dialogue'] = session_state['bot_dialogue'] + "Find an index in an array where the sum of elements to the left equals the sum to the right."    # set bot dialogue in chat history with the new question
-            session_state['question_id'] = 1    # set the question_id in session state (field was added relatively later)
-            chat_history[-1]['question_id'] = 1   # update the chat history with the question id  
+            # question_id = 1
+            # session_state['questions_asked'].append(1)    # reinitialize the question_id for the new question
+            # session_state['primary_question'] = "Find an index in an array where the sum of elements to the left equals the sum to the right."    # reinitialize the primary question
+            # session_state['bot_dialogue'] = session_state['bot_dialogue'] + "Find an index in an array where the sum of elements to the left equals the sum to the right."    # # set bot dialogue in session state with the new question
+            # chat_history[-1]['bot_dialogue'] = session_state['bot_dialogue'] + "Find an index in an array where the sum of elements to the left equals the sum to the right."    # set bot dialogue in chat history with the new question
+            # session_state['question_id'] = 1    # set the question_id in session state (field was added relatively later)
+            # chat_history[-1]['question_id'] = 1   # update the chat history with the question id  
         else:
             ### fetch a new random question, prepare a new assessment record and append it to assessment list
             question_metadata=await get_random_question_metadata(session_state['complexity'], session_state['questions_asked']) 
@@ -236,8 +253,14 @@ async def perform_actions(session_state, chat_history, assessment):
             question_id = question_metadata['question_id']  
             session_state['questions_asked'].append(question_id)    # reinitialize the question_id for the new question
             session_state['primary_question'] = question    # reinitialize the primary question
-            session_state['bot_dialogue'] = session_state['bot_dialogue'] + question    # set bot dialogue in session_state with the new question
-            chat_history[-1]['bot_dialogue'] = session_state['bot_dialogue'] + question   # set bot dialogue in chat history with the new question 
+            if session_state['contiguous_technical_guardrail_count'] >= CONST.THRESHOLD_MAX_CONTIGUOUS_TECHNICAL_GUARDRAIL_COUNT or \
+                    session_state['contiguous_non_technical_guardrail_count'] >= CONST.THRESHOLD_MAX_CONTIGUOUS_NON_TECHNICAL_GUARDRAIL_COUNT:
+                session_state['bot_dialogue'] = session_state['bot_dialogue'] + question    # set bot dialogue in session_state with the new question
+                chat_history[-1]['bot_dialogue'] = session_state['bot_dialogue'] + question   # set bot dialogue in chat history with the new question 
+            else:
+                session_state['bot_dialogue'] = question    # set bot dialogue in session_state with the new question
+                chat_history[-1]['bot_dialogue'] = question   # set bot dialogue in chat history with the new question
+            
             session_state['question_id'] = question_id    # set the question_id in session state (field was added relatively later)
             chat_history[-1]['question_id'] = question_id   # update the chat history with the question id 
 
@@ -333,6 +356,13 @@ async def get_next_response(session_state, chat_history, assessment):
 
     
     candidate_dialogue_rationale = await classify_candidate_dialogue(session_state, chat_history)
+
+    bot_dialogue = session_state['bot_dialogue']
+    distilled_candidate_dialogue = session_state['distilled_candidate_dialogue']
+    write_to_report (bot_dialogue)
+    write_to_report (distilled_candidate_dialogue)
+    write_to_report (candidate_dialogue_rationale)
+    write_to_report ("-------------------------------")
 
     # post verification in case technical solution is given for a non-existent question
     if not session_state['question_id'] and session_state['label_class1'] in CONST.TECHNICAL_LABELS:

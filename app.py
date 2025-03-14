@@ -99,7 +99,7 @@ async def initialize(request: Request):
         chat_history_record = {
             "interview_id": interview_id,
             "question_id": CONST.DEF_QUESTION_ID,
-            "bot_dialogue_type": CONST.DEF_BOT_DIALOGUE_TYPE,
+            "bot_dialogue_type": "greeting",
             "bot_dialogue": greeting,
             "candidate_dialogue": CONST.DEF_CANDIDATE_DIALOGUE,
             "distilled_candidate_dialogue": CONST.DEF_DISTILLED_CANDIDATE_DIALOGUE
@@ -163,6 +163,8 @@ async def initialize(request: Request):
 
 @app.post('/chat')
 async def chat(request: Request):
+    logger.info("\n\n\n\n<<<<<<<<<<< FUNCTION ENTER [chat] <<< RECEIVING PAYLOADS FROM FRONT-END REQUESTS <<<<<<<<<<<<<<<<<<<<< \n\n")
+
     logger.info("\n>>>>>>>>>>>FUNCTION [chat] >>>>>>>>>>>>>>>>>>>>>>>>>>\n")
     try:
         chat_request = await request.json()
