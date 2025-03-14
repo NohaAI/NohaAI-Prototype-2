@@ -1,5 +1,5 @@
 'use client'
-// import Feedback from "@/components/feedback";
+import Feedback from "@/components/Feedback";
 import InterviewDetails from "@/components/InterviewDetails";
 import LiveInterview from "@/components/LiveInterview";
 import axios from "axios";
@@ -23,6 +23,8 @@ const MyPage = () => {
     const [transcribedText, setTranscribedText] = useState("");
     const [isProcessing, setIsProcessing] = useState(false); // NEW: Processing state
     const [chatMetaData, setChatMetaData] = useState({} as any);
+    const [nohaResponseProcessing, setNohaResponseProcessing] = useState<boolean>(false);
+    const [isAudioPlaying, setIsAudioPlaying] = useState<boolean>(false);
 
     const recognitionRef = useRef<any>(null);
 
@@ -75,7 +77,7 @@ const MyPage = () => {
             const res = await axios.post(`${backendServiceLink}/terminate`, {
                 session_state: chatMetaData.session_state, 
                 chat_history : chatMetaData.chat_history, 
-                assessment_payload_record: chatMetaData.assessment_payload_record
+                assessment: chatMetaData.assessment
             });
             console.log('terminate', res)
         } catch (error) {
@@ -91,6 +93,7 @@ const MyPage = () => {
 
     const handleChat = async (data: { text: string }) => {
         try {
+            setNohaResponseProcessing(true);
             delete chatMetaData.message;
             delete chatMetaData.greeting;
             delete chatMetaData.termination;
@@ -105,7 +108,7 @@ const MyPage = () => {
             console.log("rms=>:chatMetaData:", chatMetaData);
 
             const res = await axios.post(`${backendServiceLink}/chat`, chatMetaData);
-            console.log("Received AI response", res.data);
+            console.log("Received Noha backend AI response", res.data);
             
             setChatMetaData(res.data)
             updateChats(res.data.session_state.bot_dialogue);
@@ -113,10 +116,11 @@ const MyPage = () => {
             await speakText(res.data.session_state.bot_dialogue);
 
             // check if the flag is true call the terminate api
-            if(res.data.termination) {
+            if(res.data.session_state.termination) {
                 disconnect2()
                 stopRecording();
                 setCallEnded(true);
+                console.log('...about to disconnect')
             }
         } catch (error) {
             console.error("Error in handleStreamBack:", error);
@@ -258,22 +262,36 @@ const MyPage = () => {
 
     return (
         <>
-            {!callEnded && (!interviewStarted ? (
+        {/* Display on medium and large devices */}
+        <div className="hidden lg:block">
+            {!callEnded && (
+            !interviewStarted ? (
                 <InterviewDetails onSubmit={handleSubmit} />
             ) : (
                 <LiveInterview
-                    chats={chats}
-                    name={details.name}
-                    onCancelCall={onCancelCall2}
-                    userSocket={userSocket}
-                    isMicOn={isMicOn}
-                    startRecording={startRecording}
-                    stopRecording={stopRecording}
-                    isRecording={isRecording}
-                    isProcessing={isProcessing} // Pass processing state to show dot on mic
+                chats={chats}
+                name={details.name}
+                onCancelCall={onCancelCall2}
+                userSocket={userSocket}
+                isMicOn={isMicOn}
+                startRecording={startRecording}
+                stopRecording={stopRecording}
+                isRecording={isRecording}
+                nohaResponseProcessing={nohaResponseProcessing}
+                isProcessing={isProcessing}
+                isAudioPlaying={isAudioPlaying}
                 />
-            ))}
+            )
+            )}
             {callEnded && <Feedback sendFeedback={sendFeedback} />}
+        </div>
+            
+        {/* Display on small devices */}
+        <div className="block lg:hidden flex items-center justify-center h-screen bg-gray-100">
+            <p className="text-center text-2xl font-bold text-gray-800 p-4">
+            This application is supported on desktops only.
+            </p>
+        </div>        
         </>
     );
 };
