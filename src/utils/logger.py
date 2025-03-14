@@ -43,3 +43,17 @@ def get_logger_prev(name: str) -> logging.Logger:
 
     return logger
 
+# New function to append report text
+def write_to_report(text: str, file_path: str = "/Users/riteshshah/github-adhirathee/NAI/NohaAI-Prototype-2/report.txt"):
+    """Appends text to a report file without timestamps or log levels.
+
+    Args:
+        text (str): The content to append.
+        file_path (str, optional): The file to write to. Defaults to 'report.txt'.
+    """
+    try:
+        with open(file_path, "a", encoding="utf-8") as f:
+            f.write(text + "\n")  # Append text with a newline
+    except Exception as e:
+        print(f"Error writing to report file: {e}")
+

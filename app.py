@@ -37,14 +37,16 @@ app.add_middleware(
 
 @app.get('/connect')
 async def connect():
+    logger.info("\n>>>>>>>>>>>FUNCTION [connect] >>>>>>>>>>>>>>>>>>>>>>>>>>\n")
     #TODO: USE ONLY FOR WEBSOCKETS
     logger.info("\n\n\n Client connected successfully.............................")
     return {"message": "Connected successfully"}
     
 @app.post('/initialize')
 async def initialize(request: Request):
-    logger.info("\n>>>>>>>>>>>FUNCTION [initialize] >>>>>>>>>>>>>>>>>>>>>>>>>>")
+    logger.info("\n>>>>>>>>>>>FUNCTION [initialize] >>>>>>>>>>>>>>>>>>>>>>>>>>\n")
     try:
+        # () call library function: fastapi.Request.request
         initialization_request = await request.json()
         logger.info(f"INITIALIZATION REQUEST FROM CLIENT {initialization_request}")
         
@@ -60,12 +62,16 @@ async def initialize(request: Request):
         user_name = initialization_request['user_name']
         user_email = initialization_request['user_email']   
         
+        # () call function: initialize_interview
         user_id, interview_id = await initialize_interview(user_name, user_email)
       
-        helper.pretty_log("interview_id", interview_id)
-        helper.pretty_log("user_id", user_id)
+        helper.pretty_log("interview_id", interview_id, 1)
+
       
+        # () call function: generate_greeting
         greeting = await generate_greeting(user_id) 
+
+        helper.pretty_log("greeting", greeting, 1)
 
 
         session_state = {
@@ -93,7 +99,7 @@ async def initialize(request: Request):
         chat_history_record = {
             "interview_id": interview_id,
             "question_id": CONST.DEF_QUESTION_ID,
-            "bot_dialogue_type": CONST.DEF_BOT_DIALOGUE_TYPE,
+            "bot_dialogue_type": "greeting",
             "bot_dialogue": greeting,
             "candidate_dialogue": CONST.DEF_CANDIDATE_DIALOGUE,
             "distilled_candidate_dialogue": CONST.DEF_DISTILLED_CANDIDATE_DIALOGUE
@@ -107,14 +113,18 @@ async def initialize(request: Request):
             "assessment_payload": helper.get_assessment_payload()  
         }
         
-        # initialize an instance each of ChatHistoryDAO and AssessmentDAO
-        chat_history_dao = ChatHistoryDAO()
-        chat_history = chat_history_dao.get_chat_history(interview_id=interview_id)
-        chat_history.append(chat_history_record)
+        # TODO: initialize an instance each of ChatHistoryDAO and AssessmentDAO
+        # TODO: second thought: possibly this should be instantiated in terminate/ and collectively batch inserted for both payloads, chat_history and assessment
+        # chat_history_dao = ChatHistoryDAO()
+        # chat_history = chat_history_dao.get_chat_history(interview_id=interview_id)
+        # chat_history.append(chat_history_record)
 
-        assessment_dao = AssessmentDAO()
-        assessment = assessment_dao.get_assessments(interview_id=interview_id)
-        assessment.append(assessment_record)
+        # assessment_dao = AssessmentDAO()
+        # assessment = assessment_dao.get_assessments(interview_id=interview_id)
+        # assessment.append(assessment_record)
+        ########################################################
+        chat_history = [chat_history_record]
+        assessment = [assessment_record]
 
         initialization_response = {
             "session_state": session_state,
@@ -138,9 +148,11 @@ async def initialize(request: Request):
         ############ END BLOCK, DISCUSS AND DELETE ##################
 
 
-        helper.pretty_log("session_state", session_state)
-        helper.pretty_log("chat_history", chat_history)
-        helper.pretty_log("assessment", assessment)
+        helper.pretty_log("session_state", session_state, 1)
+        helper.pretty_log("chat_history", chat_history, 1)
+        helper.pretty_log("assessment", assessment, 1)
+
+        logger.info("\n\n\n\n>>>>>>>>>>>FUNCTION EXIT [initialize] >>> SENDING ABOVE PAYLOADS AS FRONT-END RESPONSE >>>>>>>>>>>>>>>>>>>>>>>\n\n")
 
         return initialization_response
     
@@ -151,11 +163,13 @@ async def initialize(request: Request):
 
 @app.post('/chat')
 async def chat(request: Request):
-    logger.info("\n>>>>>>>>>>>FUNCTION [chat] >>>>>>>>>>>>>>>>>>>>>>>>>>")
+    logger.info("\n\n\n\n<<<<<<<<<<< FUNCTION ENTER [chat] <<< RECEIVING PAYLOADS FROM FRONT-END REQUESTS <<<<<<<<<<<<<<<<<<<<< \n\n")
+
+    logger.info("\n>>>>>>>>>>>FUNCTION [chat] >>>>>>>>>>>>>>>>>>>>>>>>>>\n")
     try:
         chat_request = await request.json()
-        logger.info(f"CHAT REQUEST FROM CLIENT : {json.dumps(chat_request, indent=4)} ")
-        
+        # logger.info(f"CHAT REQUEST FROM CLIENT : {json.dumps(chat_request, indent=4)} ")
+
         # Validate request body
         if not chat_request:
             raise HTTPException(status_code=400, detail="Missing request body")
@@ -174,6 +188,9 @@ async def chat(request: Request):
         chat_history = chat_request["chat_history"]
         assessment = chat_request["assessment"]
 
+        helper.pretty_log("session_state", session_state, 1)
+        helper.pretty_log("chat_history", chat_history, 1)
+        
         # chat_history = ChatHistoryRecord()  
         # chat_history.extend(chat_history_data)  
 
@@ -204,7 +221,7 @@ async def chat(request: Request):
 
 @app.post('/terminate')
 async def terminate(request: Request):
-    logger.info("\n>>>>>>>>>>>FUNCTION [terminate] >>>>>>>>>>>>>>>>>>>>>>>>>>")
+    logger.info("\n>>>>>>>>>>>FUNCTION [terminate] >>>>>>>>>>>>>>>>>>>>>>>>>>\n")
     termination_request = await request.json()
     
     # Validate request body

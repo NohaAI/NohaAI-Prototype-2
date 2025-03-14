@@ -6,7 +6,10 @@ from src.services.llm.prompts.classify_candidate_solution_prompt import classify
 logger = logger.get_logger(__name__)
 
 async def classify_candidate_solution(session_state, chat_history):
-    logger.info("\n\n\n>>>>>>>>>>>FUNCTION [classify_candidate_solution] >>>>>>>>>>>>>>>>>>>>>>>>>>")
+    logger.info("\n\n\n>>>>>>>>>>>FUNCTION [classify_candidate_solution] >>>>>>>>>>>>>>>>>>>>>>>>>>\n")
+
+    helper.pretty_log("session_state", session_state, 1)
+    helper.pretty_log("chat_history", chat_history, 1)
 
     classify_candidate_solution_prompt=classify_candidate_solution_prompt_template()
     llm_model = llm_service.get_openai_model()
@@ -21,7 +24,7 @@ async def classify_candidate_solution(session_state, chat_history):
     llm_response_candidate_solution_classification = await classify_candidate_solution_chain.ainvoke(llm_inputs)
     llm_content_candidate_solution_classification = json.loads(llm_response_candidate_solution_classification.content)
 
-    helper.pretty_log("CLASSIFY CANDIDATE SOLUTION LLM OUTPUT", llm_content_candidate_solution_classification)
+    helper.pretty_log("CLASSIFY CANDIDATE SOLUTION LLM OUTPUT", llm_content_candidate_solution_classification, 1)
 
     label_class2 = llm_content_candidate_solution_classification[0]
     candidate_solution_rationale = llm_content_candidate_solution_classification[1]
@@ -30,6 +33,9 @@ async def classify_candidate_solution(session_state, chat_history):
    
     # update the respective fields in the session _state and chat_history
     session_state['label_class2'] = label_class2 # updates the classifier 1 label in the session state
+    
+    helper.pretty_log("session_state", session_state, 1)
+    helper.pretty_log("chat_history", chat_history, 1)
 
     logger.info("\n\n>>>>>>>>>>>FUNCTION EXIT [classify_candidate_solution] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
 

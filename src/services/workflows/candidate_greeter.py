@@ -5,6 +5,7 @@ from src.config import constants as CONST
 logger=get_logger(__name__)
 
 async def generate_greeting(user_id: int):
+    logger.info("\n>>>>>>>>>>>FUNCTION [generate_greeting] >>>>>>>>>>>>>>>>>>>>>>>>>>\n")
     username= await get_user_metadata(user_id)
     print(username['name'])
     greeting= f"Hello {username['name']}, {CONST.GREETING_SUFFIX}"
