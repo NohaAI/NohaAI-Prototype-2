@@ -29,7 +29,7 @@ app = FastAPI()
 # CORS middleware configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000"],  # Add your frontend URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -231,51 +231,63 @@ async def terminate(request: Request):
     required_fields = [
         "session_state", 
         "chat_history", 
-        "assessment_payload_record"
+        "assessment"
     ]
     
     for field in required_fields:
         if field not in termination_request:
             raise HTTPException(status_code=400, detail=f"Missing '{field}' in termination_request body")
     
-    session_state = json.loads(termination_request["session_state"])
-    chat_history_data = json.loads(termination_request["chat_history"])
-    assessment_payload_data = json.loads(termination_request["assessment_payload_record"])
+    session_state = termination_request["session_state"]
+    chat_history = termination_request["chat_history"]
+    assessment = termination_request["assessment"]
 
-    chat_history = ChatHistoryRecord()  
-    chat_history.extend(chat_history_data)  
 
-    assessment_payload_record = AssessmentPayloadRecord()  
-    assessment_payload_record.extend(assessment_payload_data)
+    # chat_history = ChatHistoryRecord()  
+    # chat_history.extend(chat_history_data)  
 
-    try:
-        batch_insert_chat_history(chat_history)
-        logger.info(f"DATA ADDED TO CHAT HISTORY TABLE")
+    # assessment_payload_record = AssessmentPayloadRecord()  
+    # assessment_payload_record.extend(assessment_payload_data)
 
-        batch_insert_interview_question_evaluation(assessment_payload_record)
-        logger.info(f"DATA ADDED TO INTERVIEW QUESTION EVALUATION TABLE")
+    # try:
+    #     batch_insert_chat_history(chat_history)
+    #     logger.info(f"DATA ADDED TO CHAT HISTORY TABLE")
 
-        add_interview_session_state(
-            session_state['interview_id'], 
-            session_state['turn_number'], 
-            session_state['consecutive_termination_request_count'], 
-            session_state['bot_dialogue'], 
-            session_state['guardrail_count'], 
-            session_state['contiguous_technical_guardrail_count'], 
-            session_state['contiguous_non_technical_guardrail_count'], 
-            session_state['termination'], 
-            session_state['current_question'], 
-            session_state['next_action'], 
-            session_state['questions_asked'], 
-            session_state['bot_dialogue_type'], 
-            session_state['complexity']
-        )
-        logger.info(f"DATA ADDED TO INTERVIEW SESSION STATE TABLE")
+    #     batch_insert_interview_question_evaluation(assessment_payload_record)
+    #     logger.info(f"DATA ADDED TO INTERVIEW QUESTION EVALUATION TABLE")
 
-        return {"message": "DATABASE WRITE OPERATIONS SUCCESSFULL FOR CHAT_HISTORY, INTERVIEW_QUESTION_EVALUATION, INTERVIEW_SESSION_STATE"}
-    except Exception as e:
-        logger.critical(f"ERROR TERMINATING THE INTERVIEW {e}")
-        raise HTTPException(status_code=500, detail=f"ERROR TERMINATING THE INTERVIEW : {e}")
+    #     add_interview_session_state(
+    #         session_state['interview_id'], 
+    #         session_state['turn_number'], 
+    #         session_state['consecutive_termination_request_count'], 
+    #         session_state['bot_dialogue'], 
+    #         session_state['guardrail_count'], 
+    #         session_state['contiguous_technical_guardrail_count'], 
+    #         session_state['contiguous_non_technical_guardrail_count'], 
+    #         session_state['termination'], 
+    #         session_state['current_question'], 
+    #         session_state['next_action'], 
+    #         session_state['questions_asked'], 
+    #         session_state['bot_dialogue_type'], 
+    #         session_state['complexity']
+    #     )
+    #     logger.info(f"DATA ADDED TO INTERVIEW SESSION STATE TABLE")
+
+    #     return {"message": "DATABASE WRITE OPERATIONS SUCCESSFULL FOR CHAT_HISTORY, INTERVIEW_QUESTION_EVALUATION, INTERVIEW_SESSION_STATE"}
+    # except Exception as e:
+    #     logger.critical(f"ERROR TERMINATING THE INTERVIEW {e}")
+    #     raise HTTPException(status_code=500, detail=f"ERROR TERMINATING THE INTERVIEW : {e}")
+    helper.pretty_log("session_state", session_state)
+    helper.pretty_log("chat_history", chat_history)
+
+    terminate_response = {
+        "session_state": session_state,
+        "chat_history": chat_history,
+        "assessment": assessment
+    }
+
+    logger.info("\n\n\n\n>>>>>>>>>>>FUNCTION EXIT [terminate] >>> SENDING PAYLOADS AS FRONT-END RESPONSE >>>>>>>>>>>>>>>>>>>>>>>\n\n")
+    return terminate_response
 
 @app.get('/disconnect')
 async def disconnect():
