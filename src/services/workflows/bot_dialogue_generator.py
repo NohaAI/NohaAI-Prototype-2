@@ -1,6 +1,7 @@
 from src.utils.logger import get_logger
 from src.utils import helper as helper
 from src.services.llm import llm_service
+from src.config import constants as CONST
 import json
 from src.services.llm.prompts.bot_dialogue_prompt import bot_dialogue_prompt_template 
 # Initialize logger
@@ -16,6 +17,16 @@ async def generate_dialogue(session_state, chat_history, assessment, rationale=N
         class_label = session_state['label_class1']
     else:
         class_label = session_state['label_class2']
+
+    new_chat_record = {
+        "interview_id": session_state['interview_id'],
+        "question_id": CONST.DEF_QUESTION_ID,
+        "bot_dialogue_type": CONST.DEF_BOT_DIALOGUE_TYPE,
+        "bot_dialogue": None,
+        "candidate_dialogue": CONST.DEF_CANDIDATE_DIALOGUE,
+        "distilled_candidate_dialogue": CONST.DEF_DISTILLED_CANDIDATE_DIALOGUE
+    }
+    chat_history.append(new_chat_record)
 
     bot_dialogue_prompt=bot_dialogue_prompt_template()
     llm_model = llm_service.get_openai_model()
