@@ -3,9 +3,10 @@
 # INTERVIEW THRESHOLDS ############################################################
 THRESHOLD_MAX_TURNS = 10
 THRESHOLD_SCORE = 5.0
-THRESHOLD_MAX_CONTIGUOUS_NON_TECHNICAL_GUARDRAIL_COUNT = 4
-THRESHOLD_MAX_GUARDRAIL_COUNT = 10
 THRESHOLD_MAX_CONTIGUOUS_TECHNICAL_GUARDRAIL_COUNT = 4
+THRESHOLD_MAX_CONTIGUOUS_NON_TECHNICAL_GUARDRAIL_COUNT = 4
+THRESHOLD_MAX_CONTIGUOUS_NON_TECHNICAL_NO_PRIMARY_QUESTION_GUARDRAIL_COUNT = 2
+THRESHOLD_MAX_GUARDRAIL_COUNT = 10
 THRESHOLD_COMPLEXITY = 1
 THRESHOLD_TOTAL_NUMBER_OF_QUESTIONS = 2
 
@@ -15,6 +16,7 @@ GREETING_SUFFIX_ORIG = "I am Noha! I am your interviewer today. We have planned 
 QUESTION_SOLVED = "Okay, now that you have answered the algorithmic aspects, can you begin writing the code ?"
 GUARDRAIL_TRIGGERED_QUESTIONS_REMAIN = "Sorry, there seems to be a lack of clarity in your responses. Let us move on to the next question: "
 GUARDRAIL_TRIGGERED_NO_QUESTIONS_REMAIN = "Sorry, there seems to be a lack of clarity in your responses. Let us conclude here."
+GUARDRAIL_TRIGGERED_NO_PRIMARY_QUESTION = "I suppose we should go back to beginning the interview, are you ready for the questions?"
 TERMINATION = "Thank you for your participation"
 MAX_TURNS_TRIGGERED_QUESTIONS_REMAIN = "So far so good, let us move on to the next question : "
 MAX_TURNS_TRIGGERED_NO_QUESTIONS_REMAIN = "We appreciate your responses so far! Now, can you code it for us? Let us know when you're ready."
@@ -46,7 +48,7 @@ DEF_TERMINATION = False
 DEF_PRIMARY_QUESTION = None
 DEF_NEXT_ACTION = "Pass"
 DEF_QUESTIONS_ASKED = []
-DEF_BOT_DIALOGUE_TYPE = "greeting"
+DEF_BOT_DIALOGUE_TYPE = None
 DEF_COMPLEXITY = 1
 DEF_LABEL_CLASS1 = None
 DEF_LABEL_CLASS2 = None
@@ -58,7 +60,7 @@ DEF_QUESTION_ID = None # Set dynamically in initialize
 ### DEF_BOT_DIALOGUE = None # have been already defined in session defaults section
 ### DEF_BOT_DIALOGUE_TYPE = 'greeting' # have been already defined in session defaults section
 ### DEF_CANDIDATE_DIALOGUE = None # Set dynamically from client as response to first greeting message
-DEF_DISTILLED_CANDIDATE_DIALOGUE = "" # Set dynamically from candidate_classifier
+DEF_DISTILLED_CANDIDATE_DIALOGUE = None # Set dynamically from candidate_classifier
 
 # ASSESSMENT DEFAULTS ###########################################################
 ### DEF_INTERVIEW_ID = None # have been already defined in session defaults section
