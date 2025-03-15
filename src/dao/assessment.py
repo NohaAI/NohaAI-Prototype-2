@@ -145,7 +145,7 @@ class AssessmentDAO:
                     (
                         record["interview_id"],
                         record["question_id"],
-                        record["final_score"],
+                        record["primary_question_score"],
                         json.dumps(record["assessment_payload"])
                     )
                     for record in assessment_payload_records

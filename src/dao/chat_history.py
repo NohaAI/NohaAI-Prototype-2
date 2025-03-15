@@ -192,6 +192,113 @@ class ChatHistoryDAO:
             logger.exception("Database operation error")
             raise e
 
+    def batch_insert_chat_history(self, chat_history_records: List[Dict]) -> List[Dict]:
+         def batch_insert_chat_history(self, chat_history_records: List[Dict]) -> List[Dict]:
+        """
+        Inserts multiple chat history entries in a batch operation.
+
+        Args:
+            chat_history_records (List[Dict]): List of chat history records.
+                Each record should contain:
+                - interview_id
+                - question_id
+                - bot_dialogue
+                - candidate_dialogue
+                - distilled_candidate_dialogue
+                - bot_dialogue_type
+
+        Returns:
+            List[Dict]: List of inserted chat history records with their IDs.
+
+        Raises:
+            DatabaseQueryError: If the batch insert query fails.
+        """
+            try:
+                with get_db_connection() as conn:
+                    # Validate input records
+                    required_fields = [
+                        "interview_id",
+                        "question_id",
+                        "bot_dialogue",
+                        "candidate_dialogue",
+                        "distilled_candidate_dialogue",
+                        "bot_dialogue_type"
+                    ]
+                    for record in chat_history_records:
+                        for field in required_fields:
+                            if field not in record:
+                                raise ValueError(f"Missing '{field}' in chat history record")
+
+                    # Prepare values for batch insert
+                    values = [
+                        (
+                            record["interview_id"],
+                            record["question_id"],
+                            record["bot_dialogue"],
+                            record["candidate_dialogue"],
+                            record["distilled_candidate_dialogue"],
+                            record["bot_dialogue_type"]
+                        )
+                        for record in chat_history_records
+                    ]
+
+                    if not values:
+                        return []  # No records to insert
+
+                    # Check if interviews and questions exist
+                    interview_ids = [record["interview_id"] for record in chat_history_records]
+                    question_ids = [record["question_id"] for record in chat_history_records]
+
+                    interview_check_query = "SELECT interview_id FROM interview WHERE interview_id IN %s"
+                    existing_interviews = execute_query(conn, interview_check_query, (tuple(interview_ids),))
+                    existing_interview_ids = [row[0] for row in existing_interviews]
+                    missing_interview_ids = set(interview_ids) - set(existing_interview_ids)
+                    if missing_interview_ids:
+                        raise InterviewNotFoundException(f"Interviews with IDs {missing_interview_ids} do not exist")
+
+                    question_check_query = "SELECT question_id FROM question WHERE question_id IN %s"
+                    existing_questions = execute_query(conn, question_check_query, (tuple(question_ids),))
+                    existing_question_ids = [row[0] for row in existing_questions]
+                    missing_question_ids = set(question_ids) - set(existing_question_ids)
+                    if missing_question_ids:
+                        raise QuestionNotFoundException(f"Questions with IDs {missing_question_ids} do not exist")
+
+                    # Batch insert query
+                    insert_query = """
+                        INSERT INTO chat_history (interview_id, question_id, bot_dialogue, candidate_dialogue, distilled_candidate_dialogue, bot_dialogue_type)
+                        VALUES %s
+                        RETURNING chat_history_turn_id, interview_id, question_id, bot_dialogue, candidate_dialogue, distilled_candidate_dialogue, bot_dialogue_type
+                    """
+                    results = execute_values(conn, insert_query, values, fetch=True, commit=True)
+
+                    # Convert results to dictionaries
+                    inserted_records = [
+                        {
+                            "chat_history_turn_id": result[0],
+                            "interview_id": result[1],
+                            "question_id": result[2],
+                            "bot_dialogue": result[3],
+                            "candidate_dialogue": result[4],
+                            "distilled_candidate_dialogue": result[5],
+                            "bot_dialogue_type": result[6]
+                        }
+                        for result in results
+                    ]
+
+                return inserted_records
+
+            except DatabaseConnectionError as e:
+                logger.exception("Database connection error")
+                raise e
+            except DatabaseQueryError as e:
+                logger.exception("Database query error")
+                raise e
+            except DatabaseOperationError as e:
+                logger.exception("Database operation error")
+                raise e
+                
+
+
     def delete_chat_history(self, interview_id: int) -> Dict:
         """Deletes chat history for a given interview ID."""
         try:
