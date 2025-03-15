@@ -20,7 +20,7 @@ async def generate_dialogue(session_state, chat_history, assessment, rationale=N
 
     new_chat_record = {
         "interview_id": session_state['interview_id'],
-        "question_id": CONST.DEF_QUESTION_ID,
+        "question_id": session_state['question_id'],
         "bot_dialogue_type": CONST.DEF_BOT_DIALOGUE_TYPE,
         "bot_dialogue": None,
         "candidate_dialogue": CONST.DEF_CANDIDATE_DIALOGUE,
