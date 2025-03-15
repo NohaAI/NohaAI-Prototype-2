@@ -17,9 +17,9 @@ from src.api.demo_user import initialize_interview
 from src.services.workflows.candidate_greeter import generate_greeting
 from src.dao.chat_history_data.chat_history_record import ChatHistoryRecord
 from src.dao.assessment_data.assessment_record import AssessmentRecord
-from src.config import constants as CONST
 from src.dao.chat_history import ChatHistoryDAO
 from src.dao.assessment import AssessmentDAO
+from src.config import constants as CONST
 
 # Ensure logs are visible
 logger = get_logger(__name__)
@@ -242,12 +242,12 @@ async def terminate(request: Request):
     chat_history = termination_request["chat_history"]
     assessment = termination_request["assessment"]
 
+    chat_history_dao = ChatHistoryDAO()
+    chat_history_dao.batch_insert_chat_history(chat_history)
 
-    # chat_history = ChatHistoryRecord()  
-    # chat_history.extend(chat_history_data)  
+    assessment_dao = AssessmentDAO()
+    assessment_dao.batch_insert_assessments(assessment)
 
-    # assessment_payload_record = AssessmentPayloadRecord()  
-    # assessment_payload_record.extend(assessment_payload_data)
 
     # try:
     #     batch_insert_chat_history(chat_history)
