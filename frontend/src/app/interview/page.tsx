@@ -7,14 +7,13 @@ import { useEffect, useRef, useState } from "react";
 // import { io } from "socket.io-client";
 
 const MyPage = () => {
-
+    
     const [interviewStarted, setInterviewStarted] = useState<boolean>(false);
     const [details, setDetails] = useState({} as any);
     const [callEnded, setCallEnded] = useState(false);
     const [backendServiceLink] = useState(
-        // "http://localhost:5000"
-        "https://apis.noha.ai"
-        );
+        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:5000"
+    );
     const [userSocket, setUserSocket] = useState<any>(null);
     const [chats, setChats] = useState<Array<any>>([]);
     
