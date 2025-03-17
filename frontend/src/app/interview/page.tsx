@@ -12,8 +12,8 @@ const MyPage = () => {
     const [details, setDetails] = useState({} as any);
     const [callEnded, setCallEnded] = useState(false);
     const [backendServiceLink] = useState(
-        "http://localhost:5001"
-        // "https://apis.noha.ai"
+        // "http://localhost:5000"
+        "https://apis.noha.ai"
         );
     const [userSocket, setUserSocket] = useState<any>(null);
     const [chats, setChats] = useState<Array<any>>([]);
@@ -23,6 +23,7 @@ const MyPage = () => {
     const [transcribedText, setTranscribedText] = useState("");
     const [isProcessing, setIsProcessing] = useState(false); // NEW: Processing state
     const [chatMetaData, setChatMetaData] = useState({} as any);
+
     const [nohaResponseProcessing, setNohaResponseProcessing] = useState<boolean>(false);
     const [isAudioPlaying, setIsAudioPlaying] = useState<boolean>(false);
 
@@ -63,8 +64,8 @@ const MyPage = () => {
             setChatMetaData(initializeRes.data)
             setInterviewStarted(true);
           
-            updateChats(initializeRes.data.session_state.bot_dialogue);
-            speakText(initializeRes.data.session_state.bot_dialogue)
+            updateChats(initializeRes.data.greeting);
+            speakText(initializeRes.data.greeting)
 
         } catch (error) {
             console.error("Error in startConnection2:", error);
@@ -77,7 +78,7 @@ const MyPage = () => {
             const res = await axios.post(`${backendServiceLink}/terminate`, {
                 session_state: chatMetaData.session_state, 
                 chat_history : chatMetaData.chat_history, 
-                assessment: chatMetaData.assessment
+                assessment_payload_record: chatMetaData.assessment_payload_record
             });
             console.log('terminate', res)
         } catch (error) {
@@ -98,31 +99,20 @@ const MyPage = () => {
             delete chatMetaData.greeting;
             delete chatMetaData.termination;
 
-            // Directly update the candidate_dialogue field in chatMetaData
-            console.log("RMS=>:data.text");
-            chatMetaData.session_state.candidate_dialogue = data.text;
-            const lastIndex = chatMetaData.chat_history.length - 1;
-            if (lastIndex >= 0) {  // Ensure chat_history is not empty
-                 chatMetaData.chat_history[lastIndex].candidate_dialogue = data.text;
+            const reqBody = {
+                ...chatMetaData,
+                "candidate_dialogue": data.text
             }
-            console.log("rms=>:chatMetaData:", chatMetaData);
-
-            const res = await axios.post(`${backendServiceLink}/chat`, chatMetaData);
-            console.log("Received Noha backend AI response", res.data);
-            
+            const res = await axios.post(`${backendServiceLink}/chat`, reqBody);
+            console.log("Received AI response", res.data);
+            setNohaResponseProcessing(false);
             setChatMetaData(res.data)
-            updateChats(res.data.session_state.bot_dialogue);
-            
-            await speakText(res.data.session_state.bot_dialogue);
+            updateChats(res.data.bot_dialogue);
+            speakText(res.data.bot_dialogue, { termination: res?.data?.termination });
 
-            // check if the flag is true call the terminate api
-            if(res.data.session_state.termination) {
-                disconnect2()
-                stopRecording();
-                setCallEnded(true);
-                console.log('...about to disconnect')
-            }
+           
         } catch (error) {
+            setNohaResponseProcessing(false);
             console.error("Error in handleStreamBack:", error);
         }
     };
@@ -134,26 +124,31 @@ const MyPage = () => {
         ]);
     };
 
-    const speakText = (text: string): Promise<void> => {
-        return new Promise((resolve) => {
-            if (!window.speechSynthesis) {
-                console.error("Speech synthesis is not supported in this browser.");
-                resolve();
-                return;
+    const speakText = (text: string, info?: any): void => {
+        if (!window.speechSynthesis) {
+            console.error("Speech synthesis is not supported in this browser.");
+            return;
+        }
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "en-US";
+        utterance.rate = 1;
+        utterance.pitch = 1;
+
+        utterance.onstart = () => {
+            setIsAudioPlaying(true);
+        };
+
+        utterance.onend = () => {
+            setIsAudioPlaying(false); 
+            if(info?.termination) {
+                disconnect2()
+                stopRecording();
+                setCallEnded(true);
             }
-        
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = "en-US";
-            utterance.rate = 1;
-            utterance.pitch = 1;
+        }
 
-            utterance.onend = () => {
-                console.log("Speech finished");
-                resolve();
-            };
-
-            window.speechSynthesis.speak(utterance);
-        });
+        window.speechSynthesis.speak(utterance);
     };
 
     const handleSubmit = (data: { name: string; email: string }) => {
@@ -262,38 +257,39 @@ const MyPage = () => {
 
     return (
         <>
-        {/* Display on medium and large devices */}
-        <div className="hidden lg:block">
+          {/* Display on medium and large devices */}
+          <div className="hidden lg:block">
             {!callEnded && (
-            !interviewStarted ? (
+              !interviewStarted ? (
                 <InterviewDetails onSubmit={handleSubmit} />
-            ) : (
+              ) : (
                 <LiveInterview
-                chats={chats}
-                name={details.name}
-                onCancelCall={onCancelCall2}
-                userSocket={userSocket}
-                isMicOn={isMicOn}
-                startRecording={startRecording}
-                stopRecording={stopRecording}
-                isRecording={isRecording}
-                nohaResponseProcessing={nohaResponseProcessing}
-                isProcessing={isProcessing}
-                isAudioPlaying={isAudioPlaying}
+                  chats={chats}
+                  name={details.name}
+                  onCancelCall={onCancelCall2}
+                  userSocket={userSocket}
+                  isMicOn={isMicOn}
+                  startRecording={startRecording}
+                  stopRecording={stopRecording}
+                  isRecording={isRecording}
+                  nohaResponseProcessing={nohaResponseProcessing}
+                  isProcessing={isProcessing}
+                  isAudioPlaying={isAudioPlaying}
                 />
-            )
+              )
             )}
             {callEnded && <Feedback sendFeedback={sendFeedback} />}
-        </div>
-            
-        {/* Display on small devices */}
-        <div className="block lg:hidden flex items-center justify-center h-screen bg-gray-100">
+          </div>
+      
+          {/* Display on small devices */}
+          <div className="block lg:hidden flex items-center justify-center h-screen bg-gray-100">
             <p className="text-center text-2xl font-bold text-gray-800 p-4">
-            This application is supported on desktops only.
+              This application is supported on desktops only.
             </p>
-        </div>        
+          </div>
         </>
-    );
+      );
+      
 };
 
 export default MyPage;
