@@ -1,16 +1,10 @@
 from fastapi import FastAPI
-from pydantic import BaseModel, Field
-from datetime import datetime
-import psycopg2
-from psycopg2.pool import SimpleConnectionPool
-from typing import Optional
-import os
 import logging
-from contextlib import contextmanager
-from dotenv import load_dotenv
 import uvicorn
 from src.dao.exceptions import QuestionEvaluationNotFoundException,QuestionNotFoundException,InterviewNotFoundException
-from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
+from src.dao.utils.execute_query import execute_query
+from src.dao.utils.connect import get_db_connection
+from src.dao.exceptions import DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

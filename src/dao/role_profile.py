@@ -1,16 +1,11 @@
-from fastapi import FastAPI , Depends
-from pydantic import BaseModel, Field
-import psycopg2
-from psycopg2.pool import SimpleConnectionPool
-from typing import List, Optional
-import os
+from fastapi import FastAPI
 import logging
-from contextlib import contextmanager
-from dotenv import load_dotenv
 import uvicorn
-from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
+from src.dao.utils.execute_query import execute_query
+from src.dao.utils.connect import get_db_connection
+from src.dao.exceptions import DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError
 from src.dao.exceptions import RoleProfileNotFoundException,OrganizationNotFoundException
-from src.schemas.dao import RoleProfileResponse,RoleProfileRequest,RoleProfileUpdateRequest
+from src.schemas.dao import RoleProfileResponse, RoleProfileUpdateRequest
 
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)

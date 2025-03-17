@@ -1,17 +1,14 @@
 from fastapi import FastAPI
-from typing import List
 import logging
-from contextlib import contextmanager
-from dotenv import load_dotenv
 import uvicorn
-from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
+from src.dao.utils.execute_query import execute_query
+from src.dao.utils.connect import get_db_connection
+from src.dao.exceptions import DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError
 from src.dao.exceptions import QuestionNotFoundException, QuestionTypeNotFoundException, NoQuestionForComplexityException
 from src.schemas.dao import QuestionResponse,QuestionRequest
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
 
 app = FastAPI()
 
@@ -40,7 +37,7 @@ async def get_question_metadata(question_id: int):
             question_metadata = execute_query(conn, question_query, (question_id,))
             
             if not question_metadata:
-                logger.erro(f"Question with ID {question_id} not found in the database")
+                logger.error(f"Question with ID {question_id} not found in the database")
                 raise QuestionNotFoundException(question_id)
                 
             return {

@@ -1,15 +1,9 @@
 from fastapi import FastAPI
-from pydantic import BaseModel, Field
-from datetime import datetime
-import psycopg2
-from psycopg2.pool import SimpleConnectionPool
-from typing import Optional
-import os
 import logging
-from contextlib import contextmanager
-from dotenv import load_dotenv
 import uvicorn
-from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
+from src.dao.utils.execute_query import execute_query
+from src.dao.utils.connect import get_db_connection
+from src.dao.exceptions import DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError
 from src.dao.exceptions import CriterionNotFoundException
 from src.schemas.dao import CriteriaRequest,CriteriaResponse
 # Logging Configuration
@@ -37,15 +31,15 @@ async def fetch_criterion(criterion_id: int):
         with get_db_connection() as conn:
             try:
                 # Query to fetch the criteria by ID
-                criteria = execute_query(
+                criteria_metadata = execute_query(
                     conn,
                     "SELECT criterion_id, criterion, question_type_id FROM Criterion WHERE criterion_id = %s",
                     (criterion_id,)
                 )
-                if not criteria:
+                if not criteria_metadata:
                     raise CriterionNotFoundException('criterion_id',criterion_id)  # Handle not found
                 # Return the criteria details
-                return {"criterion_id": criteria[0], "": criteria[1], "question_type_id": criteria[2]}
+                return {"criterion_id": criteria_metadata[0], "criterion": criteria_metadata[1], "question_type_id": criteria_metadata[2]}
             except Exception as e:
                 logger.error(f"Error retrieving criteria: {e}")  # Log errors
                 raise e

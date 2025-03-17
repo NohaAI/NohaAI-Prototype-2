@@ -1,19 +1,13 @@
 from fastapi import FastAPI
-from pydantic import BaseModel, Field
-from datetime import datetime
-import psycopg2
-from psycopg2.pool import SimpleConnectionPool
-from typing import List, Dict, Optional, Union
-import os
 import logging
-from contextlib import contextmanager
-from dotenv import load_dotenv
 from psycopg2.extras import execute_values
 import uvicorn
-from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
+from src.dao.utils.execute_query import execute_query
+from src.dao.utils.connect import get_db_connection
+from src.dao.exceptions import DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError
 from src.dao.exceptions import QuestionNotFoundException,SubcriterionNotFoundException
 from src.dao.criterion_payload import Criterion,SubCriterion
-from src.schemas.dao import SubcriteriaResponse,SubcriteriaRequest,SubcriteriaUpdate
+from src.schemas.dao import SubcriteriaResponse, SubcriteriaUpdate
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -36,7 +30,7 @@ async def get_subcriterion(subcriterion_id: int):
     try:
         with get_db_connection() as conn:
             query = """
-                SELECT subcriterion_id, subcriteria, criterion_id, question_id
+                SELECT subcriterion_id, subcriterion, criterion_id, question_id
                 FROM Subcriterion
                 WHERE subcriterion_id = %s
             """
@@ -45,7 +39,7 @@ async def get_subcriterion(subcriterion_id: int):
                 raise SubcriterionNotFoundException('subcriterion_id',subcriterion_id)
             return {
                 "subcriterion_id": category[0],
-                "subcriteria": category[1],
+                "subcriterion": category[1],
                 "criterion_id": category[2],
                 "question_id": category[3]
             }

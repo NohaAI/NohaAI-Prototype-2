@@ -1,15 +1,10 @@
 import json
 import logging
 from psycopg2.extras import execute_values
-from src.dao.utils.db_utils import (
-    get_db_connection,
-    execute_query,
-    DatabaseConnectionError,
-    DatabaseOperationError,
-    DatabaseQueryError,
-)
-from src.schemas.dao import AssessmentRequest, AssessmentResponse
-from typing import List, Dict, Optional
+from src.dao.utils.execute_query import execute_query
+from src.dao.utils.connect import get_db_connection
+from src.dao.exceptions import DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError
+from typing import List, Dict
 from src.dao.assessment_data.assessment_record import AssessmentRecord
 
 
