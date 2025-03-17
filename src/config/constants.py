@@ -11,8 +11,8 @@ THRESHOLD_COMPLEXITY = 1
 THRESHOLD_TOTAL_NUMBER_OF_QUESTIONS = 2
 
 # BOT CANNED DIALOGUES ############################################################
-GREETING_SUFFIX = "Ready?"
-GREETING_SUFFIX_ORIG = "I am Noha! I am your interviewer today. We have planned a data structures and algorithms interview with you, are you good to go?"
+GREETING_SUFFIX_DEV = "Ready?"
+GREETING_SUFFIX = "I am Noha! I am your interviewer today. We have planned a data structures and algorithms interview with you, are you good to go?"
 QUESTION_SOLVED = "Okay, now that you have answered the algorithmic aspects, can you begin writing the code ?"
 GUARDRAIL_TRIGGERED_QUESTIONS_REMAIN = "Sorry, there seems to be a lack of clarity in your responses. Let us move on to the next question: "
 GUARDRAIL_TRIGGERED_NO_QUESTIONS_REMAIN = "Sorry, there seems to be a lack of clarity in your responses. Let us conclude here."
