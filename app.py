@@ -26,21 +26,32 @@ logger = get_logger(__name__)
 
 app = FastAPI()
 
-# CORS middleware configuration
+
+# Allow frontend domain or allow all (*) for testing
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Add your frontend URL
+    allow_origins=["http://localhost:3000", "http://34.47.214.185:3000", "https://test.noha.ai"],  # Change "*" to a specific domain in production
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Allow all methods (GET, POST, etc.)
+    allow_headers=["*"],  # Allow all headers
 )
+
+
+## CORS middleware configuration
+#app.add_middleware(
+#    CORSMiddleware,
+#    allow_origins=["http://localhost:3000"],  # Add your frontend URL
+#    allow_credentials=True,
+#    allow_methods=["*"],
+#    allow_headers=["*"],
+#)
 
 @app.get('/connect')
 async def connect():
     logger.info("\n>>>>>>>>>>>FUNCTION [connect] >>>>>>>>>>>>>>>>>>>>>>>>>>\n")
     #TODO: USE ONLY FOR WEBSOCKETS
     logger.info("\n\n\n Client connected successfully.............................")
-    return {"message": "Connected successfully"}
+    return {"message": "Connected successfully ......"}
     
 @app.post('/initialize')
 async def initialize(request: Request):
