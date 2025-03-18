@@ -13,11 +13,11 @@ load_dotenv()
 
 # Database Configuration
 DB_CONFIG = {
-    'host': os.getenv('DB_HOST', 'localhost'),
-    'dbname': os.getenv('DB_NAME', 'postgres'),
-    'user': os.getenv('DB_USER', 'postgres'),
-    'password': os.getenv('DB_PASSWORD'),
-    'port': int(os.getenv('DB_PORT', 5432))
+    'host': os.getenv('DB_HOST', 'db_host'),
+    'dbname': os.getenv('DB_NAME', 'db_name'),
+    'user': os.getenv('DB_USER', 'db_user'),
+    'password': os.getenv('DB_PASSWORD', 'db_passwd'),
+    'port': int(os.getenv('DB_PORT', db_port'))
 }
 
 # Create connection pool
