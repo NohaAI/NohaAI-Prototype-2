@@ -4,12 +4,11 @@ import { Mic, MicOff, Phone } from "lucide-react";
 import { BeatLoader, ScaleLoader } from "react-spinners";
 
 
-const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecording, startRecording, isMicOn, chats, nohaResponseProcessing, isAudioPlaying }: any) => {
+const LiveInterview = ({ name, onCancelCall, isRecording, stopRecording, startRecording, chats, nohaResponseProcessing, isAudioPlaying }: any) => {
   
-  const [isMicActive, setIsMicActive] = useState(isMicOn);
   
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const isRecordingRef = useRef(isRecording); // Ref to track latest isRecording state
+  const isRecordingRef = useRef(isRecording); // Ref to track latest isRecording state for key binding function
 
   const videoStreamRef = useRef<MediaStream | null>(null);
   const [startSpeakHint, setStartSpeakHint] = useState(false);
@@ -69,11 +68,9 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
   const toggleMic = async () => {
     if (isRecordingRef.current) {
       stopRecording();
-      setIsMicActive(false);
       setStopSpeakHint(true);
     } else {
       startRecording();
-      setIsMicActive(true);
       setStartSpeakHint(true);
     }
   };
@@ -109,7 +106,7 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
           </div>
         )}
 
-        {isMicActive ? (
+        {isRecording ? (
           <button
             onClick={toggleMic}
             className="flex items-center w-full bg-[#2D2D2D] text-white px-6 py-3 rounded-full border-[2px] border-[#0D99FF] h-[40px]"
