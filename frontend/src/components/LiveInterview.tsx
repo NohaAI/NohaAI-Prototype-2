@@ -1,17 +1,20 @@
 'use client';
 import { useState, useRef, useEffect } from "react";
 import { Mic, MicOff, Phone } from "lucide-react";
-import { BeatLoader, BounceLoader, MoonLoader, ScaleLoader } from "react-spinners";
+import { BeatLoader, ScaleLoader } from "react-spinners";
 
 
 const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecording, startRecording, isMicOn, chats, nohaResponseProcessing, isAudioPlaying }: any) => {
-  console.log('isAudioPlaying', isAudioPlaying);
-
+  
   const [isMicActive, setIsMicActive] = useState(isMicOn);
+  
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const isRecordingRef = useRef(isRecording); // Ref to track latest isRecording state
+
   const videoStreamRef = useRef<MediaStream | null>(null);
   const [startSpeakHint, setStartSpeakHint] = useState(false);
   const [stopSpeakHint, setStopSpeakHint] = useState(false);
+  
 
   useEffect(() => {
     async function startCamera() {
@@ -44,10 +47,27 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
     };
   }, []);
   
+  useEffect(() => {
+    isRecordingRef.current = isRecording;
+  }, [isRecording]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.code === "Space") {
+        event.preventDefault(); 
+        toggleMic();
+      }
+    };
+  
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+  
 
   const toggleMic = async () => {
-    console.log('toggleMic');
-    if (isRecording) {
+    if (isRecordingRef.current) {
       stopRecording();
       setIsMicActive(false);
       setStopSpeakHint(true);
