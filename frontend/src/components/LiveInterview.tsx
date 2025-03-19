@@ -8,7 +8,9 @@ const LiveInterview = ({ name, onCancelCall, isRecording, stopRecording, startRe
   
   
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const isRecordingRef = useRef(isRecording); // Ref to track latest isRecording state for key binding function
+  
+  const isRecordingRef = useRef(isRecording);  
+  const isAudioPlayingRef = useRef(isAudioPlaying)
 
   const videoStreamRef = useRef<MediaStream | null>(null);
   const [startSpeakHint, setStartSpeakHint] = useState(false);
@@ -51,9 +53,16 @@ const LiveInterview = ({ name, onCancelCall, isRecording, stopRecording, startRe
   }, [isRecording]);
 
   useEffect(() => {
+    isAudioPlayingRef.current = isAudioPlaying;
+  }, [isAudioPlaying]);
+
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.code === "Space") {
         event.preventDefault(); 
+        if(isAudioPlayingRef.current){
+          return
+        }
         toggleMic();
       }
     };
