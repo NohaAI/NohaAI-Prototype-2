@@ -15,25 +15,39 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
 
   // Automatically start the camera when component mounts
   useEffect(() => {
-    const startCamera = async () => {
+    async function startCamera() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+        
+        // Stop any previous stream tracks before assigning a new one
+        if (videoStreamRef.current) {
+          videoStreamRef.current.getTracks().forEach(track => track.stop());
+        }
+  
         videoStreamRef.current = stream;
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          videoRef.current.play();
+  
+          // Wait for the video element to be ready before playing
+          videoRef.current.onloadedmetadata = () => {
+            videoRef?.current?.play().catch(error => console.error("Error playing video:", error));
+          };
         }
       } catch (error) {
         console.error("Error accessing the camera:", error);
       }
-    };
-
+    }
+  
     startCamera();
-
+  
     return () => {
-      videoStreamRef.current?.getTracks().forEach(track => track.stop());
+      // Cleanup: Stop camera when component unmounts
+      if (videoStreamRef.current) {
+        videoStreamRef.current.getTracks().forEach(track => track.stop());
+      }
     };
   }, []);
+  
 
   const toggleMic = async () => {
     console.log('toggleMic');
