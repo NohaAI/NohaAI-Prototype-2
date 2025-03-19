@@ -1,8 +1,9 @@
 'use client';
 import { useState, useRef } from "react";
 import { Mic, MicOff, Video, VideoOff, Phone, Pause } from "lucide-react";
+import { ScaleLoader, BeatLoader } from "react-spinners";
 
-const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecording, startRecording, isMicOn, chats }: any) => {
+const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecording, startRecording, isMicOn, chats, nohaResponseProcessing, isAudioPlaying }: any) => {
   console.log('isRecording', isRecording);
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [isMicActive, setIsMicActive] = useState(isMicOn);
@@ -50,16 +51,16 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
         <p className="text-white mt-2 absolute left-3 bottom-2">{name}</p>
       </div>
       
-      {/* Chat Section */}
-      <div className="bg-[#1F1F1F] rounded-lg p-4 w-full md:w-[600px] h-[600px] overflow-y-auto border border-gray-700 mt-4">
-        <div className="flex flex-col gap-4">
-          {chats.map((chat: { name: string, message: string }, index: number) => (
-            <div key={index} className={`p-3 rounded-lg text-sm ${chat.name === 'Noha AI' ? 'bg-blue-800 text-white' : 'bg-gray-800 text-white'}` }>
-              <p className="font-bold">{chat.name}</p>
-              <p>{chat.message}</p>
-            </div>
-          ))}
-        </div>
+      <div className="relative bg-[#1F1F1F] rounded-lg p-4 flex flex-col justify-center items-center w-full md:w-[474px] md:h-[458px]">
+        {isAudioPlaying && <ScaleLoader color="white" className="absolute right-4 top-4" />}
+
+        <img src="noha.png" alt="User" className="w-[226px] h-[226px] object-cover " />
+
+        {isAudioPlaying && <p className="mt-1 text-white">{chats[0].name === 'Noha AI' && chats[0].message}</p>}
+
+        {nohaResponseProcessing && <BeatLoader color="white" className="mt-4" />}
+
+        <p className="text-white mt-2 absolute left-3 bottom-2">Noha</p>
       </div>
       
       {/* Call Controls */}
