@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Mic, MicOff, Video, VideoOff, Phone, Pause, PhoneOff, Monitor } from "lucide-react";
 import { ScaleLoader, BeatLoader } from "react-spinners";
 
@@ -13,6 +13,9 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
 
   const [startSpeakHint, setStartSpeakHint] = useState(false);
   const [stopSpeakHint, setStopSpeakHint] = useState(false);
+
+  useEffect(()=>{
+  }, []);
 
   const toggleMic = async () => {
     console.log('toggleMic');
@@ -34,6 +37,26 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
 
   };
 
+  const toggleCamera = async () => {
+    if (isCameraOn) {
+      videoStreamRef.current?.getTracks().forEach((track: any) => track.stop());
+      if (videoRef.current) videoRef.current.srcObject = null;
+      videoStreamRef.current = null;
+      setIsCameraOn(false);
+    } else {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+        videoStreamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play();
+        }
+        setIsCameraOn(true);
+      } catch (error) {
+        console.error("Error accessing the camera:", error);
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black px-4 flex flex-row justify-center items-center gap-4">
@@ -41,7 +64,7 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
       {/* User Video */}
       <div className="relative bg-[#1F1F1F] rounded-lg p-4 flex flex-col justify-center items-center w-full md:w-[474px] md:h-[458px]">
         <video ref={videoRef} autoPlay playsInline muted className="w-full h-[90%] object-cover rounded-lg" />
-        {!isCameraOn && <img src="user.png" alt="User" className="w-[226px] h-[226px] object-cover mb-[45%]" />}
+        {/* {!isCameraOn && <img src="user.png" alt="User" className="w-[226px] h-[226px] object-cover mb-[45%]" />} */}
         <p className="text-white mt-2 absolute left-3 bottom-2">{name}</p>
       </div>
 
