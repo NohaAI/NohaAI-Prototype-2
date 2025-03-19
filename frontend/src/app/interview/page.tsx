@@ -135,11 +135,9 @@ const MyPage = () => {
         ]);
     };
 
-    const speakText = (text: string): Promise<void> => {
-        return new Promise((resolve) => {
+    const speakText = (text: string) => {
             if (!window.speechSynthesis) {
                 console.error("Speech synthesis is not supported in this browser.");
-                resolve();
                 return;
             }
         
@@ -148,13 +146,17 @@ const MyPage = () => {
             utterance.rate = 1;
             utterance.pitch = 1;
 
+            utterance.onstart = () =>{
+                console.log("Speech started");
+                setIsAudioPlaying(true)
+            }
+
             utterance.onend = () => {
                 console.log("Speech finished");
-                resolve();
+                setIsAudioPlaying(false)
             };
 
             window.speechSynthesis.speak(utterance);
-        });
     };
 
     const handleSubmit = (data: { name: string; email: string }) => {
