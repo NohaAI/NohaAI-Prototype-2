@@ -109,8 +109,8 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
             className="flex items-center w-full bg-gradient-to-b from-[#0D99FF] to-[#0A5992] text-white px-6 py-3 rounded-full shadow-lg hover:from-[#0A5992] hover:to-[#0D99FF] transition h-[40px]"
           >
             <div className="flex flex-1 items-center justify-center space-x-2">
-              <MicOff className="w-6 h-6" />
-              <span className="font-semibold text-lg">Space bar</span>
+              <MicOff className="w-6 h-6" size={15} />
+              {/* <span className="font-semibold text-lg">Space bar</span> */}
             </div>
             <div className="ml-auto flex items-center">
               <div className="px-2 py-1 rounded-sm text-xs">⎵</div>
