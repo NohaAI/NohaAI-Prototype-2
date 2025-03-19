@@ -134,7 +134,7 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
       </div>
 
       <div className="fixed bottom-6 right-6">
-        <button className="bg-red-600 text-white p-3 rounded-full hover:bg-red-700 transition">
+        <button onClick={onCancelCall} className="bg-red-600 text-white p-3 rounded-full hover:bg-red-700 transition">
           <Phone className="w-6 h-6" />
         </button>
       </div>
