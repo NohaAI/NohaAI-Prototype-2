@@ -13,13 +13,11 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
   const [startSpeakHint, setStartSpeakHint] = useState(false);
   const [stopSpeakHint, setStopSpeakHint] = useState(false);
 
-  // Automatically start the camera when component mounts
   useEffect(() => {
     async function startCamera() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
         
-        // Stop any previous stream tracks before assigning a new one
         if (videoStreamRef.current) {
           videoStreamRef.current.getTracks().forEach(track => track.stop());
         }
@@ -28,7 +26,6 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
   
-          // Wait for the video element to be ready before playing
           videoRef.current.onloadedmetadata = () => {
             videoRef?.current?.play().catch(error => console.error("Error playing video:", error));
           };
@@ -41,7 +38,6 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
     startCamera();
   
     return () => {
-      // Cleanup: Stop camera when component unmounts
       if (videoStreamRef.current) {
         videoStreamRef.current.getTracks().forEach(track => track.stop());
       }
