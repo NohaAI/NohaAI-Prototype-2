@@ -109,12 +109,13 @@ const MyPage = () => {
             console.log("rms=>:chatMetaData:", chatMetaData);
 
             const res = await axios.post(`${backendServiceLink}/chat`, chatMetaData);
+            setNohaResponseProcessing(false)
             console.log("Received Noha backend AI response", res.data);
             
             setChatMetaData(res.data)
             updateChats(res.data.session_state.bot_dialogue);
             
-            await speakText(res.data.session_state.bot_dialogue);
+            speakText(res.data.session_state.bot_dialogue);
 
             // check if the flag is true call the terminate api
             if(res.data.session_state.termination) {
