@@ -6,21 +6,34 @@ import { ScaleLoader, BeatLoader } from "react-spinners";
 const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecording, startRecording, isMicOn, chats, nohaResponseProcessing, isAudioPlaying }: any) => {
   console.log('isAudioPlaying', isAudioPlaying);
 
-  const [isCameraOn, setIsCameraOn] = useState(false);
+  const [isCameraOn, setIsCameraOn] = useState(true);
   const [isMicActive, setIsMicActive] = useState(isMicOn);
   const videoRef = useRef<any>(null);
   const videoStreamRef = useRef<any>(null);
 
+  const [startSpeakHint, setStartSpeakHint] = useState(false);
+  const [stopSpeakHint, setStopSpeakHint] = useState(false);
+
   const toggleMic = async () => {
     console.log('toggleMic');
+    // stop recording
     if (isRecording) {
       stopRecording();
       setIsMicActive(false);
-    } else {
+
+      setStopSpeakHint(true);
+
+    }
+    // start recording
+    else {
       startRecording();
       setIsMicActive(true);
+
+      setStartSpeakHint(true);
     }
+
   };
+
 
   return (
     <div className="min-h-screen bg-black px-4 flex flex-row justify-center items-center gap-4">
@@ -47,6 +60,13 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
       {/* Call Controls */}
       <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 w-[326px]">
 
+      {!isAudioPlaying && (!startSpeakHint || !stopSpeakHint) && <div className="absolute bottom-[48px] left-20 bg-gray-700 text-white text-sm px-3 py-1 
+      rounded-md opacity-90 group-hover:opacity-100 transition w-max">
+            {!startSpeakHint ? <p> Press space bar to talk </p> : <p> Release space bar to mute </p>}
+            {/* Tooltip Arrow */}
+            <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-t-8 border-t-gray-700 "></div>
+          </div>}
+
         {isMicActive ?
 
           <button
@@ -63,9 +83,7 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
             </div>
 
           </button>
-
-          :
-
+            :
           <button
             disabled={isAudioPlaying}
             onClick={toggleMic}
@@ -80,11 +98,10 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
             </div>
 
             <div className="ml-auto flex items-center">
-              <div className="border border-white/70 px-2 py-1 rounded-sm text-xs">⎵</div>
+              <div className=" px-2 py-1 rounded-sm text-xs">⎵</div>
             </div>
 
           </button>
-
         }
 
       </div>
