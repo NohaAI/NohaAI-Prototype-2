@@ -1,7 +1,7 @@
 import psycopg2
 from psycopg2.pool import SimpleConnectionPool
 from contextlib import contextmanager
-from src.dao.utils.config import load_simple_connection_config
+from src.dao.utils.load_config import load_database_config
 from src.dao.exceptions import DatabaseConnectionError
 import logging
 
@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Create connection pool
-simple_connection_config=load_simple_connection_config()
+simple_connection_config=load_database_config()
 connection_pool = SimpleConnectionPool(
     minconn=1,
     maxconn=10,
