@@ -6,7 +6,7 @@ import { ScaleLoader, BeatLoader } from "react-spinners";
 const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecording, startRecording, isMicOn, chats, nohaResponseProcessing, isAudioPlaying }: any) => {
   console.log('isAudioPlaying', isAudioPlaying);
 
-  const [isCameraOn, setIsCameraOn] = useState(true);
+  const [isCameraOn, setIsCameraOn] = useState(false);
   const [isMicActive, setIsMicActive] = useState(isMicOn);
   const videoRef = useRef<any>(null);
   const videoStreamRef = useRef<any>(null);
@@ -79,6 +79,10 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
 
         <p className="text-white mt-2 absolute left-3 bottom-2">Noha</p>
       </div>
+
+ <button onClick={toggleCamera} className="w-14 h-14 flex items-center justify-center rounded-full bg-gray-700 hover:bg-gray-600 transition">
+          {isCameraOn ? <Video className="text-white w-7 h-7" /> : <VideoOff className="text-white w-7 h-7" />}
+        </button>
 
       {/* Call Controls */}
       <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 w-[326px]">
