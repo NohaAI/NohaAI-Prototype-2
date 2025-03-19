@@ -4,7 +4,7 @@ import { Mic, MicOff, Video, VideoOff, Phone, Pause, PhoneOff, Monitor } from "l
 import { ScaleLoader, BeatLoader } from "react-spinners";
 
 const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecording, startRecording, isMicOn, chats, nohaResponseProcessing, isAudioPlaying }: any) => {
-  console.log('isMicOn', isMicOn);
+  console.log('isAudioPlaying', isAudioPlaying);
 
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [isMicActive, setIsMicActive] = useState(isMicOn);
@@ -51,7 +51,7 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
 
           <button
             onClick={toggleMic}
-            className="flex items-center w-full bg-[#2D2D2D] text-white px-6 py-3 rounded-full border-[2px] border-[#0D99FF]"
+            className="flex items-center w-full bg-[#2D2D2D] text-white px-6 py-3 rounded-full border-[2px] border-[#0D99FF] h-[40px]"
           >
             <div className="flex flex-1 items-center justify-center">
               <Mic className="w-6 h-6" />
@@ -72,7 +72,7 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
             className="flex items-center w-full 
           bg-gradient-to-b from-[#0D99FF] to-[#0A5992] text-white 
           px-6 py-3 rounded-full shadow-lg 
-          hover:from-[#0A5992] hover:to-[#0D99FF] transition">
+          hover:from-[#0A5992] hover:to-[#0D99FF] transition h-[40px]">
 
             <div className="flex flex-1 items-center justify-center space-x-2">
               <MicOff className="w-6 h-6" />
