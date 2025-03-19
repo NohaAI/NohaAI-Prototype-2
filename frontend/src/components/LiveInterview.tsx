@@ -82,20 +82,15 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
 
         </button> */}
 
-        <button className="flex items-center w-full 
-          bg-gradient-to-b from-[#0D99FF] to-[#0A5992] text-white 
-          px-6 py-3 rounded-full shadow-lg 
-          hover:from-[#0A5992] hover:to-[#0D99FF] transition">
+        <button className="flex items-center w-full bg-[#2D2D2D] text-white px-6 py-3 rounded-full border-[2px] border-[#0D99FF]">
 
-          {/* Mic Icon & Text (Centered) */}
-          <div className="flex flex-1 items-center justify-center space-x-2">
-            <MicOff className="w-6 h-6" />
-            <span className="font-semibold text-lg">Space bar</span>
+          <div className="flex flex-1 items-center justify-center">
+            <Mic className="w-6 h-6" />
+            <span className="font-semibold text-lg ml-2">Talking</span>
           </div>
 
-          {/* Keyboard Key Icon (Right Aligned) */}
           <div className="ml-auto flex items-center">
-            <div className="border border-white/70 px-2 py-1 rounded-sm text-xs">⎵</div>
+            <ScaleLoader color="white" height={"12px"}/>
           </div>
 
         </button>
