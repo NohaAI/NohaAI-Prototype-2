@@ -66,7 +66,10 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
       {/* Call Controls */}
       <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 w-[326px]">
         
-        {/* <button className="flex items-center w-full 
+        <button 
+        disabled={isAudioPlaying}
+        onClick={toggleMic}        
+        className="flex items-center w-full 
           bg-gradient-to-b from-[#0D99FF] to-[#0A5992] text-white 
           px-6 py-3 rounded-full shadow-lg 
           hover:from-[#0A5992] hover:to-[#0D99FF] transition">
@@ -80,9 +83,9 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
             <div className="border border-white/70 px-2 py-1 rounded-sm text-xs">⎵</div>
           </div>
 
-        </button> */}
+        </button>
 
-        <button className="flex items-center w-full bg-[#2D2D2D] text-white px-6 py-3 rounded-full border-[2px] border-[#0D99FF]">
+        {/* <button className="flex items-center w-full bg-[#2D2D2D] text-white px-6 py-3 rounded-full border-[2px] border-[#0D99FF]">
 
           <div className="flex flex-1 items-center justify-center">
             <Mic className="w-6 h-6" />
@@ -93,7 +96,7 @@ const LiveInterview = ({ name, onCancelCall, userSocket, isRecording, stopRecord
             <ScaleLoader color="white" height={"12px"}/>
           </div>
 
-        </button>
+        </button> */}
       
       </div>
 
