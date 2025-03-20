@@ -106,8 +106,7 @@ const LiveInterview = ({ name, onCancelCall, isRecording, stopRecording, startRe
           {nohaResponseProcessing && <BeatLoader color="white" className="mt-4" />}
           <p className="text-white mt-2 absolute left-3 bottom-2">Noha</p>
         </div>
-       {isAudioPlaying && <p className="mt-1 text-white">{chats[0].name === 'Noha AI' && chats[0].message}</p>}
-
+       {(isAudioPlaying || !nohaResponseProcessing) && <p className="mt-1 text-white">{chats[0].name === 'Noha AI' && chats[0].message}</p>}
       </div>
 
 
