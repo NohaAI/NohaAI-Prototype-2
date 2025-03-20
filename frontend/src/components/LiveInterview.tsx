@@ -114,7 +114,7 @@ const LiveInterview = ({ name, onCancelCall, isRecording, stopRecording, startRe
       <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 w-[326px]">
         {!isAudioPlaying && (!startSpeakHint || !stopSpeakHint) && (
           <div className="absolute bottom-[48px] left-20 bg-gray-700 text-white text-sm px-3 py-1 rounded-md opacity-90 transition w-max">
-            {!startSpeakHint ? <p>Press space bar to talk</p> : <p>Release space bar to mute</p>}
+            {!startSpeakHint ? <p>Press space bar to talk</p> : <p>Press space bar to mute</p>}
             <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-t-8 border-t-gray-700"></div>
           </div>
         )}
