@@ -173,6 +173,7 @@ const MyPage = () => {
     // };
 
     const onCancelCall2 = () =>{
+        window.speechSynthesis.cancel()
         stopRecording();
         setCallEnded(true);
         disconnect2()
