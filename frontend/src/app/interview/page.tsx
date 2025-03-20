@@ -115,15 +115,9 @@ const MyPage = () => {
             setChatMetaData(res.data)
             updateChats(res.data.session_state.bot_dialogue);
             
-            speakText(res.data.session_state.bot_dialogue);
+            speakText(res.data.session_state.bot_dialogue, { termination:  res.data.session_state.termination })
 
-            // check if the flag is true call the terminate api
-            if(res.data.session_state.termination) {
-                disconnect2()
-                stopRecording();
-                setCallEnded(true);
-                console.log('...about to disconnect')
-            }
+
         } catch (error) {
             console.error("Error in handleStreamBack:", error);
         }
@@ -136,7 +130,8 @@ const MyPage = () => {
         ]);
     };
 
-    const speakText = (text: string) => {
+    const speakText = (text: string, info?: any) => {
+            
             if (!window.speechSynthesis) {
                 console.error("Speech synthesis is not supported in this browser.");
                 return;
@@ -155,6 +150,11 @@ const MyPage = () => {
             utterance.onend = () => {
                 console.log("Speech finished");
                 setIsAudioPlaying(false)
+                if(info?.termination) {
+                    disconnect2()
+                    stopRecording();
+                    setCallEnded(true);
+                }
             };
 
             window.speechSynthesis.speak(utterance);
