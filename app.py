@@ -3,13 +3,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import json
 import importlib.resources as res
+from src.config import env_settings as ENV
 import traceback
 from typing import Dict, Any
 from src.utils import helper as helper
 
 # Import statements remain the same as in the original Flask app
 # from src.dao.interview_session_state import add_interview_session_state
-from src.utils.logger import get_logger
+from src.utils import logger as log
 from src.api.chat_history import batch_insert_chat_history
 # from src.dao.interview_question_evaluation import batch_insert_interview_question_evaluation
 from src.services.workflows.graph import get_next_response
@@ -22,7 +23,7 @@ from src.dao.assessment import AssessmentDAO
 from src.config import constants as CONST
 
 # Ensure logs are visible
-logger = get_logger(__name__)
+logger = log.get_logger(__name__)
 
 app = FastAPI()
 
@@ -78,6 +79,7 @@ async def initialize(request: Request):
       
         helper.pretty_log("interview_id", interview_id, 1)
 
+        log.write_to_report(f"Candidate Interview Report\nInterview ID: {interview_id}\nCandidate Name: {user_name}\nPosition: Software Engineer (DSA Evaluation)\nCandidate Name: {user_name}\nInterview Conducted By: Noha\nDate: {helper.get_current_datetime()}\nOverall Score: 4.7 / 10")
       
         # () call function: generate_greeting
         greeting = await generate_greeting(user_id) 
@@ -121,7 +123,7 @@ async def initialize(request: Request):
             "interview_id": interview_id,
             "question_id": CONST.DEF_QUESTION_ID,
             "primary_question_score": CONST.DEF_PRIMARY_QUESTION_SCORE,
-            "assessment_payload": helper.get_assessment_payload()  
+            "assessment_payloads": [helper.get_assessment_payload()]
         }
         
         # TODO: initialize an instance each of ChatHistoryDAO and AssessmentDAO
@@ -307,4 +309,4 @@ async def disconnect():
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run(app, host='0.0.0.0', port=5001)
+    uvicorn.run(app, host=ENV.BACKEND_HOST, port=ENV.BACKEND_PORT)
