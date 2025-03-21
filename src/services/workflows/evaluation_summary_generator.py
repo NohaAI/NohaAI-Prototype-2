@@ -1,12 +1,12 @@
 from src.dao.question import get_question_metadata
-from src.services.llm.prompts.generate_report_prompt import generate_report_prompt_template
+from src.services.llm.prompts.generate_evaluation_summary_prompt import generate_evaluation_summary_prompt_template
 from src.services.llm import llm_service
 import json
 from src.utils import helper
 #TODO: generate_report should be prepare_interview_feedback - > gives data to create_pdf to create an interview_feedback report
-async def prepare_interview_feedback(questions_asked, chat_history, assessment_payloads):
+async def prepare_evaluation_summary(questions_asked, chat_history, assessment_payloads, criteria_list= ["Assumptions clarification", "Corner cases handeling", "Data structure choice", "Algorithm choice", "Time complexity", "space complexity"]):
     counter = 0
-    criteria_list = ["Assumptions clarification", "Corner cases handeling", "Data structure choice", "Algorithm choice", "Time complexity", "space complexity"]
+    evaluation_summary_list = []
     for question_id in questions_asked:
         filtered_chat_history = helper.filter_chat_history(chat_history, question_id)
         question = filtered_chat_history[0]["bot_dialogue"]
@@ -20,14 +20,15 @@ async def prepare_interview_feedback(questions_asked, chat_history, assessment_p
         print(f"CRITERIA SCORES : \n {criteria_scores} \n ")
         print(f"FINAL SCORE : \n {final_score} \n ")
         llm_model = llm_service.get_openai_model()
-        generate_report_prompt = generate_report_prompt_template()
-        generate_report_chain = (generate_report_prompt | llm_model)
+        generate_evaluation_summary_prompt = generate_evaluation_summary_prompt_template()
+        generate_evaluation_summary_chain = (generate_evaluation_summary_prompt | llm_model)
         llm_inputs = {
             'question': question,
             'chat_history': filtered_chat_history,
             'criteria_list': criteria_list
         }
-        llm_response_generate_report = await generate_report_chain.ainvoke(llm_inputs)
-        llm_content_generate_report = json.loads(llm_response_generate_report.content)
-        print(f"REPORT CONTENT FOR QUESTION {question} : \n {llm_content_generate_report} \n")
-        interview_feedback_data= []
+        llm_response_generate_evaluation_summary = await generate_evaluation_summary_chain.ainvoke(llm_inputs)
+        llm_content_generate_evaluation_summary = json.loads(llm_response_generate_evaluation_summary.content)
+        evaluation_summary_list.append((question, criteria_scores, final_score, llm_content_generate_evaluation_summary))
+        print(f"REPORT CONTENT FOR QUESTION {question} : \n {llm_content_generate_evaluation_summary} \n")
+    return evaluation_summary_list

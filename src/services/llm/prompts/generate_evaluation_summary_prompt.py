@@ -1,6 +1,6 @@
 from langchain_core.prompts import ChatPromptTemplate
 
-def generate_report_prompt_template():
+def generate_evaluation_summary_prompt_template():
   
   prompt="""
     Given:
@@ -37,5 +37,5 @@ def generate_report_prompt_template():
     6. Include specific examples from the candidate's responses in your evaluation
     7. Ensure evaluations are descriptive, analytical, and actionable
       """
-  generate_report_prompt=ChatPromptTemplate.from_template(template=prompt)
-  return generate_report_prompt
+  generate_evaluation_summary_prompt=ChatPromptTemplate.from_template(template=prompt)
+  return generate_evaluation_summary_prompt
