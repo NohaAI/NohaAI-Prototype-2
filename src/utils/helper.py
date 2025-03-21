@@ -30,6 +30,16 @@ def decorate_response(succeeded: bool, message: Any, status_code: int = status.H
         status_code=status_code
     )
 
+def filter_chat_history(chat_history, question_id):
+    filtered_chat_history = []
+    for entry in chat_history:
+        if entry.get("question_id") == question_id:
+            filtered_chat_history.append({
+                "bot_dialogue": entry.get("bot_dialogue"),
+                "candidate_dialogue": entry.get("distilled_candidate_dialogue")
+            })
+    return filtered_chat_history
+
 
 def clean_response(response):
     cleaned_subcriteria = (response.replace("```python", "").replace("```'", "").replace("\n", "").replace("'", "").replace("```", "").replace("json", ""))
