@@ -28,6 +28,7 @@ const MyPage = () => {
     const [isAudioPlaying, setIsAudioPlaying] = useState<boolean>(false);
 
     const recognitionRef = useRef<any>(null);
+    const [isSilence, setIsSilence] = useState<boolean | null>(null)
 
     // const startConnection = async (userDetails: any) => {
     //     const socketConnection = io(backendServiceLink + '/guest', { transports: ["websocket"] });
@@ -195,13 +196,19 @@ const MyPage = () => {
         recognition.lang = "en-US";
         recognition.maxAlternatives = 3; // Get up to 3 alternative transcriptions
     
+        let silenceTimeout: NodeJS.Timeout; // Timer for detecting silence
+    
         recognition.onresult = (event: any) => {
+            clearTimeout(silenceTimeout); // Reset timer on speech
+            console.log("No silence"); // Log when speech is detected
+            setIsSilence(false)
+
             let finalTranscript = "";
-            
+    
             for (let i = event.resultIndex; i < event.results.length; i++) {
                 if (event.results[i].isFinal) {
                     const alternatives = event.results[i]; // Get all alternatives
-                    
+    
                     // Find the alternative with the highest confidence
                     let bestAlternative = alternatives[0]; // Default to the first
                     for (let j = 1; j < alternatives.length; j++) {
@@ -222,18 +229,26 @@ const MyPage = () => {
             }
     
             setTranscribedText((prev) => prev + finalTranscript);
+    
+            // Restart the silence detection timer
+            silenceTimeout = setTimeout(() => {
+                console.log("Silence"); // Log silence after 3 seconds of inactivity
+                setIsSilence(true)
+            }, 500); // Adjust time to define "silence" period
         };
     
         recognition.onend = () => {
             console.log("Recognition ended, processing final text...");
             setIsProcessing(false); // Hide dot when processing is done
+            clearTimeout(silenceTimeout); // Ensure timer is cleared when recognition stops
         };
     
         recognitionRef.current = recognition;
         recognition.start();
     };
     
-
+    
+    
     const stopRecording = () => {
         setIsRecording(false);
         setIsMicOn(false);
@@ -285,6 +300,7 @@ const MyPage = () => {
                 nohaResponseProcessing={nohaResponseProcessing}
                 isProcessing={isProcessing}
                 isAudioPlaying={isAudioPlaying}
+                isSilence={isSilence}
                 />
             )
             )}
