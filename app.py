@@ -306,7 +306,3 @@ async def terminate(request: Request):
 async def disconnect():
     logger.info("Client disconnect successfully......................................\n\n\n")
     return {"message": "Disconnected successfully"}
-
-if __name__ == '__main__':
-    import uvicorn
-    uvicorn.run(app, host=ENV.BACKEND_HOST, port=ENV.BACKEND_PORT)
