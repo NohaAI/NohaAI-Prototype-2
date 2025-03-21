@@ -35,7 +35,7 @@ async def classify_candidate_dialogue(session_state, chat_history):
     session_state['label_class1'] = label_class1 # updates the classifier 1 label in the session state
     session_state['candidate_dialogue'] = distilled_candidate_dialogue  # replaces the original candidate_dialogue with the refined version to carry forward hereafter
     chat_history[-1]['distilled_candidate_dialogue'] = distilled_candidate_dialogue # adds the distilled version for update in DB to the recentmost dict record in the chat_history list
-    session_state['distilled_candidate_dialogue'] = ""
+    session_state['distilled_candidate_dialogue'] = distilled_candidate_dialogue # updates the distilled candidate_dialogue in the session state
     
     helper.pretty_log("session_state", session_state, 1)
     helper.pretty_log("chat_history", chat_history, 1)
