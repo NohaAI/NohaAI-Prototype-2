@@ -38,7 +38,7 @@ async def generate_dialogue(session_state, chat_history, assessment, rationale=N
                 'candidate_dialogue': session_state['candidate_dialogue'],
                 'chat_history' : chat_history,
                 'rationale': rationale,
-                'assessment_payload' : assessment[-1]['assessment_payload']
+                'assessment_payload' : assessment[-1]['assessment_payloads'][-1] if assessment else None,
                 }
 
     llm_response_bot_dialogue_generator = await bot_dialogue_prompt_chain.ainvoke(llm_inputs)
@@ -50,7 +50,8 @@ async def generate_dialogue(session_state, chat_history, assessment, rationale=N
     bot_dialogue_rationale = llm_content_bot_dialogue_generator['rationale']
     bot_dialogue_causal_subcriterion = llm_content_bot_dialogue_generator['subcriterion']
     bot_dialogue_next_action = llm_content_bot_dialogue_generator['next_action']
-
+    if not bot_dialogue_causal_subcriterion:
+        bot_dialogue_causal_subcriterion = "< No causal sub-criterion identified >"
     # session_state fields update as per prompt objective
     session_state['bot_dialogue'] = bot_dialogue
     chat_history[-1]['bot_dialogue'] = bot_dialogue

@@ -7,12 +7,12 @@
         "subcriteria": [
           {
             "description": "If the candidate explicitly clarifies technical assumptions of basic difficulty",
-            "weight": 3.0,
+            "weight": 6.0,
             "score": 0.0
           },
           {
             "description": "If the candidate explicitly clarifies technical assumptions of moderate difficulty",
-            "weight": 6.0,
+            "weight": 8.0,
             "score": 0.0
           },
           {
@@ -29,12 +29,12 @@
         "subcriteria": [
           {
             "description": "If the candidate explicitly clarifies corner cases of basic difficulty",
-            "weight": 3.0,
+            "weight": 6.0,
             "score": 0.0
           },
           {
             "description": "If the candidate explicitly clarifies corner cases of moderate difficulty",
-            "weight": 6.0,
+            "weight": 8.0,
             "score": 0.0
           },
           {
@@ -51,12 +51,12 @@
         "subcriteria": [
           {
             "description": "The candidate proposes an unsuitable data structure",
-            "weight": 3.0,
+            "weight": 6.0,
             "score": 0.0
           },
           {
             "description": "The candidate proposes a working yet suboptimal data structure",
-            "weight": 6.0,
+            "weight": 8.0,
             "score": 0.0
           },
           {
@@ -73,12 +73,12 @@
         "subcriteria": [
           {
             "description": "The candidate proposes a suboptimal algorithm",
-            "weight": 3.0,
+            "weight": 6.0,
             "score": 0.0
           },
           {
             "description": "The candidate improves over the algorithm proposed earlier",
-            "weight": 6.0,
+            "weight": 8.0,
             "score": 0.0
           },
           {
@@ -95,12 +95,12 @@
         "subcriteria": [
           {
             "description": "The candidate proposes an algorithm with a worst-case time complexity",
-            "weight": 3.0,
+            "weight": 6.0,
             "score": 0.0
           },
           {
             "description": "The candidate proposes an algorithm with an average-case time complexity",
-            "weight": 6.0,
+            "weight": 8.0,
             "score": 0.0
           },
           {
@@ -117,12 +117,12 @@
         "subcriteria": [
           {
             "description": "The candidate proposes an algorithm with a worst-case space complexity",
-            "weight": 3.0,
+            "weight": 6.0,
             "score": 0.0
           },
           {
             "description": "The candidate proposes an algorithm with an average-case space complexity",
-            "weight": 6.0,
+            "weight": 8.0,
             "score": 0.0
           },
           {
@@ -139,12 +139,12 @@
         "subcriteria": [
           {
             "description": "The candidate provides solution without any articulation or thought",
-            "weight": 3.0,
+            "weight": 6.0,
             "score": 0.0
           },
           {
             "description": "The candidate provides a solution with scattered thoughts",
-            "weight": 6.0,
+            "weight": 8.0,
             "score": 0.0
           },
           {

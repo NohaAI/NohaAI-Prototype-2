@@ -61,17 +61,26 @@ async def process_technical(session_state, chat_history, assessment):
     session_state['contiguous_non_technical_guardrail_count'] = 0
 
     ##### CALL CLASSIFY DIALOGUE (II CLASSIFICATION) #######
-    label_class2, candidate_solution_rationale = await classify_candidate_solution(session_state, chat_history)
+    candidate_solution_rationale = await classify_candidate_solution(session_state, chat_history)
+    write_to_report ("\n")
+    write_to_report ("CLASS LABEL II: "+ session_state['label_class2'])
+    write_to_report ("CLASSIFICATION II RATIONALE: "+ candidate_solution_rationale)
+
 
     #### setting the session_state 'solution classifier executed' flag to True
     session_state["solution_classifier_executed"] = True
 
     
-    if label_class2 in CONST.TECHNICAL_LABELS_TO_BE_EVALUATED:
+    if session_state['label_class2'] in CONST.TECHNICAL_LABELS_TO_BE_EVALUATED:
         ########################## CALL (BOTH ==> SOLUTION EVALUATOR + GENERATE DIALOGUE) IN PROCESS TECHNICAL #####################
         
         ##### CALL (EVALUATOR) IN PROCESS TECHNICAL ######
         assessment, solution_evaluator_rationale = await evaluate_solution(session_state, chat_history, assessment)
+        write_to_report ("\n")
+        write_to_report ("TURN SCORE: "+ str(assessment[-1]['assessment_payloads'][-1]['final_score']) )
+        write_to_report ("ASSESSMENT: "+ str(assessment[-1]['assessment_payloads'][-1]['criteria_scores']) )
+        write_to_report ("SUBCRITERION: "+ str(assessment[-1]['assessment_payloads'][-1]['subcriteria_scores']) )
+        write_to_report ("EVALUATOR RATIONALE: "+ solution_evaluator_rationale)
 
         ##### CALL (GENERATE DIALOGUE) IN PROCESS TECHNICAL ######
         bot_dialogue_rationale, bot_dialogue_causal_subcriterion = await generate_dialogue(session_state, chat_history, assessment, solution_evaluator_rationale)
@@ -129,11 +138,9 @@ async def generate_action_overrides(session_state, chat_history, assessment):
     helper.pretty_log("session_state", session_state, 1)
     helper.pretty_log("chat_history", chat_history, 1)
 
-    ### RESET OR REINITIALIZE the relevant values immediately after the dialogue generator which is this function call
-    ### or maybe push these later in perform_actions function
+
     ############################
-    session_state['turn_number'] += 1
-    session_state['solution_classifier_executed'] = False
+   
     
 
     if session_state['next_action'] == 'get_primary_question':
@@ -228,13 +235,15 @@ async def perform_actions(session_state, chat_history, assessment):
             helper.pretty_log("DB fetched question_metadata:", question_metadata)
             ### untoggle this comment block for fetching random ####################
             question=question_metadata['question']
-            question_id = question_metadata['question_id']  
+            question_id = question_metadata['question_id']
             session_state['questions_asked'].append(question_id)    # reinitialize the question_id for the new question
             session_state['primary_question'] = question    # reinitialize the primary question
             session_state['question_id'] = question_id    # set the question_id in session state (field was added relatively later)
             session_state['bot_dialogue'] = session_state['bot_dialogue'] + question    # set bot dialogue in session state with the new question
             chat_history[-1]['bot_dialogue'] = session_state['bot_dialogue'] + question   # set bot dialogue in chat history with the new question 
-            chat_history[-1]['question_id'] = question_id   # update the chat history with the question id  
+            chat_history[-1]['question_id'] = question_id   # update the chat history with the question id 
+            assessment_record = assessment[-1]
+            assessment_record['question_id'] = question_id 
             ############################# END HERE ##################################
 
             # question_id = 1
@@ -265,8 +274,7 @@ async def perform_actions(session_state, chat_history, assessment):
             chat_history[-1]['question_id'] = question_id   # update the chat history with the question id 
 
             ### PREPARING A NEW ASSESSMENT RECORD ###################################
-            assessment_payload = helper.get_assessment_payload() 
-            assessment_record = {'interview_id':session_state['interview_id'], 'question_id': question_id, 'primary_question_score': CONST.DEF_PRIMARY_QUESTION_SCORE, 'assessment_payload': assessment_payload }
+            assessment_record = {'interview_id':session_state['interview_id'], 'question_id': question_id, 'primary_question_score': CONST.DEF_PRIMARY_QUESTION_SCORE, 'assessment_payloads': [helper.get_assessment_payload()] }
             assessment.append(assessment_record)
         
         # set the next_action flag to be "Pass" again
@@ -275,8 +283,16 @@ async def perform_actions(session_state, chat_history, assessment):
     else:
         logger.info(f"session_state -> next_action FLAG: {session_state['next_action']}")
 
+
+    ### RESET OR REINITIALIZE the relevant session_state values immediately after the dialogue generator which is this function call
+    session_state['label_class1'] = None    # reset the label_class1
+    session_state['label_class2'] = None    # reset the label_class2
+    session_state['turn_number'] += 1
+    session_state['solution_classifier_executed'] = False
+
     helper.pretty_log("session_state", session_state, 1)
     helper.pretty_log("chat_history", chat_history, 1)
+    helper.pretty_log("assessment", assessment, 1)
 
     # elif len(session_state['questions_asked']) >= CONST.THRESHOLD_TOTAL_NUMBER_OF_QUESTIONS :
     #     session_state['termination'] = True
@@ -339,7 +355,6 @@ def log_data(candidate_dialogue, distilled_candidate_dialogue, bot_dialogue_rati
         file.write(log_entry_with_timestamp)
 
 
-
 ###############################################################################################################################
 ################################################### GET NEXT RESPONSE #########################################################
 ###############################################################################################################################
@@ -356,13 +371,13 @@ async def get_next_response(session_state, chat_history, assessment):
 
     
     candidate_dialogue_rationale = await classify_candidate_dialogue(session_state, chat_history)
-
     bot_dialogue = session_state['bot_dialogue']
     distilled_candidate_dialogue = session_state['distilled_candidate_dialogue']
-    write_to_report (bot_dialogue)
-    write_to_report (distilled_candidate_dialogue)
-    write_to_report (candidate_dialogue_rationale)
-    write_to_report ("-------------------------------")
+    write_to_report ("\n")
+    write_to_report ("NOHA-BOT: "+ bot_dialogue)
+    write_to_report ("CANDIDATE: "+ distilled_candidate_dialogue)
+    write_to_report ("CLASS LABEL I: "+ session_state['label_class1'])
+    write_to_report ("CLASSIFICATION I RATIONALE: "+ candidate_dialogue_rationale)
 
     # post verification in case technical solution is given for a non-existent question
     if not session_state['question_id'] and session_state['label_class1'] in CONST.TECHNICAL_LABELS:
@@ -377,6 +392,9 @@ async def get_next_response(session_state, chat_history, assessment):
             bot_dialogue_rationale, 
             bot_dialogue_causal_subcriterion
         ) = await process_technical(session_state, chat_history, assessment)
+        write_to_report ("\n") 
+        write_to_report ("BOT RATIONALE: "+ bot_dialogue_rationale)
+        write_to_report ("BOT SUBCRITERION: "+ bot_dialogue_causal_subcriterion)
 
     elif session_state["label_class1"] in CONST.NON_TECHNICAL_LABELS:
 
@@ -386,12 +404,17 @@ async def get_next_response(session_state, chat_history, assessment):
             bot_dialogue_causal_subcriterion
         ) = await process_non_technical(session_state, chat_history, assessment, candidate_dialogue_rationale)
 
+        write_to_report ("\n")
+        write_to_report ("BOT RATIONALE: "+ bot_dialogue_rationale)
+        write_to_report ("BOT SUBCRITERION: "+ bot_dialogue_causal_subcriterion)
+
     else:
         logger.info("Candidate dialogue label '%s' is neither technical nor non-technical.", session_state['label_class1'])
 
     await generate_action_overrides(session_state, chat_history, assessment)
     await perform_actions(session_state, chat_history, assessment)
-
+    
+    write_to_report ("--------------------------------------------")
     logger.info("\n\n>>>>>>>>>>>FUNCTION EXIT [get_next_response] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
 
     return session_state, chat_history, assessment

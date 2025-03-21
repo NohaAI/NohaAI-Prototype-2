@@ -39,4 +39,4 @@ async def classify_candidate_solution(session_state, chat_history):
 
     logger.info("\n\n>>>>>>>>>>>FUNCTION EXIT [classify_candidate_solution] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
 
-    return label_class2, candidate_solution_rationale
+    return candidate_solution_rationale

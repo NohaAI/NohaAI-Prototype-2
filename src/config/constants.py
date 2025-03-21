@@ -66,4 +66,9 @@ DEF_DISTILLED_CANDIDATE_DIALOGUE = None # Set dynamically from candidate_classif
 ### DEF_INTERVIEW_ID = None # have been already defined in session defaults section
 ### DEF_QUESTION_ID = None # have been already defined in chat history defaults section
 DEF_PRIMARY_QUESTION_SCORE = 0.0
-DEF_ASSESSMENT_PAYLOAD = None 
+DEF_ASSESSMENT_PAYLOADS = None
+
+# ASSESSMENT DATA DEFAULTS ###########################################################
+ASSESSMENT_PAYLOAD_SCHEMA_PATH = "src.schemas.evaluation"
+# ASSESSMENT_PAYLOAD_SCHEMA = "assessment_payload.json"
+ASSESSMENT_PAYLOAD_SCHEMA = "assessment_payload_longest_8criterion.json"
