@@ -109,7 +109,7 @@ def pretty_log_temp(title: str, data, log_level=logging.INFO):
         logger.error(f"Error while logging {title}: {e}")
         
 
-def pretty_log(title: str, data, log_level=0):
+def pretty_log_for_local(title: str, data, log_level=0):
     """
     Logs a structured dictionary or list in a pretty JSON format.
 
@@ -135,6 +135,40 @@ def pretty_log(title: str, data, log_level=0):
                 print(f"{log_message}")
         else:
             logger.log(log_level, log_message)
+    except Exception as e:
+        logger.error(f"Error while logging {title}: {e}")
+
+        # Assuming logger is already configured elsewhere to write to FILElog
+def pretty_log(title: str, data, log_level=1):
+    """
+    Logs a structured dictionary or list in a pretty JSON format.
+    Prints to console and appends to FILElog.
+
+    Args:
+        title (str): A descriptive title for the log entry.
+        data (dict | list | any): The structured data to log.
+        log_level (int, optional): Logging level (default is logging.INFO).
+    """
+    try:
+        # Convert data to pretty JSON if it's a dict or list
+        if isinstance(data, (dict, list)):  
+            pretty_data = json.dumps(data, indent=4, ensure_ascii=False)
+        else:
+            pretty_data = str(data)
+
+        log_message = f"\n==== {title} ====\n{pretty_data}\n================="
+
+        # Always print to console
+        print(log_message)
+
+        # Log to FILElog using the logger
+        if isinstance(log_level, int) and log_level not in [
+            logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL
+        ]:
+            if log_level == 1:
+                logger.info(log_message)  # Default to INFO if an invalid level is given
+        else:
+            logger.log(log_level, log_message)  # Log at specified level
     except Exception as e:
         logger.error(f"Error while logging {title}: {e}")
 
