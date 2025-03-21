@@ -4,7 +4,7 @@ import { Mic, MicOff, Phone } from "lucide-react";
 import { BeatLoader, ScaleLoader } from "react-spinners";
 
 
-const LiveInterview = ({ name, onCancelCall, isRecording, stopRecording, startRecording, chats, nohaResponseProcessing, isAudioPlaying }: any) => {
+const LiveInterview = ({ name, onCancelCall, isRecording, stopRecording, startRecording, chats, nohaResponseProcessing, isAudioPlaying, isSilence }: any) => {
   
   
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -122,14 +122,14 @@ const LiveInterview = ({ name, onCancelCall, isRecording, stopRecording, startRe
         {isRecording ? (
           <button
             onClick={toggleMic}
-            className="flex items-center w-full bg-[#2D2D2D] text-white px-6 py-3 rounded-full border-[2px] border-[#0D99FF] h-[40px]"
+            className="relative flex items-center w-full bg-[#2D2D2D] text-white px-6 py-3 rounded-full border-[2px] border-[#0D99FF] h-[40px]"
           >
             <div className="flex flex-1 items-center justify-center">
               <Mic className="w-6 h-6" />
-              <span className="font-semibold text-lg ml-2">Talking</span>
+             <span className="font-semibold text-lg ml-2">Talking</span>
             </div>
-            <div className="ml-auto flex items-center">
-              <ScaleLoader color="white" height={"12px"} />
+            <div className="absolute right-2">
+              {isSilence !== null && !isSilence && <ScaleLoader color="white" height={"12px"} />}
             </div>
           </button>
         ) : (
@@ -140,7 +140,6 @@ const LiveInterview = ({ name, onCancelCall, isRecording, stopRecording, startRe
           >
             <div className="flex flex-1 items-center justify-center space-x-2">
               <MicOff className="w-6 h-6" size={15} />
-              {/* <span className="font-semibold text-lg">Space bar</span> */}
             </div>
             <div className="ml-auto flex items-center">
               <div className="px-2 py-1 rounded-sm text-xs">⎵</div>
