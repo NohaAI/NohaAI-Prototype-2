@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import json
 import importlib.resources as res
-from src.config import env_settings as ENV
 import traceback
 from typing import Dict, Any
 from src.utils import helper as helper
