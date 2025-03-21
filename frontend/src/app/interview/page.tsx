@@ -109,20 +109,15 @@ const MyPage = () => {
             console.log("rms=>:chatMetaData:", chatMetaData);
 
             const res = await axios.post(`${backendServiceLink}/chat`, chatMetaData);
+            setNohaResponseProcessing(false)
             console.log("Received Noha backend AI response", res.data);
             
             setChatMetaData(res.data)
             updateChats(res.data.session_state.bot_dialogue);
             
-            await speakText(res.data.session_state.bot_dialogue);
+            speakText(res.data.session_state.bot_dialogue, { termination:  res.data.session_state.termination })
 
-            // check if the flag is true call the terminate api
-            if(res.data.session_state.termination) {
-                disconnect2()
-                stopRecording();
-                setCallEnded(true);
-                console.log('...about to disconnect')
-            }
+
         } catch (error) {
             console.error("Error in handleStreamBack:", error);
         }
@@ -135,11 +130,10 @@ const MyPage = () => {
         ]);
     };
 
-    const speakText = (text: string): Promise<void> => {
-        return new Promise((resolve) => {
+    const speakText = (text: string, info?: any) => {
+            
             if (!window.speechSynthesis) {
                 console.error("Speech synthesis is not supported in this browser.");
-                resolve();
                 return;
             }
         
@@ -148,13 +142,22 @@ const MyPage = () => {
             utterance.rate = 1;
             utterance.pitch = 1;
 
+            utterance.onstart = () =>{
+                console.log("Speech started");
+                setIsAudioPlaying(true)
+            }
+
             utterance.onend = () => {
                 console.log("Speech finished");
-                resolve();
+                setIsAudioPlaying(false)
+                if(info?.termination) {
+                    disconnect2()
+                    stopRecording();
+                    setCallEnded(true);
+                }
             };
 
             window.speechSynthesis.speak(utterance);
-        });
     };
 
     const handleSubmit = (data: { name: string; email: string }) => {
@@ -170,6 +173,7 @@ const MyPage = () => {
     // };
 
     const onCancelCall2 = () =>{
+        window?.speechSynthesis?.cancel()
         stopRecording();
         setCallEnded(true);
         disconnect2()
