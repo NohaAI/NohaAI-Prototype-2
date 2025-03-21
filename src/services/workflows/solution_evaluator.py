@@ -3,7 +3,7 @@ This module implements the functionality for evaluating answers based on predefi
 including calculating scores using weighted averages, and storing results in a database.
 """
 
-import sys, json, asyncio
+import sys, json, copy
 
 print(sys.path)
 from src.utils import logger, interview_computation, json_helper
@@ -16,11 +16,6 @@ from src.config import constants as CONST
 
 # Initialize logger
 logger = logger.get_logger(__name__)
-
-################################################
-### RMS refactor the following evaluate_answer function based on the call from dialogue_flow, namely
-###  assessment_payload, assessment_payload_rationale = await evaluate_answer(session_state['question_id'], session_state['bot_dialogue'], distilled_candidate_dialogue, distilled_chat_history, assessment_payload)
-
 
 async def evaluate_solution(session_state, chat_history, assessment):
     """
@@ -42,9 +37,8 @@ async def evaluate_solution(session_state, chat_history, assessment):
     print (len(assessment))
     print (assessment[-1])
 
-
     assessment_record = assessment[-1]
-    assessment_payload = assessment[-1]['assessment_payload']
+    assessment_payload = assessment_record['assessment_payloads'][-1]
 
     helper.pretty_log("session_state", session_state, 1)
     helper.pretty_log("chat_history", chat_history, 1)
@@ -77,57 +71,33 @@ async def evaluate_solution(session_state, chat_history, assessment):
     
     updated_prompt_assessment_payload = llm_content_evaluate_solution["prompt_assessment_payload"]
     solution_evaluator_rationale = llm_content_evaluate_solution["rationale"]
-    print(json.dumps(assessment_payload, indent=3))
+    print(json.dumps(updated_prompt_assessment_payload, indent=3))
     print(solution_evaluator_rationale)
     
     computed_assessment_payload = await interview_computation.compute_turn_score(updated_prompt_assessment_payload)
     # updated_json = json.loads(updated_assessment_payload)
+    print("(1) " + json.dumps(computed_assessment_payload))
     
-    if session_state["turn_number"] == 1:
-        assessment_record['assessment_payload'] = computed_assessment_payload
-        assessment_record['primary_question_score'] = computed_assessment_payload['final_score']
-    else:
-        logger.info("INSIDE ELSE, SUPPOSED TO APPEND A NEW RECORD TO ASSESSMENT")
-        new_assessment_payload = helper.get_assessment_payload()
-        new_assessment_record = {'interview_id':session_state['interview_id'], 'question_id': chat_history[-1]['question_id'], 'primary_question_score': CONST.DEF_PRIMARY_QUESTION_SCORE, 'assessment_payload': new_assessment_payload }
-        new_assessment_record['assessment_payload'] = computed_assessment_payload
-        new_assessment_record['primary_question_score'] = computed_assessment_payload['final_score']
-        ### append the updated assessment_payload to assessment(ltype:list)
-        assessment.append(new_assessment_record)
+    # Update the assessment record with the new assessment payload
+    assessment_record['assessment_payloads'][-1] = computed_assessment_payload
+    # print("(2) \n" + json.dumps(assessment_record['assessment_payloads'][-1]))
+    # print("(3) \n" + json.dumps(assessment_record['assessment_payloads']))
+    # print("(4) \n" + json.dumps(assessment_record))
+    assessment_record['primary_question_score'] = computed_assessment_payload['final_score']
+    # new_assessment_payload = helper.get_assessment_payload()
+    assessment_payload_copy =  copy.deepcopy(computed_assessment_payload) 
+    assessment_record['assessment_payloads'].append(assessment_payload_copy)
+    print("(5) \n" + json.dumps(assessment_record))
+    print("(6) \n" + json.dumps(assessment))
 
     helper.pretty_log("session_state", session_state, 1)
     helper.pretty_log("chat_history", chat_history, 1)
     helper.pretty_log("criteria_scores", computed_assessment_payload["criteria_scores"], 1)
     helper.pretty_log("subcriteria_scores", computed_assessment_payload["subcriteria_scores"], 1)
-    helper.pretty_log("assessment", assessment)
+    helper.pretty_log("assessment", assessment, 1)
     
     return assessment, solution_evaluator_rationale
 
-    # try:
-    #     llm_content_evaluate_solution = json.loads(llm_response_evaluate_solution[0].content)
-
-    #     helper.pretty_log("EVALUATE SOLUTION LLM OUTPUT", llm_content_evaluate_solution, 1)
-
-    #     # First, clean the JSON string
-    #     # cleaned_json_string = json_helper.fix_json(llm_content_evaluate_solution)
-
-    #     # Then, attempt to parse
-    #     # llm_response_json = json.loads(cleaned_json_string)
-
-    #     print("JSON parsed successfully!")
-    #     # You can now work with llm_response_json
-    #     #print(json.dumps(llm_response_json, indent=2)) # Optional: print the parsed JSON
-
-    # except json.JSONDecodeError as e:
-    #     print(f"JSONDecodeError: {e}")
-    #     print("Original JSON string:")
-    #     print(llm_response_content)  #Print the original string for inspection
-    #     # Optionally, print the problematic part of the string:
-    #     error_position = e.pos
-    #     print(f"Problematic part of the string around position {error_position}:")
-    #     start = max(0, error_position - 50)
-    #     end = min(len(llm_response_content), error_position + 50)
-    #     print(llm_response_content[start:end])
 
   
 
