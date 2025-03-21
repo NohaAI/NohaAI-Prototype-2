@@ -85,7 +85,7 @@ const LiveInterview = ({ name, onCancelCall, isRecording, stopRecording, startRe
   };
 
   return (
-    <div className="min-h-screen bg-black px-4 flex flex-row justify-center items-center gap-4">
+    <div className="min-h-screen bg-black px-4 flex flex-row justify-center  mt-[5%] gap-4">
 
       {/* User Video */}
       <div className="relative bg-[#1F1F1F] rounded-lg p-4 flex flex-col justify-center items-center w-full md:w-[474px] md:h-[458px]">
