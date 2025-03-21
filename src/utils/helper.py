@@ -1,14 +1,20 @@
 from typing import Any
 import logging
 from src.utils.logger import get_logger
+from src.config import constants as CONST
 import importlib.resources as res
 from fastapi.responses import JSONResponse
 from fastapi import status
 import json
 import os
+from datetime import datetime
+
 
  # Configure logger if not already set up
 logger = get_logger(__name__)
+
+def get_current_datetime():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 def decorate_response(succeeded: bool, message: Any, status_code: int = status.HTTP_200_OK) -> JSONResponse:
     """Creates a standardized JSON response.
@@ -43,7 +49,7 @@ def get_assessment_payload():
         dict: The loaded assessment payload.
     """
     try:
-        return json.load(res.open_text("src.schemas.evaluation", "assessment_payload.json")) # todo: the path of this json file has to be added to configuration constants
+        return json.load(res.open_text(CONST.ASSESSMENT_PAYLOAD_SCHEMA_PATH, CONST.ASSESSMENT_PAYLOAD_SCHEMA)) # todo: the path of this json file has to be added to configuration constants
     except Exception as e:
         raise RuntimeError(f"Error loading assessment_payload.json: {e}")
 
