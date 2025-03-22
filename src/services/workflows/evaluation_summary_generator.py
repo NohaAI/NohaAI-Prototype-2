@@ -4,7 +4,7 @@ from src.services.llm import llm_service
 import json
 from src.utils import helper
 #TODO: generate_report should be prepare_interview_feedback - > gives data to create_pdf to create an interview_feedback report
-async def prepare_evaluation_summary(questions_asked, chat_history, assessment_payloads, criteria_list= ["Assumptions clarification", "Corner cases handeling", "Data structure choice", "Algorithm choice", "Time complexity", "space complexity"]):
+def create_evaluation_summary(questions_asked, chat_history, assessment_payloads, criteria_list):
     counter = 0
     evaluation_summary_list = []
     for question_id in questions_asked:
@@ -27,7 +27,7 @@ async def prepare_evaluation_summary(questions_asked, chat_history, assessment_p
             'chat_history': filtered_chat_history,
             'criteria_list': criteria_list
         }
-        llm_response_generate_evaluation_summary = await generate_evaluation_summary_chain.ainvoke(llm_inputs)
+        llm_response_generate_evaluation_summary = generate_evaluation_summary_chain.invoke(llm_inputs)
         llm_content_generate_evaluation_summary = json.loads(llm_response_generate_evaluation_summary.content)
         evaluation_summary_list.append((question, criteria_scores, final_score, llm_content_generate_evaluation_summary))
         print(f"REPORT CONTENT FOR QUESTION {question} : \n {llm_content_generate_evaluation_summary} \n")
