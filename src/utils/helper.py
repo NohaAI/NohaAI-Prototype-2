@@ -40,6 +40,20 @@ def filter_chat_history(chat_history, question_id):
             })
     return filtered_chat_history
 
+def calculate_overall_score(assessment_payloads):
+    overall_score = 0
+    for assessment_payload in assessment_payloads:
+        overall_score += assessment_payload['assessment_payload']['final_score']
+        total_possible_score = len(assessment_payloads) * 10
+    return overall_score, total_possible_score
+        
+def create_criteria_list(assessment_payloads):
+    assessment_payload = assessment_payloads[0] #pick any assessment_payload since all have the same criteria
+    criteria_list = []
+    for criterion in assessment_payload['assessment_payload']['criteria']:
+        criteria_list.append(criterion['description'])
+    return criteria_list
+
 
 def clean_response(response):
     cleaned_subcriteria = (response.replace("```python", "").replace("```'", "").replace("\n", "").replace("'", "").replace("```", "").replace("json", ""))
