@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
 
+#DATA CLASSES FOR INTERVIEW FEEDBACK DATA PREPARATION
 @dataclass
 class HeaderObject:
     title: str = "Interview Feedback"
@@ -37,3 +38,6 @@ class InterviewFeedbackDataObject:
     candidate_details:List[CandidateDetailItem]
     evaluation_summary: List[EvaluationSummaryObject]
     overall_recommendation: List[OverallRecommendationObject]
+
+#DATA CLASSES FOR PDF LAYOUT
+
