@@ -27,14 +27,13 @@ class EvaluationSummaryObject:
     criteria_scores: List[float]
 
 @dataclass
-class OverallRecommendation:
+class OverallRecommendationObject:
     title: str
     content: str
 
 @dataclass
-class InterviewFeedbackData:
+class InterviewFeedbackDataObject:
     header: HeaderObject
     candidate_details:List[CandidateDetailItem]
     evaluation_summary: List[EvaluationSummaryObject]
-    overall_recommendation: List[OverallRecommendation]
-    
+    overall_recommendation: List[OverallRecommendationObject]
