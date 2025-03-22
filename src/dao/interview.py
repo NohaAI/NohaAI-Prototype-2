@@ -108,6 +108,41 @@ async def get_interview_metadata(interview_id: int):
     except DatabaseOperationError as e:
         raise e
 
+@app.get("/interviews/{interview_id}")
+def get_candidate_name(interview_id: int):
+    """
+    Retrieves interview details by ID
+
+    Args:
+        interview_id (int): ID of the interview to retrieve the details
+    
+    Returns:
+        InterviewResponse:Interview Details
+    
+    Raises:
+        Exception: 404 if interview not found, 503 for connection issues,
+                      400 for invalid data, 500 for other errors
+    """
+    try:
+        with get_db_connection() as conn:
+            # Query to fetch interview details by ID
+            query = """
+                SELECT users.name FROM USERS JOIN INTERVIEW ON INTERVIEW.USER_ID = USERS.USER_ID WHERE INTERVIEW.INTERVIEW_ID = %s
+            """
+            candidate_name = execute_query(conn, query, (interview_id,))
+            if not candidate_name:
+                logger.error(f"User with interview_id: {interview_id} not found in the database")
+                raise InterviewNotFoundException(interview_id)
+
+            # Return the interview details
+            return candidate_name[0]
+    except DatabaseConnectionError as e:
+        raise e
+    except DatabaseQueryError as e:
+        raise e
+    except DatabaseOperationError as e:
+        raise e
+
 @app.put("/interviews/{interview_id}", response_model=InterviewResponse)
 async def update_interview(interview_id: int, interview: InterviewRequest):
     """
