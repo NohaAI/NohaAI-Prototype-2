@@ -67,3 +67,6 @@ DEF_DISTILLED_CANDIDATE_DIALOGUE = None # Set dynamically from candidate_classif
 ### DEF_QUESTION_ID = None # have been already defined in chat history defaults section
 DEF_PRIMARY_QUESTION_SCORE = 0.0
 DEF_ASSESSMENT_PAYLOAD = None 
+
+# BOT NAME
+BOT_NAME = "Noha AI"
