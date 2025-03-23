@@ -18,7 +18,7 @@ def create_candidate_details_object(session_state, assessment_payloads) -> List[
     
     interview_id = session_state['interview_id']
     candidate_name = get_candidate_name(interview_id)
-    date = datetime.now()
+    date = datetime.now().date()
     overall_score,total_possible_score = helper.calculate_overall_score(assessment_payloads)
     candidate_details_object = [
         CandidateDetailItem(label= "Candidate Name", value= candidate_name),

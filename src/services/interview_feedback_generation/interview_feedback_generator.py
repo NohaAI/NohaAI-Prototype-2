@@ -23,7 +23,7 @@ def build_candidate_details_section(layout: PDFLayout, candidate_details):
     """Build content for candidate details section"""
     content = []
     for detail in candidate_details:
-        content.append(Paragraph(f"{detail.label}: {detail.value}", layout.styles.normal_style))
+        content.append(Paragraph(f"<b>{detail.label}:</b>" + f"{detail.value}", layout.styles.normal_style))
         content.append(Spacer(1, layout.spacing.alter_paragraph))
     
     content.append(Spacer(1, layout.spacing.alter_section))
