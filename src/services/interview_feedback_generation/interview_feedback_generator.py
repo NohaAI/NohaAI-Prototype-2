@@ -16,7 +16,7 @@ def build_header_section(layout: PDFLayout, header_data):
     """Build content for the header section"""
     content = []
     content.append(Paragraph(header_data.title, layout.styles.title_style))
-    content.append(Spacer(1, layout.spacing.after_title))
+    content.append(Spacer(1, layout.spacing.alter_title))
     return content
 
 def build_candidate_details_section(layout: PDFLayout, candidate_details):
@@ -24,9 +24,9 @@ def build_candidate_details_section(layout: PDFLayout, candidate_details):
     content = []
     for detail in candidate_details:
         content.append(Paragraph(f"{detail.label}: {detail.value}", layout.styles.normal_style))
-        content.append(Spacer(1, layout.spacing.after_paragraph))
+        content.append(Spacer(1, layout.spacing.alter_paragraph))
     
-    content.append(Spacer(1, layout.spacing.after_section))
+    content.append(Spacer(1, layout.spacing.alter_section))
     return content
 
 def build_evaluation_section(layout: PDFLayout, evaluation_summary):
@@ -39,31 +39,31 @@ def build_evaluation_section(layout: PDFLayout, evaluation_summary):
     
     # Question header
     content.append(Paragraph(f"QUESTION {evaluation_summary.question_number}:", layout.styles.heading_style))
-    content.append(Paragraph(evaluation_summary.question_text, layout.styles.normal_style))
-    content.append(Spacer(1, layout.spacing.after_paragraph))
+    content.append(Paragraph(evaluation_summary.question, layout.styles.normal_style))
+    content.append(Spacer(1, layout.spacing.alter_paragraph))
     
     # Evaluation summary
     content.append(Paragraph("EVALUATION SUMMARY:", layout.styles.heading_style))
     
-    for criterion, details in evaluation_summary.evaluation_summary.items():
+    for criterion, details in evaluation_summary.evaluation_summary['evaluation_summary'].items():
         content.append(Paragraph(f"<b>{criterion}:</b>", layout.styles.normal_style))
         content.append(Paragraph(f"<b>Summary:</b> {details['Summary']}", layout.styles.normal_style))
         content.append(Paragraph(f"<b>Strengths:</b> {details['Strengths']}", layout.styles.normal_style))
         content.append(Paragraph(f"<b>Weaknesses:</b> {details['Weaknesses']}", layout.styles.normal_style))
         content.append(Paragraph(f"<b>Judgment:</b> {details['Judgment']}", layout.styles.normal_style))
-        content.append(Spacer(1, layout.spacing.after_paragraph))
+        content.append(Spacer(1, layout.spacing.alter_paragraph))
     
     # Code snippet
     content.append(Paragraph("CANDIDATE'S CODE ATTEMPT:", layout.styles.heading_style))
     # Format code with preserved whitespace and line breaks
     code_text = evaluation_summary.code_snippet.replace('\n', '<br/>').replace(' ', '&nbsp;')
     content.append(Paragraph(code_text, layout.styles.code_style))
-    content.append(Spacer(1, layout.spacing.after_code))
+    content.append(Spacer(1, layout.spacing.alter_code))
     
     # Score
     content.append(Paragraph("SCORE:", layout.styles.heading_style))
     content.append(Paragraph(f"{evaluation_summary.question_score}/10", layout.styles.normal_style))
-    content.append(Spacer(1, layout.spacing.after_paragraph))
+    content.append(Spacer(1, layout.spacing.alter_paragraph))
     
     # Score distribution
     content.append(Paragraph("SCORE DISTRIBUTION:", layout.styles.heading_style))
@@ -77,7 +77,7 @@ def build_evaluation_section(layout: PDFLayout, evaluation_summary):
                 layout.styles.normal_style
             ))
     
-    content.append(Spacer(1, layout.spacing.after_section))
+    content.append(Spacer(1, layout.spacing.alter_section))
     return content
 
 def build_recommendation_section(layout: PDFLayout, recommendation):

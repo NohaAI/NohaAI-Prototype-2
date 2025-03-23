@@ -33,7 +33,7 @@ def create_evaluation_summary_list_object(session_state, chat_history, assessmen
     evaluation_object_list = []
     criteria_list = helper.create_criteria_list(assessment_payloads) #helper func to get the list of criteria
     evaluation_summary_list = generate_evaluation_summary(session_state, chat_history, assessment_payloads, criteria_list)
-    for i, ((question, evaluation_summary, question_score, criteria_scores), code_snippet) in enumerate(zip(evaluation_summary_list, code_snippet)):
+    for i, ((question, criteria_scores, question_score, evaluation_summary), code_snippet) in enumerate(zip(evaluation_summary_list, code_snippet)):
         evaluation_object = EvaluationSummaryObject(
             question_number = i+1,
             question = question,
