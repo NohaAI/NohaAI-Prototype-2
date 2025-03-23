@@ -98,12 +98,16 @@ async def get_random_question_metadata(complexity: int, question_list: list[int]
 def fetch_question_by_ids(question_id_list):
     try:
         with get_db_connection() as conn:
-            fetch_questions_query = "SELECT question FROM Question WHERE question_id IN %s"
-            questions_list_tuples = execute_query(conn, fetch_questions_query, (tuple(question_id_list),),fetch_one=False)
-            question_list = []
-            for question_tuple in questions_list_tuples:
-                question_list.append(question_tuple[0]) #execute query returns vals in a tuple eg. ('question',)
-            return question_list
+            fetch_questions_query = f"""
+                SELECT question 
+                FROM Question 
+                WHERE question_id IN %s 
+                ORDER BY CASE 
+                    { " ".join([f"WHEN question_id = {qid} THEN {i}" for i, qid in enumerate(question_id_list)]) }
+                END
+            """ #order by case is necessary to return questions in the same order of question_id_list
+            questions_list_tuples = execute_query(conn, fetch_questions_query, (tuple(question_id_list),), fetch_one=False)
+            return [question_tuple[0] for question_tuple in questions_list_tuples]
     except DatabaseConnectionError as e:
         raise e
     except DatabaseQueryError as e:
