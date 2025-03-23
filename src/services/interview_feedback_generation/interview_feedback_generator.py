@@ -44,9 +44,10 @@ def build_evaluation_section(layout: PDFLayout, evaluation_summary):
     
     # Evaluation summary
     content.append(Paragraph("EVALUATION SUMMARY:", layout.styles.heading_style))
-    
+    criteria_list = []
     for criterion, details in evaluation_summary.evaluation_summary['evaluation_summary'].items():
-        content.append(Paragraph(f"<b>{criterion}:</b>", layout.styles.normal_style))
+        content.append(Paragraph(f"<b>{criterion} </b>", layout.styles.normal_style))
+        criteria_list.append(criterion)
         content.append(Paragraph(f"<b>Summary:</b> {details['Summary']}", layout.styles.normal_style))
         content.append(Paragraph(f"<b>Strengths:</b> {details['Strengths']}", layout.styles.normal_style))
         content.append(Paragraph(f"<b>Weaknesses:</b> {details['Weaknesses']}", layout.styles.normal_style))
@@ -67,13 +68,11 @@ def build_evaluation_section(layout: PDFLayout, evaluation_summary):
     
     # Score distribution
     content.append(Paragraph("SCORE DISTRIBUTION:", layout.styles.heading_style))
-    criteria_labels = ["Assumptions clarification", "Corner cases", "Data structure choice", 
-                      "Algorithm choice", "Time complexity", "Space complexity"]
     
     for i, score in enumerate(evaluation_summary.criteria_scores):
-        if i < len(criteria_labels):  # Make sure we don't exceed the criteria_labels list
+        if i < len(criteria_list):  # Make sure we don't exceed the criteria_list list
             content.append(Paragraph(
-                f"{criteria_labels[i]}: {score}/10", 
+                f"{criteria_list[i]}: {score}/10", 
                 layout.styles.normal_style
             ))
     
