@@ -25,7 +25,7 @@ def classify_candidate_dialogue_prompt_template():
   
   When classifying, the distilled_candidate_dialogue must be used (else you will incur penalty) and the 'class' must be one of:
   - technical - Candidate has attempted to solve this question 
-  - illegible - Possibly some gibberish output or non-standard words coming from STT
+  - illegible - Candidate utters gibberish output or non-standard words
   - irrelevant - Candidate responses that are irrelevant to the conversation
   - interview_inquiry - Candidate inquires about the interview
   - confirmation - Candidate expresses his willingness in the form of confirmatory response
@@ -45,9 +45,18 @@ def classify_candidate_dialogue_prompt_template():
    * The candidate has made an attempt to answer the problem
 
   - Classify the distilled_candidate_dialogue as 'illegible' when the following criteria are met:
-    * Contains non-dictionary words or random character sequences
-    * Has grammatically incorrect sentence structures that make meaning unclear
-    * Contains excessive typos or transcription errors
+    1.  **Dominant Non-Meaningful Content:**
+        * The response consists primarily of random character sequences, nonsensical phrases, or words that are not found in standard dictionaries and do not appear to be technical terms or proper nouns.
+        * The ratio of non-dictionary/random words to potentially meaningful words is extremely high (e.g., more than 70 percent of the words are non-dictionary/random).
+
+    2.  **Severe Structural Incoherence:**
+        * The sentence structures are so fundamentally flawed that it's impossible to discern the intended meaning, even with reasonable effort.
+        * The response lacks any discernible subject-verb relationship or logical flow.
+        * The dialogue lacks any coherent context with respect to the preceeding question.
+
+    3.  **Compromised Comprehension:**
+        * Even after accounting for potential typos and minor grammatical errors, the response remains incomprehensible.
+        * The core intent of the candidate's answer is completely obscured.
 
   - Classify the distilled_candidate_dialogue as 'irrelevant' when the following criteria are met:
     * Response is unrelated to the active question (follow-up or main)
