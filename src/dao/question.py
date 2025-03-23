@@ -95,6 +95,22 @@ async def get_random_question_metadata(complexity: int, question_list: list[int]
     except DatabaseOperationError as e:
         raise e
 
+def fetch_question_by_ids(question_id_list):
+    try:
+        with get_db_connection() as conn:
+            fetch_questions_query = "SELECT question FROM Question WHERE question_id IN %s"
+            questions_list_tuples = execute_query(conn, fetch_questions_query, (tuple(question_id_list),),fetch_one=False)
+            question_list = []
+            for question_tuple in questions_list_tuples:
+                question_list.append(question_tuple[0]) #execute query returns vals in a tuple eg. ('question',)
+            return question_list
+    except DatabaseConnectionError as e:
+        raise e
+    except DatabaseQueryError as e:
+        raise e
+    except DatabaseOperationError as e:
+        raise e
+
 @app.post("/question-service", response_model=QuestionResponse)
 async def add_question(question: str, question_type_id: int, complexity: int):
     """
