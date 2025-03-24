@@ -45,10 +45,10 @@ class OverallRecommendationObject:
 
 @dataclass
 class InterviewFeedbackDataObject:
-    header: HeaderObject
-    candidate_details:List[CandidateDetailItem]
-    evaluation_summary: List[EvaluationSummaryObject]
-    overall_recommendation: List[OverallRecommendationObject]
+    header_object: HeaderObject
+    candidate_details_object: List[CandidateDetailItem]
+    evaluation_summary_object_list: List[EvaluationSummaryObject]
+    overall_recommendation_object: List[OverallRecommendationObject]
 
 #DATA CLASSES FOR PDF LAYOUT
 

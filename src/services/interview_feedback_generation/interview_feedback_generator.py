@@ -29,23 +29,23 @@ def build_candidate_details_section(layout: PDFLayout, candidate_details):
     content.append(Spacer(1, layout.spacing.alter_section))
     return content
 
-def build_evaluation_section(layout: PDFLayout, evaluation_summary):
+def build_evaluation_summary_section(layout: PDFLayout, evaluation_summary_object):
     """Build content for a single evaluation"""
     content = []
     
     # Add page break before each question (except the first)
-    if evaluation_summary.question_number > 1:
+    if evaluation_summary_object.question_number > 1:
         content.append(PageBreak())
     
     # Question header
-    content.append(Paragraph(f"QUESTION {evaluation_summary.question_number}:", layout.styles.heading_style))
-    content.append(Paragraph(evaluation_summary.question, layout.styles.normal_style))
+    content.append(Paragraph(f"QUESTION {evaluation_summary_object.question_number}:", layout.styles.heading_style))
+    content.append(Paragraph(evaluation_summary_object.question, layout.styles.normal_style))
     content.append(Spacer(1, layout.spacing.alter_paragraph))
     
     # Evaluation summary
     content.append(Paragraph("EVALUATION SUMMARY:", layout.styles.heading_style))
     criteria_list = []
-    for criterion, details in evaluation_summary.evaluation_summary['evaluation_summary'].items():
+    for criterion, details in evaluation_summary_object.evaluation_summary['evaluation_summary'].items():
         content.append(Paragraph(f"<b>{criterion} </b>", layout.styles.normal_style))
         criteria_list.append(criterion)
         content.append(Paragraph(f"<b>Summary:</b> {details['Summary']}", layout.styles.normal_style))
@@ -57,19 +57,19 @@ def build_evaluation_section(layout: PDFLayout, evaluation_summary):
     # Code snippet
     content.append(Paragraph("CANDIDATE'S CODE ATTEMPT:", layout.styles.heading_style))
     # Format code with preserved whitespace and line breaks
-    code_text = evaluation_summary.code_snippet.replace('\n', '<br/>').replace(' ', '&nbsp;')
+    code_text = evaluation_summary_object.code_snippet.replace('\n', '<br/>').replace(' ', '&nbsp;')
     content.append(Paragraph(code_text, layout.styles.code_style))
     content.append(Spacer(1, layout.spacing.alter_code))
     
     # Score
     content.append(Paragraph("SCORE:", layout.styles.heading_style))
-    content.append(Paragraph(f"{evaluation_summary.question_score}/10", layout.styles.normal_style))
+    content.append(Paragraph(f"{evaluation_summary_object.question_score}/10", layout.styles.normal_style))
     content.append(Spacer(1, layout.spacing.alter_paragraph))
     
     # Score distribution
     content.append(Paragraph("SCORE DISTRIBUTION:", layout.styles.heading_style))
     
-    for i, score in enumerate(evaluation_summary.criteria_scores):
+    for i, score in enumerate(evaluation_summary_object.criteria_scores):
         if i < len(criteria_list):  # Make sure we don't exceed the criteria_list list
             content.append(Paragraph(
                 f"{criteria_list[i]}: {score}/10", 
@@ -89,7 +89,7 @@ def build_recommendation_section(layout: PDFLayout, recommendation):
 
 def generate_interview_feedback_report(session_state, chat_history, assessment_payloads, code_snippet=None):
     # Prepare interview feedback data
-    interview_feedback_data = prepare_interview_feedback_data(
+    interview_feedback_data_object = prepare_interview_feedback_data(
         session_state, chat_history, assessment_payloads, code_snippet
     )
 
@@ -109,13 +109,13 @@ def generate_interview_feedback_report(session_state, chat_history, assessment_p
     
     # Build content
     content = []
-    content.extend(build_header_section(layout, interview_feedback_data.header))
-    content.extend(build_candidate_details_section(layout, interview_feedback_data.candidate_details))
+    content.extend(build_header_section(layout, interview_feedback_data_object.header))
+    content.extend(build_candidate_details_section(layout, interview_feedback_data_object.candidate_details))
     
-    for evaluation in interview_feedback_data.evaluation_summary:
-        content.extend(build_evaluation_section(layout, evaluation))
+    for evaluation_summary_object in interview_feedback_data_object.evaluation_summary_object_list:
+        content.extend(build_evaluation_summary_section(layout, evaluation_summary_object))
     
-    content.extend(build_recommendation_section(layout, interview_feedback_data.overall_recommendation))
+    content.extend(build_recommendation_section(layout, interview_feedback_data_object.overall_recommendation))
     
     # Generate and save PDF
     doc.build(content)

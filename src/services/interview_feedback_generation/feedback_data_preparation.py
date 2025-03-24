@@ -34,6 +34,7 @@ def create_evaluation_summary_object_list(session_state, chat_history, assessmen
     evaluation_summary_object_list = []
     
     evaluation_summary_list = generate_evaluation_summary(session_state, chat_history, assessment_payloads, criteria_list)
+    #preparing list of EvaluationSummaryObject
     for i, ((question, criteria_scores, question_score, evaluation_summary), code_snippet) in enumerate(zip(evaluation_summary_list, code_snippet)):
         evaluation_object = EvaluationSummaryObject(
             question_number = i+1,
@@ -63,16 +64,16 @@ def prepare_interview_feedback_data(session_state, chat_history, assessment_payl
     criteria_list = helper.create_criteria_list(assessment_payloads) #helper func to get the list of criteria
 
     header_object = create_header_object()
-    print(f"HEADER OBJECT : \n {header_object} \n")
+    
     candidate_details_object = create_candidate_details_object(session_state, assessment_payloads)
-    print(f"CANDIDATE DETAILS OBJECT : \n  {candidate_details_object} \n")
+    
     evaluation_summary_object_list = create_evaluation_summary_object_list(session_state, chat_history, assessment_payloads, criteria_list,code_snippet)
-    print(f"EVALUATION SUMMARY LIST OBJECT : \n  {evaluation_summary_object_list} \n")
+    
     overall_recommendation_object = create_overall_recommendation_object(evaluation_summary_object_list, criteria_list) 
-    print(f"OVERALL RECOMMENDATION OBJECT : \n  {overall_recommendation_object} \n")
+    
     return InterviewFeedbackDataObject( 
-        header =  header_object, 
-        candidate_details =  candidate_details_object,
-        evaluation_summary =  evaluation_summary_object_list,
-        overall_recommendation =  overall_recommendation_object,
+        header_object =  header_object, 
+        candidate_details_object =  candidate_details_object,
+        evaluation_summary_object_list =  evaluation_summary_object_list,
+        overall_recommendation_object =  overall_recommendation_object,
     )
