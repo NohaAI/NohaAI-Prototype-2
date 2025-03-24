@@ -17,7 +17,8 @@ const LiveInterview = ({
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const videoStreamRef = useRef<MediaStream | null>(null);
-  
+  const avatarVideoRef = useRef<any>(null)
+
   const isRecordingRef = useRef(isRecording);
   const isAudioPlayingRef = useRef(isAudioPlaying);
   
@@ -87,6 +88,17 @@ const LiveInterview = ({
     };
   }, []);
 
+  useEffect(() => {
+    if (avatarVideoRef.current) {
+      if (isAudioPlaying) {
+        avatarVideoRef.current.play().catch((err: any) => console.error("Video play error:", err));
+      } else {
+        avatarVideoRef.current.pause();
+      }
+    }
+  }, [isAudioPlaying]);
+
+
   const toggleMic = async () => {
     if (isRecordingRef.current) {
       stopRecording();
@@ -114,21 +126,16 @@ const LiveInterview = ({
       <div className="w-[474px] h-[458px]">
         <div className="relative bg-[#1F1F1F] rounded-lg p-4 flex flex-col justify-center items-center h-full">
           {isAudioPlaying && <ScaleLoader color="white" className="absolute right-4 top-4" />}
-
-          {isAudioPlaying ? (
-            <video
+          <video
+              ref={avatarVideoRef}
               autoPlay
               loop
               muted
               className="w-[226px] h-[226px] object-cover rounded-lg"
             >
-              <source src="9933-222013874_tiny.mp4" type="video/mp4" />
+              <source src="noha-2-video.mp4" type="video/mp4" />
               Your browser does not support the video tag.
-            </video>
-          ) : (
-            <img src="noha.png" alt="Noha AI" className="w-[226px] h-[226px] object-cover" />
-          )}
-
+          </video>
           <p className="text-white mt-2 absolute left-3 bottom-2">Noha</p>
         </div>
 
