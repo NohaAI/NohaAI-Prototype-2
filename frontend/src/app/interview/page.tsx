@@ -132,34 +132,53 @@ const MyPage = () => {
     };
 
     const speakText = (text: string, info?: any) => {
-            
-            if (!window.speechSynthesis) {
-                console.error("Speech synthesis is not supported in this browser.");
-                return;
+        if (!window.speechSynthesis) {
+            console.error("Speech synthesis is not supported in this browser.");
+            return;
+        }
+    
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "en-US";
+        utterance.rate = 1;
+        utterance.pitch = 1.1; // Slightly higher pitch for a more feminine sound
+    
+        // Ensure voices are loaded before selecting one
+        const setVoice = () => {
+            const voices = window.speechSynthesis.getVoices();
+            const femaleVoice = voices.find(voice => voice.name.includes("Female") || voice.name.includes("Google US English"));
+    
+            if (femaleVoice) {
+                utterance.voice = femaleVoice;
+            } else {
+                console.warn("Preferred female voice not found, using default.");
             }
-        
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = "en-US";
-            utterance.rate = 1;
-            utterance.pitch = 1;
-
-            utterance.onstart = () =>{
+    
+            utterance.onstart = () => {
                 console.log("Speech started");
-                setIsAudioPlaying(true)
-            }
-
+                setIsAudioPlaying(true);
+            };
+    
             utterance.onend = () => {
                 console.log("Speech finished");
-                setIsAudioPlaying(false)
-                if(info?.termination) {
-                    disconnect2()
+                setIsAudioPlaying(false);
+                if (info?.termination) {
+                    disconnect2();
                     stopRecording();
                     setCallEnded(true);
                 }
             };
-
+    
             window.speechSynthesis.speak(utterance);
+        };
+    
+        // Some browsers may not have voices loaded immediately
+        if (window.speechSynthesis.getVoices().length === 0) {
+            window.speechSynthesis.onvoiceschanged = setVoice;
+        } else {
+            setVoice();
+        }
     };
+    
 
     const handleSubmit = (data: { name: string; email: string }) => {
         setDetails({ ...data });
