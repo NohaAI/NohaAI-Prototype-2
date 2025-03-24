@@ -1,16 +1,11 @@
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from reportlab.lib.styles import ParagraphStyle
 from dataclasses import dataclass, field
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Dict, Any, List
 from reportlab.lib.pagesizes import letter
-from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_CENTER, TA_LEFT
-from reportlab.pdfgen import canvas
-from textwrap import wrap
-import io
+from reportlab.lib.styles import ParagraphStyle
+
 
 #DATA CLASSES FOR INTERVIEW FEEDBACK DATA PREPARATION
 @dataclass
@@ -23,11 +18,6 @@ class HeaderObject:
 class CandidateDetailItem:
     label:str
     value:str
-
-@dataclass
-class ScoreDistribution:
-    criterion: str
-    score: float
 
 @dataclass 
 class EvaluationSummaryObject:
