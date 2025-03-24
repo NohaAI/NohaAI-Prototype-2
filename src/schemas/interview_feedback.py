@@ -4,8 +4,6 @@ from reportlab.lib.styles import ParagraphStyle
 from dataclasses import dataclass, field
 from typing import Dict, Any, List
 from reportlab.lib.pagesizes import letter
-from reportlab.lib.styles import ParagraphStyle
-
 
 #DATA CLASSES FOR INTERVIEW FEEDBACK DATA PREPARATION
 @dataclass
