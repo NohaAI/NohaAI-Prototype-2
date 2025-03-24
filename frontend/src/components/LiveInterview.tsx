@@ -131,7 +131,7 @@ const LiveInterview = ({
               autoPlay
               loop
               muted
-              className="w-[226px] h-[226px] object-cover rounded-lg"
+              className="w-[100%] h-[90%] object-cover rounded-lg"
             >
               <source src="noha-2-video.mp4" type="video/mp4" />
               Your browser does not support the video tag.
