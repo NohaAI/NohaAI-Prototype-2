@@ -72,7 +72,7 @@ def build_evaluation_summary_section(layout: PDFLayout, evaluation_summary_objec
     for i, score in enumerate(evaluation_summary_object.criteria_scores):
         if i < len(criteria_list):  # Make sure we don't exceed the criteria_list list
             content.append(Paragraph(
-                f"{criteria_list[i]}: {score}/10", 
+                f"<b>{criteria_list[i]}:</b> {score}/10", 
                 layout.styles.normal_style
             ))
     
@@ -109,13 +109,13 @@ def generate_interview_feedback_report(session_state, chat_history, assessment_p
     
     # Build content
     content = []
-    content.extend(build_header_section(layout, interview_feedback_data_object.header))
-    content.extend(build_candidate_details_section(layout, interview_feedback_data_object.candidate_details))
+    content.extend(build_header_section(layout, interview_feedback_data_object.header_object))
+    content.extend(build_candidate_details_section(layout, interview_feedback_data_object.candidate_details_object))
     
     for evaluation_summary_object in interview_feedback_data_object.evaluation_summary_object_list:
         content.extend(build_evaluation_summary_section(layout, evaluation_summary_object))
     
-    content.extend(build_recommendation_section(layout, interview_feedback_data_object.overall_recommendation))
+    content.extend(build_recommendation_section(layout, interview_feedback_data_object.overall_recommendation_object))
     
     # Generate and save PDF
     doc.build(content)

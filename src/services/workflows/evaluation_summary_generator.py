@@ -29,6 +29,4 @@ def generate_evaluation_summary(session_state, chat_history, assessment_payloads
         llm_response_generate_evaluation_summary = generate_evaluation_summary_chain.invoke(llm_inputs)
         llm_content_generate_evaluation_summary = json.loads(llm_response_generate_evaluation_summary.content)
         evaluation_summary_list.append((question, criteria_scores, final_score, llm_content_generate_evaluation_summary))
-        print(f"REPORT CONTENT FOR QUESTION {question} : \n {llm_content_generate_evaluation_summary} \n")
-    print(f"EVALUATION SUMMARY LIST : \n {evaluation_summary_list}")
     return evaluation_summary_list
