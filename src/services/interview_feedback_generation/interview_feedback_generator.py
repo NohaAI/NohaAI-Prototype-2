@@ -1,14 +1,6 @@
 from src.services.interview_feedback_generation.feedback_data_preparation import prepare_interview_feedback_data
-from src.schemas.interview_feedback import PDFLayout, PDFSpacingConfig, PDFStyleConfig, InterviewFeedbackDataObject
-from dataclasses import dataclass, field
-from typing import Dict, Any, Optional, List, Tuple
-from reportlab.lib.pagesizes import letter
-from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_CENTER, TA_LEFT
-from reportlab.pdfgen import canvas
-from textwrap import wrap
+from src.schemas.interview_feedback import PDFLayout
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
 import io
 from src.services.interview_feedback_generation.interview_feedback_pdf_layout import get_interview_feedback_pdf_layout
 

@@ -1,10 +1,10 @@
-from src.dao.interview import get_candidate_name, get_interview_metadata
+from src.dao.interview import get_candidate_name
 from src.config import constants as const
 from datetime import datetime
 from typing import List
 from src.utils import helper
 from src.services.workflows.evaluation_summary_generator import generate_evaluation_summary
-from src.schemas.interview_feedback import HeaderObject, CandidateDetailItem, ScoreDistribution, EvaluationSummaryObject, OverallRecommendationObject, InterviewFeedbackDataObject
+from src.schemas.interview_feedback import HeaderObject, CandidateDetailItem, EvaluationSummaryObject, OverallRecommendationObject, InterviewFeedbackDataObject
 from src.services.workflows.overall_recommendation_generator import generate_overall_recommendation
 
 def create_header_object() -> HeaderObject:
