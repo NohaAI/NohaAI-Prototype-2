@@ -63,3 +63,24 @@ class PDFLayout:
     styles: PDFStyleConfig = None
     spacing: PDFSpacingConfig = None
      
+class EmptyChatHistoryException(Exception):
+    def __init__(self, message="Chat history can not be empty", chat_history=None):
+        self.message = message
+        self.chat_history = chat_history
+        
+        # Enhance message if list name is provided
+        if chat_history:
+            self.message += f" (list: {chat_history})"
+        
+        super().__init__(self.message)
+
+class EmptyAssessmentPayloadException(Exception):
+    def __init__(self, message="Assessment payload can not be empty", assessment_payloads=None):
+        self.message = message
+        self.assessment_payloads = assessment_payloads
+        
+        # Enhance message if list name is provided
+        if assessment_payloads:
+            self.message += f" (list: {assessment_payloads})"
+        
+        super().__init__(self.message)
