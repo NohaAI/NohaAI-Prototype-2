@@ -5,16 +5,15 @@ import json
 from src.utils import helper
 from src.dao.question import fetch_question_by_ids
 #TODO: generate_report should be prepare_interview_feedback - > gives data to create_pdf to create an interview_feedback report
-def generate_evaluation_summary(session_state, chat_history, assessment_payloads, criteria_list):
+def generate_evaluation_summary(question_id_list, chat_history, assessment_payloads, criteria_list):
     evaluation_summary_list = []
-    question_id_list = session_state['questions_asked']
     questions_list = fetch_question_by_ids(question_id_list)
     for idx, question_id in enumerate(question_id_list):
         filtered_chat_history = helper.filter_chat_history(chat_history, question_id)
         # question = filtered_chat_history[0]["bot_dialogue"]
         question = questions_list[idx]
-        criteria_scores = assessment_payloads[idx]["assessment_payload"]["criteria_scores"]
-        final_score = assessment_payloads[idx]["assessment_payload"]["final_score"]    
+        criteria_scores = assessment_payloads[idx]["assessment_payload"][-1]["criteria_scores"]
+        final_score = assessment_payloads[idx]["assessment_payload"][-1]["final_score"]    
         if len(criteria_scores) == 0: #if the candidate doesn't answer a questions criteria_scores would be an empty list
             criteria_scores = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         

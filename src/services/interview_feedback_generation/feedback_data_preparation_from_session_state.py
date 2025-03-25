@@ -6,9 +6,6 @@ from src.utils import helper
 from src.services.workflows.evaluation_summary_generator import generate_evaluation_summary
 from src.schemas.interview_feedback import HeaderObject, CandidateDetailItem, EvaluationSummaryObject, OverallRecommendationObject, InterviewFeedbackDataObject
 from src.services.workflows.overall_recommendation_generator import generate_overall_recommendation
-from src.dao.assessment import AssessmentDAO
-from src.dao.chat_history import ChatHistoryDAO
-from src.dao.user import get_candidate_interview_id
 
 def create_header_object() -> HeaderObject:
     
@@ -18,8 +15,9 @@ def create_header_object() -> HeaderObject:
         font = {"name": "Helvetica-Bold", "size": 16}
     )
 
-def create_candidate_details_object(interview_id, assessment_payloads) -> List[CandidateDetailItem]:
+def create_candidate_details_object(session_state, assessment_payloads) -> List[CandidateDetailItem]:
     
+    interview_id = session_state['interview_id']
     candidate_name = get_candidate_name(interview_id)
     date = datetime.now().date()
     overall_score,total_possible_score = helper.calculate_overall_score(assessment_payloads)
@@ -32,10 +30,10 @@ def create_candidate_details_object(interview_id, assessment_payloads) -> List[C
     ]
     return candidate_details_object
 
-def create_evaluation_summary_object_list(question_id_list, chat_history, assessment_payloads, criteria_list ,code_snippet) -> List[EvaluationSummaryObject]:
+def create_evaluation_summary_object_list(session_state, chat_history, assessment_payloads, criteria_list ,code_snippet) -> List[EvaluationSummaryObject]:
     evaluation_summary_object_list = []
     
-    evaluation_summary_list = generate_evaluation_summary(question_id_list, chat_history, assessment_payloads, criteria_list)
+    evaluation_summary_list = generate_evaluation_summary(session_state, chat_history, assessment_payloads, criteria_list)
     #preparing list of EvaluationSummaryObject
     for i, ((question, criteria_scores, question_score, evaluation_summary), code_snippet) in enumerate(zip(evaluation_summary_list, code_snippet)):
         evaluation_object = EvaluationSummaryObject(
@@ -58,35 +56,18 @@ def create_overall_recommendation_object(evaluation_summary_object_list, criteri
         content =  overall_recommendation
     )
     
-# def prepare_interview_feedback_data(session_state, chat_history, assessment_payloads,code_snippet = None) -> InterviewFeedbackDataObject:
-def prepare_interview_feedback_data(user_email, code_snippet) -> InterviewFeedbackDataObject:
-    
-    interview_id_list = get_candidate_interview_id(user_email) #returns a list of interview_ids 
-    # interview_id = 1010 #for test take interview_id = 8
-    interview_id = interview_id_list[-1]
-    interview_id = 14
-    chat_history_instance = ChatHistoryDAO()
-    chat_history_object = chat_history_instance.get_chat_history(interview_id)
-    assessment_payloads_object = AssessmentDAO.get_assessments(interview_id)
-    
-    chat_history = helper.convert_chat_history_object_to_dict(chat_history_object)
-    assessment_payloads = helper.convert_assessment_payload_object_to_dict(assessment_payloads_object)
-    question_id_list = []
-
-    for assessment_record in assessment_payloads:
-        question_id_list.append(assessment_record['question_id'])
-
+def prepare_interview_feedback_data(session_state, chat_history, assessment_payloads,code_snippet = None) -> InterviewFeedbackDataObject:
     if not code_snippet or code_snippet == []:
         code_snippet = []
         for i in range(len(assessment_payloads)):
             code_snippet.append("NO CODE SNIPPET PROVIDED")
     criteria_list = helper.create_criteria_list(assessment_payloads) #helper func to get the list of criteria
-
+    #TODO: DB can be used instead of a helper func
     header_object = create_header_object()
     
-    candidate_details_object = create_candidate_details_object(interview_id, assessment_payloads)
+    candidate_details_object = create_candidate_details_object(session_state, assessment_payloads)
     
-    evaluation_summary_object_list = create_evaluation_summary_object_list(question_id_list, chat_history, assessment_payloads, criteria_list,code_snippet)
+    evaluation_summary_object_list = create_evaluation_summary_object_list(session_state, chat_history, assessment_payloads, criteria_list,code_snippet)
     
     overall_recommendation_object = create_overall_recommendation_object(evaluation_summary_object_list, criteria_list) 
     

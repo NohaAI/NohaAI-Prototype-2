@@ -1,4 +1,5 @@
-from src.services.interview_feedback_generation.feedback_data_preparation import prepare_interview_feedback_data
+from src.services.interview_feedback_generation import feedback_data_preparation_from_dao
+from src.services.interview_feedback_generation import feedback_data_preparation_from_session_state 
 from src.schemas.interview_feedback import PDFLayout
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
 import io
@@ -79,9 +80,49 @@ def build_recommendation_section(layout: PDFLayout, recommendation):
     recommendation_content.append(Paragraph(recommendation.content, layout.styles.normal_style))
     return recommendation_content
 
-def generate_interview_feedback_report(session_state, chat_history, assessment_payloads, code_snippet=None):
+def generate_interview_feedback_report_from_dao(user_email, code_snippet=None):
     # Prepare interview feedback data
-    interview_feedback_data_object = prepare_interview_feedback_data(
+    interview_feedback_data_object = feedback_data_preparation_from_dao.prepare_interview_feedback_data(
+        user_email,
+        code_snippet
+    )
+
+    # Prepare PDF layout
+    layout = get_interview_feedback_pdf_layout()
+    interview_feedback_pdf_output_path="interview_feedback_dao.pdf"
+    # Create document
+    buffer = io.BytesIO() #in memory binary stream
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=layout.page_size,
+        leftMargin=layout.margin,
+        rightMargin=layout.margin,
+        topMargin=layout.margin,
+        bottomMargin=layout.margin
+    )
+    
+    # Build content
+    interview_feedback_content = []
+    interview_feedback_content.extend(build_header_section(layout, interview_feedback_data_object.header_object))
+    interview_feedback_content.extend(build_candidate_details_section(layout, interview_feedback_data_object.candidate_details_object))
+    
+    for evaluation_summary_object in interview_feedback_data_object.evaluation_summary_object_list:
+        interview_feedback_content.extend(build_evaluation_summary_section(layout, evaluation_summary_object))
+    
+    interview_feedback_content.extend(build_recommendation_section(layout, interview_feedback_data_object.overall_recommendation_object))
+    
+    # Generate and save PDF
+    doc.build(interview_feedback_content)
+    buffer.seek(0) #resets the pointer to buffer at the start for parsing
+    
+    if interview_feedback_pdf_output_path:
+        with open(interview_feedback_pdf_output_path, "wb") as f:
+            f.write(buffer.getvalue())
+    return buffer
+
+def generate_interview_feedback_report_from_session_state(session_state, chat_history, assessment_payloads, code_snippet=None):
+    # Prepare interview feedback data
+    interview_feedback_data_object = feedback_data_preparation_from_session_state.prepare_interview_feedback_data(
         session_state, chat_history, assessment_payloads, code_snippet
     )
 
