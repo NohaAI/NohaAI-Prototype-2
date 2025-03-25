@@ -40,20 +40,49 @@ def filter_chat_history(chat_history, question_id):
             })
     return filtered_chat_history
 
+
 def calculate_overall_score(assessment_payloads):
     overall_score = 0
     for assessment_payload in assessment_payloads:
-        overall_score += assessment_payload['assessment_payload']['final_score']
+        overall_score += assessment_payload['assessment_payload'][-1]['final_score']
         total_possible_score = len(assessment_payloads) * 10
     return overall_score, total_possible_score
-        
+
+def convert_assessment_payload_object_to_dict(assessment_payloads):
+    
+    assessment_payload_dict_list = []
+    
+    for record in assessment_payloads:
+        assessment_payload_dict = {
+            'interview_id': record.interview_id,
+            'question_id': record.question_id,
+            'primary_question_score': record.primary_question_score,
+            'assessment_payload': record.assessment_payload,
+            }
+        assessment_payload_dict_list.append(assessment_payload_dict)
+    
+    return assessment_payload_dict_list
+
+def convert_chat_history_object_to_dict(chat_history_records):
+    chat_history_dicts = []
+    for record in chat_history_records:
+        chat_dict = {
+            'interview_id': record.interview_id,
+            'question_id': record.question_id,
+            'bot_dialogue_type': record.bot_dialogue_type,
+            'bot_dialogue': record.bot_dialogue,
+            'candidate_dialogue': record.candidate_dialogue,
+            'distilled_candidate_dialogue': record.distilled_candidate_dialogue
+        }
+        chat_history_dicts.append(chat_dict)
+    return chat_history_dicts
+
 def create_criteria_list(assessment_payloads):
     assessment_payload = assessment_payloads[0] #pick any assessment_payload since all have the same criteria
     criteria_list = []
-    for criterion in assessment_payload['assessment_payload']['criteria']:
+    for criterion in assessment_payload['assessment_payload'][-1]['criteria']:
         criteria_list.append(criterion['description'])
     return criteria_list
-
 
 def clean_response(response):
     cleaned_subcriteria = (response.replace("```python", "").replace("```'", "").replace("\n", "").replace("'", "").replace("```", "").replace("json", ""))
