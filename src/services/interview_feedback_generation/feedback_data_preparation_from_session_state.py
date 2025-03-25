@@ -57,23 +57,27 @@ def create_overall_recommendation_object(evaluation_summary_object_list, criteri
     )
     
 def prepare_interview_feedback_data(session_state, chat_history, assessment_payloads,code_snippet = None) -> InterviewFeedbackDataObject:
-    if not code_snippet or code_snippet == []:
-        code_snippet = []
-        for i in range(len(assessment_payloads)):
-            code_snippet.append("NO CODE SNIPPET PROVIDED")
-    criteria_list = helper.create_criteria_list(assessment_payloads) #helper func to get the list of criteria
-    #TODO: DB can be used instead of a helper func
-    header_object = create_header_object()
-    
-    candidate_details_object = create_candidate_details_object(session_state, assessment_payloads)
-    
-    evaluation_summary_object_list = create_evaluation_summary_object_list(session_state, chat_history, assessment_payloads, criteria_list,code_snippet)
-    
-    overall_recommendation_object = create_overall_recommendation_object(evaluation_summary_object_list, criteria_list) 
-    
-    return InterviewFeedbackDataObject( 
-        header_object =  header_object, 
-        candidate_details_object =  candidate_details_object,
-        evaluation_summary_object_list =  evaluation_summary_object_list,
-        overall_recommendation_object =  overall_recommendation_object,
-    )
+    try:
+        if not code_snippet or code_snippet == []:
+            code_snippet = []
+            for i in range(len(assessment_payloads)):
+                code_snippet.append("NO CODE SNIPPET PROVIDED")
+        criteria_list = helper.create_criteria_list(assessment_payloads) #helper func to get the list of criteria
+        #TODO: DB can be used instead of a helper func
+        header_object = create_header_object()
+        
+        candidate_details_object = create_candidate_details_object(session_state, assessment_payloads)
+        
+        evaluation_summary_object_list = create_evaluation_summary_object_list(session_state, chat_history, assessment_payloads, criteria_list,code_snippet)
+        
+        overall_recommendation_object = create_overall_recommendation_object(evaluation_summary_object_list, criteria_list) 
+        
+        return InterviewFeedbackDataObject( 
+            header_object =  header_object, 
+            candidate_details_object =  candidate_details_object,
+            evaluation_summary_object_list =  evaluation_summary_object_list,
+            overall_recommendation_object =  overall_recommendation_object,
+        )
+    except Exception as e:
+        print(f"ERROR OCCERED WHILE PREPARING DATA USING SESSION_STATE : {e}")
+        raise e

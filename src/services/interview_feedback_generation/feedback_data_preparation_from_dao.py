@@ -10,6 +10,8 @@ from src.dao.assessment import AssessmentDAO
 from src.dao.chat_history import ChatHistoryDAO
 from src.dao.user import get_candidate_interview_id
 
+from src.schemas.interview_feedback import EmptyAssessmentPayloadException, EmptyChatHistoryException
+
 def create_header_object() -> HeaderObject:
     
     return HeaderObject(
@@ -60,39 +62,49 @@ def create_overall_recommendation_object(evaluation_summary_object_list, criteri
     
 # def prepare_interview_feedback_data(session_state, chat_history, assessment_payloads,code_snippet = None) -> InterviewFeedbackDataObject:
 def prepare_interview_feedback_data(user_email, code_snippet) -> InterviewFeedbackDataObject:
+        
+    try:
+        interview_id_list = get_candidate_interview_id(user_email) #returns a list of interview_ids 
+        
+        interview_id = interview_id_list[-1]
+        
+        chat_history_instance = ChatHistoryDAO()
+        chat_history_object = chat_history_instance.get_chat_history(interview_id)
+        assessment_payloads_object = AssessmentDAO.get_assessments(interview_id)
+        
+        chat_history = helper.convert_chat_history_object_to_dict(chat_history_object)
+        assessment_payloads = helper.convert_assessment_payload_object_to_dict(assessment_payloads_object)
+        if len(assessment_payloads) == 0:
+            raise EmptyAssessmentPayloadException(assessment_payloads = assessment_payloads)
     
-    interview_id_list = get_candidate_interview_id(user_email) #returns a list of interview_ids 
-    # interview_id = 1010 #for test take interview_id = 8
-    interview_id = interview_id_list[-1]
-    interview_id = 14
-    chat_history_instance = ChatHistoryDAO()
-    chat_history_object = chat_history_instance.get_chat_history(interview_id)
-    assessment_payloads_object = AssessmentDAO.get_assessments(interview_id)
-    
-    chat_history = helper.convert_chat_history_object_to_dict(chat_history_object)
-    assessment_payloads = helper.convert_assessment_payload_object_to_dict(assessment_payloads_object)
-    question_id_list = []
+        if len(chat_history) == 0:
+            raise EmptyChatHistoryException(chat_history= chat_history)
+        
+        question_id_list = []
+        
+        for assessment_record in assessment_payloads:
+            question_id_list.append(assessment_record['question_id'])
 
-    for assessment_record in assessment_payloads:
-        question_id_list.append(assessment_record['question_id'])
+        if not code_snippet or code_snippet == []:
+            code_snippet = []
+            for i in range(len(assessment_payloads)):
+                code_snippet.append("NO CODE SNIPPET PROVIDED")
+        criteria_list = helper.create_criteria_list(assessment_payloads) #helper func to get the list of criteria
 
-    if not code_snippet or code_snippet == []:
-        code_snippet = []
-        for i in range(len(assessment_payloads)):
-            code_snippet.append("NO CODE SNIPPET PROVIDED")
-    criteria_list = helper.create_criteria_list(assessment_payloads) #helper func to get the list of criteria
-
-    header_object = create_header_object()
-    
-    candidate_details_object = create_candidate_details_object(interview_id, assessment_payloads)
-    
-    evaluation_summary_object_list = create_evaluation_summary_object_list(question_id_list, chat_history, assessment_payloads, criteria_list,code_snippet)
-    
-    overall_recommendation_object = create_overall_recommendation_object(evaluation_summary_object_list, criteria_list) 
-    
-    return InterviewFeedbackDataObject( 
-        header_object =  header_object, 
-        candidate_details_object =  candidate_details_object,
-        evaluation_summary_object_list =  evaluation_summary_object_list,
-        overall_recommendation_object =  overall_recommendation_object,
-    )
+        header_object = create_header_object()
+        
+        candidate_details_object = create_candidate_details_object(interview_id, assessment_payloads)
+        
+        evaluation_summary_object_list = create_evaluation_summary_object_list(question_id_list, chat_history, assessment_payloads, criteria_list,code_snippet)
+        
+        overall_recommendation_object = create_overall_recommendation_object(evaluation_summary_object_list, criteria_list) 
+        
+        return InterviewFeedbackDataObject( 
+            header_object =  header_object, 
+            candidate_details_object =  candidate_details_object,
+            evaluation_summary_object_list =  evaluation_summary_object_list,
+            overall_recommendation_object =  overall_recommendation_object,
+        )
+    except Exception as e:
+        print(f"ERROR OCCERED WHILE PREPARING DATA USING DATABASE : {e}")
+        raise e
