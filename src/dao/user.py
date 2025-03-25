@@ -173,6 +173,8 @@ def get_candidate_interview_id(user_email):
             interview_id_list = []
             for interview_id_tuple in interview_id_tuple_list:
                 interview_id_list.append(interview_id_tuple[0])
+            if len(interview_id_list) == 0:
+                raise ValueError(f"No interviews found for user_email : {user_email}")
             return interview_id_list
     except DatabaseConnectionError as e:
         raise e
