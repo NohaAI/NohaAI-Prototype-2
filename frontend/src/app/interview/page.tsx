@@ -12,9 +12,10 @@ const MyPage = () => {
     const [details, setDetails] = useState({} as any);
     const [callEnded, setCallEnded] = useState(false);
     const [backendServiceLink] = useState(
-	"https://test.noha.ai/backend"
+	// "https://test.noha.ai/backend"
         // "http://34.47.214.185:5001"
         // "https://apis.noha.ai"
+        "http://localhost:5001"
         );
     const [userSocket, setUserSocket] = useState<any>(null);
     const [chats, setChats] = useState<Array<any>>([]);
@@ -139,7 +140,7 @@ const MyPage = () => {
     
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = "en-US";
-        utterance.rate = 1;
+        utterance.rate = 0.9;
         utterance.pitch = 1.1; // Slightly higher pitch for a more feminine sound
     
         // Ensure voices are loaded before selecting one
