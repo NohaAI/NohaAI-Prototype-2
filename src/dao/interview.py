@@ -109,7 +109,7 @@ async def get_interview_metadata(interview_id: int):
         raise e
 
 @app.get("/interviews/{interview_id}")
-def get_candidate_name(interview_id: int):
+def get_candidate_details(interview_id: int):
     """
     Retrieves interview details by ID
 
@@ -127,15 +127,24 @@ def get_candidate_name(interview_id: int):
         with get_db_connection() as conn:
             # Query to fetch interview details by ID
             query = """
-                SELECT users.name FROM USERS JOIN INTERVIEW ON INTERVIEW.USER_ID = USERS.USER_ID WHERE INTERVIEW.INTERVIEW_ID = %s
+                SELECT users.user_id, users.name, users.email_id, interview.interview_id, interview.interview_date, interview.interview_recording_url FROM USERS JOIN INTERVIEW ON INTERVIEW.USER_ID = USERS.USER_ID WHERE INTERVIEW.INTERVIEW_ID = %s
             """
-            candidate_name = execute_query(conn, query, (interview_id,))
-            if not candidate_name:
+            candidate_details = execute_query(conn, query, (interview_id,))
+            if not candidate_details:
                 logger.error(f"User with interview_id: {interview_id} not found in the database")
                 raise InterviewNotFoundException(interview_id)
 
             # Return the interview details
-            return candidate_name[0]
+            return {
+                "user_id": candidate_details[0],
+                "name": candidate_details[1],
+                "email_id": candidate_details[2],
+                "interview_id": candidate_details[3],
+                "interview_date": candidate_details[4],
+                "interview_recording_url": candidate_details[5],
+
+            }
+            
     except DatabaseConnectionError as e:
         raise e
     except DatabaseQueryError as e:
