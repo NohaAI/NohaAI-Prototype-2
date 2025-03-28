@@ -12,9 +12,9 @@ const MyPage = () => {
     const [details, setDetails] = useState({} as any);
     const [callEnded, setCallEnded] = useState(false);
     const [backendServiceLink] = useState(
-	// "https://test.noha.ai/backend"
+	"https://test.noha.ai/backend"
         // "http://34.47.214.185:5001"
-        "http://localhost:5000"
+        // "http://localhost:5000"
     );
     const [userSocket, setUserSocket] = useState<any>(null);
     const [chats, setChats] = useState<Array<any>>([]);
@@ -137,11 +137,23 @@ const MyPage = () => {
                 console.error("Speech synthesis is not supported in this browser.");
                 return;
             }
-        
+            window.speechSynthesis.cancel(); // Stop any ongoing speech
+
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = "en-US";
-            utterance.rate = 1;
-            utterance.pitch = 1;
+            utterance.rate = 0.9;
+            utterance.pitch = 1.2;
+
+            const voices = window.speechSynthesis.getVoices();
+            // Try to find a female voice
+            const femaleVoice = voices.find((voice) =>  voice.name.toLowerCase().includes("female"))
+            if (femaleVoice) {
+                utterance.voice = femaleVoice;
+            } else if (voices.length > 0) {
+                utterance.voice = voices[0]; // Fallback to any available voice
+            }
+
+            console.log('femaleVoice', femaleVoice)
 
             utterance.onstart = () =>{
                 console.log("Speech started");
@@ -158,7 +170,13 @@ const MyPage = () => {
                 }
             };
 
-            window.speechSynthesis.speak(utterance);
+            if (voices.length === 0) {
+                window.speechSynthesis.onvoiceschanged = () => {
+                    speakText(text, info);
+                };
+            } else {
+                window.speechSynthesis.speak(utterance);
+            }
     };
 
     const handleSubmit = (data: { name: string; email: string }) => {
