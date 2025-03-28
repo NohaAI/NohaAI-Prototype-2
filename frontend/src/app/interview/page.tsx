@@ -90,6 +90,7 @@ const MyPage = () => {
     useEffect(()=>{
         return ()=>{
             disconnect2()
+            window.speechSynthesis.cancel()
         }
     }, [])
 
@@ -131,35 +132,69 @@ const MyPage = () => {
         ]);
     };
 
+    useEffect(()=>{
+        const loadVoices = () =>{
+            // Select a female voice if available
+            const voices = window.speechSynthesis.getVoices();
+            console.log(voices)
+            const femaleVoice = voices.find(voice => voice.name.includes("Female"));
+            console.log('femaleVoice>>>>', femaleVoice)
+          
+        }
+
+        loadVoices()
+    }, [])
+   
     const speakText = (text: string, info?: any) => {
-            
         if (!window.speechSynthesis) {
             console.error("Speech synthesis is not supported in this browser.");
             return;
         }
     
+        // Cancel any ongoing speech before starting a new one
+        window.speechSynthesis.cancel();
+    
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = "en-US";
         utterance.rate = 1;
-        utterance.pitch = 1;
-
-        utterance.onstart = () =>{
-            console.log("Speech started");
-            setIsAudioPlaying(true)
+        utterance.pitch = 1.2; // Adjust pitch to sound more feminine
+    
+        const setVoiceAndSpeak = () => {
+            const voices = window.speechSynthesis.getVoices();
+            console.log(voices);
+            
+            const femaleVoice = voices.find(voice => voice.name.includes("Female") || voice.name.includes("Samantha")); // Adjust for different browsers
+            console.log('femaleVoice>>>>', femaleVoice);
+    
+            if (femaleVoice) {
+                utterance.voice = femaleVoice;
+            }
+    
+            window.speechSynthesis.speak(utterance);
+        };
+    
+        if (window.speechSynthesis.getVoices().length === 0) {
+            // If voices are not yet loaded, wait for the voiceschanged event
+            window.speechSynthesis.addEventListener("voiceschanged", setVoiceAndSpeak, { once: true });
+        } else {
+            setVoiceAndSpeak();
         }
-
+    
+        utterance.onstart = () => {
+            console.log("Speech started");
+            setIsAudioPlaying(true);
+        };
+    
         utterance.onend = () => {
             console.log("Speech finished");
-            setIsAudioPlaying(false)
-            if(info?.termination) {
-                disconnect2()
+            setIsAudioPlaying(false);
+            if (info?.termination) {
+                disconnect2();
                 stopRecording();
                 setCallEnded(true);
             }
         };
-
-        window.speechSynthesis.speak(utterance);
-};
+    };
     
 
     const handleSubmit = (data: { name: string; email: string }) => {
