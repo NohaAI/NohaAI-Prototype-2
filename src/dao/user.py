@@ -160,5 +160,29 @@ async def delete_user(user_id: int):
     except DatabaseOperationError as e:
         raise e
 
+def get_candidate_interview_id(user_email):
+    try:
+        with get_db_connection() as conn:
+            interview_id_join_query ="SELECT INTERVIEW.INTERVIEW_ID FROM INTERVIEW JOIN users on users.user_id = interview.user_id where users.email_id = %s"
+            interview_id_tuple_list = execute_query(
+                conn,
+                interview_id_join_query,
+                (user_email,),
+                fetch_one = False 
+            ) 
+            interview_id_list = []
+            for interview_id_tuple in interview_id_tuple_list:
+                interview_id_list.append(interview_id_tuple[0])
+            if len(interview_id_list) == 0:
+                raise ValueError(f"No interviews found for user_email : {user_email}")
+            return interview_id_list
+    except DatabaseConnectionError as e:
+        raise e
+    except DatabaseQueryError as e:
+        raise e
+    except DatabaseOperationError as e:
+        raise e
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=9093)

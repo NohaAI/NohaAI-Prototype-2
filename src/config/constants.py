@@ -68,6 +68,8 @@ DEF_DISTILLED_CANDIDATE_DIALOGUE = None # Set dynamically from candidate_classif
 DEF_PRIMARY_QUESTION_SCORE = 0.0
 DEF_ASSESSMENT_PAYLOADS = None
 
+# BOT NAME
+BOT_NAME = "Noha AI"
 # ASSESSMENT DATA DEFAULTS ###########################################################
 ASSESSMENT_PAYLOAD_SCHEMA_PATH = "src.schemas.evaluation"
 # ASSESSMENT_PAYLOAD_SCHEMA = "assessment_payload.json"
