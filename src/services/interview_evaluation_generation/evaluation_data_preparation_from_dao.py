@@ -13,10 +13,10 @@ from src.dao.user import get_candidate_interview_id
 from src.exceptions.report_generation_exceptions import EmptyAssessmentPayloadException, EmptyChatHistoryException
 
 
-def create_criteria_list(assessment_payloads):
-    assessment_payload = assessment_payloads[0] #pick any assessment_payload since all have the same criteria
+def create_criteria_list(assessment):
+    assessment_record = assessment[0] #pick any assessment_payload since all have the same criteria
     criteria_list = []
-    for criterion in assessment_payload['assessment_payload'][-1]['criteria']:
+    for criterion in assessment_record['assessment_payloads'][-1]['criteria']:
         criteria_list.append(criterion['description'])
     return criteria_list
 

@@ -7,6 +7,13 @@ from src.services.workflows.evaluation_summary_generator import generate_evaluat
 from src.schemas.interview_evaluation import HeaderObject, CandidateDetailItem, EvaluationSummaryObject, OverallRecommendationObject, InterviewEvaluationDataObject
 from src.services.workflows.overall_recommendation_generator import generate_overall_recommendation
 
+def create_criteria_list(assessment_payloads):
+    assessment_payload = assessment_payloads[0] #pick any assessment_payload since all have the same criteria
+    criteria_list = []
+    for criterion in assessment_payload['assessment_payloads'][-1]['criteria']:
+        criteria_list.append(criterion['description'])
+    return criteria_list
+
 def create_header_object() -> HeaderObject:
     
     return HeaderObject(
@@ -36,7 +43,7 @@ def create_candidate_details_object(session_state, assessment_payloads) -> List[
 def create_evaluation_summary_object_list(session_state, chat_history, assessment_payloads, criteria_list ,code_snippet) -> List[EvaluationSummaryObject]:
     evaluation_summary_object_list = []
     
-    evaluation_summary_list = generate_evaluation_summary(session_state, chat_history, assessment_payloads, criteria_list)
+    evaluation_summary_list = generate_evaluation_summary(session_state['questions_asked'], chat_history, assessment_payloads, criteria_list)
     #preparing list of EvaluationSummaryObject
     for i, ((question, criteria_scores, question_score, evaluation_summary), code_snippet) in enumerate(zip(evaluation_summary_list, code_snippet)):
         evaluation_object = EvaluationSummaryObject(
@@ -65,7 +72,7 @@ def prepare_interview_evaluation_data(session_state, chat_history, assessment_pa
             code_snippet = []
             for i in range(len(assessment_payloads)):
                 code_snippet.append("NO CODE SNIPPET PROVIDED")
-        criteria_list = helper.create_criteria_list(assessment_payloads) #helper func to get the list of criteria
+        criteria_list = create_criteria_list(assessment_payloads) #helper func to get the list of criteria
         #TODO: DB can be used instead of a helper func
         header_object = create_header_object()
         

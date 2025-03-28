@@ -50,7 +50,7 @@ def filter_chat_history(chat_history, question_id):
 def calculate_overall_score(assessment_payloads):
     overall_score = 0
     for assessment_payload in assessment_payloads:
-        overall_score += assessment_payload['assessment_payload'][-1]['final_score']
+        overall_score += assessment_payload['assessment_payloads'][-1]['final_score']
         total_possible_score = len(assessment_payloads) * 10
     return overall_score, total_possible_score
 
@@ -63,7 +63,7 @@ def convert_assessment_payload_object_to_dict(assessment_payloads):
             'interview_id': record.interview_id,
             'question_id': record.question_id,
             'primary_question_score': record.primary_question_score,
-            'assessment_payload': record.assessment_payload,
+            'assessment_payloads': record.assessment_payload,
             }
         assessment_payload_dict_list.append(assessment_payload_dict)
     

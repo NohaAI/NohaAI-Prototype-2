@@ -12,8 +12,8 @@ def generate_evaluation_summary(question_id_list, chat_history, assessment_paylo
         filtered_chat_history = helper.filter_chat_history(chat_history, question_id)
         # question = filtered_chat_history[0]["bot_dialogue"]
         question = questions_list[idx]
-        criteria_scores = assessment_payloads[idx]["assessment_payload"][-1]["criteria_scores"]
-        final_score = assessment_payloads[idx]["assessment_payload"][-1]["final_score"]    
+        criteria_scores = assessment_payloads[idx]["assessment_payloads"][-1]["criteria_scores"]
+        final_score = assessment_payloads[idx]["assessment_payloads"][-1]["final_score"]    
         if len(criteria_scores) == 0: #if the candidate doesn't answer a questions criteria_scores would be an empty list
             criteria_scores = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         
