@@ -77,12 +77,10 @@ def convert_chat_history_object_to_dict(chat_history_records):
         chat_history_dicts.append(chat_dict)
     return chat_history_dicts
 
-def create_criteria_list(assessment_payloads):
-    assessment_payload = assessment_payloads[0] #pick any assessment_payload since all have the same criteria
-    criteria_list = []
-    for criterion in assessment_payload['assessment_payload'][-1]['criteria']:
-        criteria_list.append(criterion['description'])
-    return criteria_list
+def write_to_pdf(buffer, file_path):
+    if file_path:
+        with open(file_path, "wb") as f:
+            f.write(buffer.getvalue())
 
 def clean_response(response):
     cleaned_subcriteria = (response.replace("```python", "").replace("```'", "").replace("\n", "").replace("'", "").replace("```", "").replace("json", ""))
