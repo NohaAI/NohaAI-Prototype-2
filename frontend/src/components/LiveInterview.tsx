@@ -102,11 +102,23 @@ const LiveInterview = ({ name, onCancelCall, isRecording, stopRecording, startRe
       <div className="w-[474px] h-[458px]">
         <div className="relative bg-[#1F1F1F] rounded-lg p-4 flex flex-col justify-center items-center h-full">
           {isAudioPlaying && <ScaleLoader color="white" className="absolute right-4 top-4" />}
-          <img src="noha.png" alt="Noha AI" className="w-[226px] h-[226px] object-cover" />
+          <video
+              ref={avatarVideoRef}
+              autoPlay
+              loop
+              muted
+              className="w-[100%] h-[90%] object-cover rounded-lg"
+            >
+              <source src="noha-2-video.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+          </video>
           <p className="text-white mt-2 absolute left-3 bottom-2">Noha</p>
         </div>
+
         {nohaResponseProcessing && <BeatLoader color="white" className="mt-4" />}
-       {(isAudioPlaying || !nohaResponseProcessing) && <p className="mt-1 text-white">{chats[0].name === 'Noha AI' && chats[0].message}</p>}
+        {(isAudioPlaying || !nohaResponseProcessing) && (
+          <p className="mt-1 text-white">{chats[0].name === 'Noha AI' && chats[0].message}</p>
+        )}
       </div>
 
 
