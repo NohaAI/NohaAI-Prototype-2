@@ -88,7 +88,6 @@ const MyPage = () => {
     }
 
     useEffect(()=>{
-        window?.speechSynthesis.cancel()
         return ()=>{
             disconnect2()
         }
