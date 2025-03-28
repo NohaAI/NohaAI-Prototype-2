@@ -8,6 +8,7 @@ _personal/
 *.ini
 *.csv
 *.txt
+*.pdf
 ##### specific patterns to be updated here 							
 __pycache__/
 pyvenv.cfg
