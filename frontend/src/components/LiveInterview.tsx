@@ -125,7 +125,7 @@ const LiveInterview = ({
       {/* Noha AI */}
       <div className="w-[474px] h-[458px]">
         <div className="relative bg-[#1F1F1F] rounded-lg p-4 flex flex-col justify-center items-center h-full">
-          {isAudioPlaying && <ScaleLoader color="white" className="absolute right-4 top-4" />}
+          {isAudioPlaying && <ScaleLoader color="white" className="absolute right-4 top-1" height={20}  />}
           <video
               ref={avatarVideoRef}
               autoPlay
