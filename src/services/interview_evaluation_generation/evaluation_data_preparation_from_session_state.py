@@ -28,7 +28,8 @@ def create_candidate_details_object(session_state, assessment_payloads) -> List[
     #interview_id = 1027 # FOR TESTING 
     candidate_details = get_candidate_details(interview_id)
     candidate_name = candidate_details['name']
-    interview_date = candidate_details['interview_date']
+    interview_date_obj = candidate_details['interview_date']
+    interview_date = interview_date_obj.date()
     report_generation_date = datetime.now().date()
     overall_score,total_possible_score = helper.calculate_overall_score(assessment_payloads)
     candidate_details_object = [
