@@ -20,7 +20,7 @@ from src.dao.assessment_data.assessment_record import AssessmentRecord
 from src.dao.chat_history import ChatHistoryDAO
 from src.dao.assessment import AssessmentDAO
 from src.config import constants as CONST
-
+from src.services.interview_evaluation_generation.interview_evaluation_generator import generate_evaluation_report_from_session_state
 # Ensure logs are visible
 logger = log.get_logger(__name__)
 
@@ -253,6 +253,14 @@ async def terminate(request: Request):
     session_state = termination_request["session_state"]
     chat_history = termination_request["chat_history"]
     assessment = termination_request["assessment"]
+
+    if not session_state['question_id']:
+        print("NO REPORT TO BE GENERATED")
+        pass
+    else: 
+        #generating evaluation report from session_state
+        print("GENERATING REPORT")
+        generate_evaluation_report_from_session_state(session_state = session_state, chat_history = chat_history, assessment_payloads = assessment, code_snippet = None)
 
     chat_history_dao = ChatHistoryDAO()
     chat_history_dao.batch_insert_chat_history(chat_history)
