@@ -5,7 +5,15 @@ import io
 from src.services.interview_evaluation_generation.interview_evaluation_format import get_interview_evaluation_format
 from src.services.interview_evaluation_generation.evaluation_report_format_expt import get_interview_evaluation_format_expt
 from src.services.interview_evaluation_generation.evaluation_report_layout import build_candidate_details_section, build_evaluation_summary_section, build_header_section, build_recommendation_section
+from datetime import datetime
 from src.utils import helper
+
+def prepare_interview_evaluation_filepath(interview_evaluation_data_object):
+    interview_time = interview_evaluation_data_object.candidate_details_object[3].value
+    interview_time_obj = datetime.strptime(interview_time, "%H:%M:%S").time()
+    formatted_interview_time = interview_time_obj.strftime("%H%Mh")
+    interview_evaluation_pdf_output_path = f"reports/{interview_evaluation_data_object.candidate_details_object[0].value}_{interview_evaluation_data_object.candidate_details_object[2].value}_{formatted_interview_time}_evaluation.pdf"
+    return interview_evaluation_pdf_output_path
 
 def create_evaluation_report_buffer(interview_evaluation_data_object):
     layout = get_interview_evaluation_format()
@@ -43,7 +51,7 @@ def generate_evaluation_report_from_dao(user_email, code_snippet=None):
         code_snippet
     )
     buffer = create_evaluation_report_buffer(interview_evaluation_data_object)
-    interview_evaluation_pdf_output_path = f"reports/{interview_evaluation_data_object.candidate_details_object[0].value}" + "_Interivew evaluation.pdf"
+    interview_evaluation_pdf_output_path = prepare_interview_evaluation_filepath(interview_evaluation_data_object)
     helper.write_to_pdf(buffer, interview_evaluation_pdf_output_path)
 
 def generate_evaluation_report_from_session_state(session_state, chat_history, assessment_payloads, code_snippet=None):
@@ -52,5 +60,5 @@ def generate_evaluation_report_from_session_state(session_state, chat_history, a
         session_state, chat_history, assessment_payloads, code_snippet
     )
     buffer = create_evaluation_report_buffer(interview_evaluation_data_object)
-    interview_evaluation_pdf_output_path = f"reports/{interview_evaluation_data_object.candidate_details_object[0].value}" + "_Interivew evaluation.pdf"
+    interview_evaluation_pdf_output_path = prepare_interview_evaluation_filepath(interview_evaluation_data_object)
     helper.write_to_pdf(buffer, interview_evaluation_pdf_output_path)

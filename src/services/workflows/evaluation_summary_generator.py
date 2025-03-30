@@ -27,7 +27,10 @@ def generate_evaluation_summary(question_id_list, chat_history, assessments, cri
             'criteria_scores': criteria_scores,
             'question_score': final_score 
         }
-        llm_response_generate_evaluation_summary = generate_evaluation_summary_chain.invoke(llm_inputs)
-        llm_content_generate_evaluation_summary = json.loads(llm_response_generate_evaluation_summary.content)
-        evaluation_summary_list.append((question, criteria_scores, final_score, llm_content_generate_evaluation_summary))
+        if final_score == 0:
+            evaluation_summary_list.append((question, criteria_scores, final_score, "Candidate did not attempt the problem"))
+        else:
+            llm_response_generate_evaluation_summary = generate_evaluation_summary_chain.invoke(llm_inputs)
+            llm_content_generate_evaluation_summary = json.loads(llm_response_generate_evaluation_summary.content)
+            evaluation_summary_list.append((question, criteria_scores, final_score, llm_content_generate_evaluation_summary))
     return evaluation_summary_list
