@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional, Callable
+from typing import List, Dict, Any, Optional, Callable, Union
 from reportlab.lib.styles import ParagraphStyle
 from dataclasses import dataclass, field
 from reportlab.lib.pagesizes import letter
@@ -43,7 +43,7 @@ class EvaluationSummaryObject:
     
     question_number: int  # The number of the question in the interview.
     question: str  # The actual question asked.
-    evaluation_summary: Dict[str, Dict[str, str]]  # Detailed evaluation including summary, strengths, weaknesses, and judgment.
+    evaluation_summary: Union[str, Dict[str, Dict[str, str]]]  # Detailed evaluation including summary, strengths, weaknesses, and judgment.
     code_snippet: str  # The candidate's code solution for the question.
     question_score: int  # Score awarded for this question.
     criteria_scores: List[float]  # Scores for individual evaluation criteria.
