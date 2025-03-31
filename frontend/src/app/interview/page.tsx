@@ -8,6 +8,9 @@ import { useEffect, useRef, useState } from "react";
 
 const MyPage = () => {
 
+    const avatarRef = useRef<any>(null);
+    const [nohaResponseText, setNohaResponseText]= useState("")
+
     const [interviewStarted, setInterviewStarted] = useState<boolean>(false);
     const [details, setDetails] = useState({} as any);
     const [callEnded, setCallEnded] = useState(false);
@@ -66,8 +69,9 @@ const MyPage = () => {
             setInterviewStarted(true);
           
             updateChats(initializeRes.data.session_state.bot_dialogue);
+            setNohaResponseText(initializeRes.data.session_state.bot_dialogue)
             // speakText(initializeRes.data.session_state.bot_dialogue)
-            avatarRef.current?.handleSpeak()
+            console.log(avatarRef)
 
         } catch (error) {
             console.error("Error in startConnection2:", error);
@@ -113,7 +117,8 @@ const MyPage = () => {
             const res = await axios.post(`${backendServiceLink}/chat`, chatMetaData);
             setNohaResponseProcessing(false)
             console.log("Received Noha backend AI response", res.data);
-            
+            setNohaResponseText(res.data.session_state.bot_dialogue)
+
             setChatMetaData(res.data)
             updateChats(res.data.session_state.bot_dialogue);
             
@@ -264,6 +269,7 @@ const MyPage = () => {
     useEffect(() => {
         if(interviewStarted){
             avatarRef.current?.startSession()
+            avatarRef.current?.handleSpeak()
         }
     }, [interviewStarted])
 
@@ -288,8 +294,7 @@ const MyPage = () => {
         //     throw error;
         // }
     };
-const avatarRef = useRef<any>(null);
-console.log('avatarRef from pagetsx', avatarRef)
+
     return (
         <>
         {/* Display on medium and large devices */}
@@ -312,8 +317,7 @@ console.log('avatarRef from pagetsx', avatarRef)
                     isProcessing={isProcessing}
                     isAudioPlaying={isAudioPlaying}
                     isSilence={isSilence}
-
-                    nohaResponseText={"I am NOha"}
+                    nohaResponseText={nohaResponseText}
                 />
             )
             )}

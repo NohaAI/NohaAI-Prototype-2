@@ -181,6 +181,7 @@ export default function InteractiveAvatar({ nohaResponseText, ref }: any) {
 
   return (
       <div>
+        <button className="text-white" onClick={handleSpeak}>SPeak</button>
         <div className="flex flex-col justify-center items-center">
           {stream ? (
             <div className="h-[458px] w-[474px] justify-center items-center flex rounded-lg overflow-hidden">
