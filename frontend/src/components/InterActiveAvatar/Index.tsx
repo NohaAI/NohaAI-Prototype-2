@@ -123,7 +123,7 @@ export default function InteractiveAvatar({ nohaResponseText, ref }: any) {
     }
     // speak({ text: text, task_type: TaskType.REPEAT })
     await avatar.current
-      .speak({ text: text, taskType: TaskType.REPEAT, taskMode: TaskMode.SYNC })
+      .speak({ text: nohaResponseText, taskType: TaskType.REPEAT, taskMode: TaskMode.SYNC })
       .catch((e) => {
         console.log(e.message);
       });
@@ -199,16 +199,7 @@ export default function InteractiveAvatar({ nohaResponseText, ref }: any) {
               </video>
              
             </div>
-          ) : !isLoadingSession ? (
-            <div className="h-full justify-center items-center flex flex-col gap-8 w-[500px] self-center">
-              <button
-                className="bg-gradient-to-tr from-indigo-500 to-indigo-300 w-full text-white"
-                onClick={startSession}
-              >
-                Start session
-              </button>
-            </div>
-          ) : (
+          ) : !isLoadingSession && (
             <div className="text-white">SPINNER...</div>
           )}
         </div>
