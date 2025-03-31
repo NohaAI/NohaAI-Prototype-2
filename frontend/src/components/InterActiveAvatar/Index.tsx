@@ -181,20 +181,7 @@ export default function InteractiveAvatar({  }: any) {
               >
                 <track kind="captions" />
               </video>
-              <div className="flex flex-col gap-2 absolute bottom-3 right-3">
-                <button
-                  className="bg-gradient-to-tr from-indigo-500 to-indigo-300 text-white rounded-lg"
-                  onClick={handleInterrupt}
-                >
-                  Interrupt task
-                </button>
-                <button
-                  className="bg-gradient-to-tr from-indigo-500 to-indigo-300  text-white rounded-lg"
-                  onClick={endSession}
-                >
-                  End session
-                </button>
-              </div>
+             
             </div>
           ) : !isLoadingSession ? (
             <div className="h-full justify-center items-center flex flex-col gap-8 w-[500px] self-center">
@@ -206,10 +193,9 @@ export default function InteractiveAvatar({  }: any) {
               </button>
             </div>
           ) : (
-            <div>SPINNER...</div>
+            <div className="text-white">SPINNER...</div>
           )}
         </div>
-        <button onClick={handleSpeak}>SPEAK</button>
       </div>
   );
 }
