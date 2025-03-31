@@ -19,7 +19,9 @@ from src.dao.chat_history_data.chat_history_record import ChatHistoryRecord
 from src.dao.assessment_data.assessment_record import AssessmentRecord
 from src.dao.chat_history import ChatHistoryDAO
 from src.dao.assessment import AssessmentDAO
+from src.dao.live_code import LiveCodeDAO
 from src.config import constants as CONST
+from src.dao.exceptions import LiveCodeNotFoundException
 from src.services.interview_evaluation_generation.interview_evaluation_generator import generate_evaluation_report_from_session_state
 # Ensure logs are visible
 logger = log.get_logger(__name__)
@@ -70,12 +72,19 @@ async def initialize(request: Request):
         if "user_email" not in initialization_request:
             raise HTTPException(status_code=400, detail="Missing 'user_email' in initialization_request body")
         
+        if "live_code" not in initialization_request:
+            raise HTTPException(status_code=400, detail="Missing 'live_code' in initialization_request body")
+
         user_name = initialization_request['user_name']
         user_email = initialization_request['user_email']   
-        
-        # () call function: initialize_interview
-        user_id, interview_id = await initialize_interview(user_name, user_email)
-      
+        live_code = initialization_request['live_code']
+
+        LiveCodeDAO.check_live_code(live_code=live_code) # returns True otherwise raise LiveCodeNotFoundException
+        # () call function: initialize_interview after checking live_code from DB
+        user_id, interview_id = await initialize_interview(user_name, user_email) 
+
+        LiveCodeDAO.delete_live_code(live_code) # live code is deleted after the user is initialized
+
         helper.pretty_log("interview_id", interview_id, 1)
 
         log.write_to_report(f"Candidate Interview Report\nInterview ID: {interview_id}\nCandidate Name: {user_name}\nPosition: Software Engineer (DSA Evaluation)\nCandidate Name: {user_name}\nInterview Conducted By: Noha\nDate: {helper.get_current_datetime()}\nOverall Score: 4.7 / 10")
@@ -167,7 +176,8 @@ async def initialize(request: Request):
         logger.info("\n\n\n\n>>>>>>>>>>>FUNCTION EXIT [initialize] >>> SENDING ABOVE PAYLOADS AS FRONT-END RESPONSE >>>>>>>>>>>>>>>>>>>>>>>\n\n")
 
         return initialization_response
-    
+    except LiveCodeNotFoundException:
+        raise HTTPException(status_code = 404, details = f"LIVE CODE {live_code} NOT FOUND IN THE DATABASE")
     except Exception as e:
         logger.critical(f"ERROR INITIALIZING THE INTERVIEW : {e}")
         raise HTTPException(status_code=500, detail=f"ERROR INITIALIZING THE INTERVIEW : {e}")
@@ -253,6 +263,9 @@ async def terminate(request: Request):
     session_state = termination_request["session_state"]
     chat_history = termination_request["chat_history"]
     assessment = termination_request["assessment"]
+    print(f"SESSION STATE: {session_state}")
+    print(f"ASSESSMENT: {assessment}")
+    print(f"CHAT HISTORY: {chat_history}") 
 
     if not session_state['question_id']:
         print("NO REPORT TO BE GENERATED")
