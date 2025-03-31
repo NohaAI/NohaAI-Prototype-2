@@ -152,6 +152,8 @@ export default function InteractiveAvatar({ nohaResponseText, ref }: any) {
       handleSpeak,
       handleInterrupt,
       endSession,
+      isLoadingSession,
+      isLoadingRepeat
   }}
 
   const previousText = usePrevious(text);
