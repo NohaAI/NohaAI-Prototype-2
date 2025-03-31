@@ -177,12 +177,6 @@ const MyPage = () => {
         startConnection2({...data})
     };
 
-    // const onCancelCall = () => {
-    //     stopRecording();
-    //     setCallEnded(true);
-    //     userSocket?.disconnect();
-    // };
-
     const onCancelCall2 = () =>{
         avatarRef.current?.endSession()
         stopRecording();
