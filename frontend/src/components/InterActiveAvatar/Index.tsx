@@ -114,6 +114,7 @@ export default function InteractiveAvatar({ nohaResponseText, ref }: any) {
   }
   
   async function handleSpeak() {
+    console.log("handleSpeak");
     setIsLoadingRepeat(true);
     if (!avatar.current) {
       console.log("Avatar API not initialized");

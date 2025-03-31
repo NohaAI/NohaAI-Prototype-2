@@ -179,7 +179,7 @@ const MyPage = () => {
     // };
 
     const onCancelCall2 = () =>{
-        window?.speechSynthesis?.cancel()
+        avatarRef.current?.endSession()
         stopRecording();
         setCallEnded(true);
         disconnect2()
