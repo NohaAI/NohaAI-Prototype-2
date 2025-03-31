@@ -12,8 +12,8 @@ import StreamingAvatar, {
 import { useEffect, useRef, useState } from "react";
 import { usePrevious } from "ahooks";
 
-export default function InteractiveAvatar({  }: any) {
-  
+export default function InteractiveAvatar({ nohaResponseText, ref }: any) {
+  console.log('nohaResponseText',nohaResponseText)
   const [isLoadingSession, setIsLoadingSession] = useState(false);
   const [isLoadingRepeat, setIsLoadingRepeat] = useState(false);
   const [stream, setStream] = useState<MediaStream>();
@@ -22,9 +22,14 @@ export default function InteractiveAvatar({  }: any) {
   const [language] = useState<string>("en");
 
   const [data, setData] = useState<StartAvatarResponse>();
-  const [text, setText] = useState<string>("Hello I am Noha.ai, I am in AI inteviewer. I am here to give Data structure and algorithm interview. Are you ready to go.");
+  const [text, setText] = useState<string>(nohaResponseText);
   const mediaStream = useRef<HTMLVideoElement>(null);
   const avatar = useRef<StreamingAvatar | null>(null);
+
+
+  useEffect(() => {
+    console.log('nohaResponseText from index',nohaResponseText)
+  }, [text])
 
   function baseApiUrl() {
     return "https://api.heygen.com";
@@ -48,6 +53,7 @@ export default function InteractiveAvatar({  }: any) {
   }
 
   async function startSession() {
+    console.log('startSession>>>>>>>>')
     setIsLoadingSession(true);
     const newToken = await fetchAccessToken();
 
@@ -138,6 +144,14 @@ export default function InteractiveAvatar({  }: any) {
     await avatar.current?.stopAvatar();
     setStream(undefined);
   }
+
+  if(ref){
+    ref.current = {
+      startSession,
+      handleSpeak,
+      handleInterrupt,
+      endSession,
+  }}
 
   const previousText = usePrevious(text);
   useEffect(() => {

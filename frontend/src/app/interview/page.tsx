@@ -66,7 +66,8 @@ const MyPage = () => {
             setInterviewStarted(true);
           
             updateChats(initializeRes.data.session_state.bot_dialogue);
-            speakText(initializeRes.data.session_state.bot_dialogue)
+            // speakText(initializeRes.data.session_state.bot_dialogue)
+            avatarRef.current?.handleSpeak()
 
         } catch (error) {
             console.error("Error in startConnection2:", error);
@@ -116,9 +117,13 @@ const MyPage = () => {
             setChatMetaData(res.data)
             updateChats(res.data.session_state.bot_dialogue);
             
-            speakText(res.data.session_state.bot_dialogue, { termination:  res.data.session_state.termination })
-
-
+            avatarRef?.current?.handleSpeak()
+            if(res.data.session_state.termination){
+                disconnect2()
+                stopRecording();
+                setCallEnded(true);
+            }
+            // speakText(res.data.session_state.bot_dialogue, { termination:  res.data.session_state.termination })
         } catch (error) {
             console.error("Error in handleStreamBack:", error);
         }
@@ -131,35 +136,35 @@ const MyPage = () => {
         ]);
     };
 
-    const speakText = (text: string, info?: any) => {
+    // const speakText = (text: string, info?: any) => {
             
-            if (!window.speechSynthesis) {
-                console.error("Speech synthesis is not supported in this browser.");
-                return;
-            }
+    //         if (!window.speechSynthesis) {
+    //             console.error("Speech synthesis is not supported in this browser.");
+    //             return;
+    //         }
         
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = "en-US";
-            utterance.rate = 1;
-            utterance.pitch = 1;
+    //         const utterance = new SpeechSynthesisUtterance(text);
+    //         utterance.lang = "en-US";
+    //         utterance.rate = 1;
+    //         utterance.pitch = 1;
 
-            utterance.onstart = () =>{
-                console.log("Speech started");
-                setIsAudioPlaying(true)
-            }
+    //         utterance.onstart = () =>{
+    //             console.log("Speech started");
+    //             setIsAudioPlaying(true)
+    //         }
 
-            utterance.onend = () => {
-                console.log("Speech finished");
-                setIsAudioPlaying(false)
-                if(info?.termination) {
-                    disconnect2()
-                    stopRecording();
-                    setCallEnded(true);
-                }
-            };
+    //         utterance.onend = () => {
+    //             console.log("Speech finished");
+    //             setIsAudioPlaying(false)
+    //             if(info?.termination) {
+    //                 disconnect2()
+    //                 stopRecording();
+    //                 setCallEnded(true);
+    //             }
+    //         };
 
-            window.speechSynthesis.speak(utterance);
-    };
+    //         window.speechSynthesis.speak(utterance);
+    // };
 
     const handleSubmit = (data: { name: string; email: string }) => {
         setDetails({ ...data });
@@ -245,9 +250,7 @@ const MyPage = () => {
     
         recognitionRef.current = recognition;
         recognition.start();
-    };
-    
-    
+    };   
     
     const stopRecording = () => {
         setIsRecording(false);
@@ -257,6 +260,12 @@ const MyPage = () => {
             recognitionRef.current.stop();
         }
     };
+
+    useEffect(() => {
+        if(interviewStarted){
+            avatarRef.current?.startSession()
+        }
+    }, [interviewStarted])
 
     useEffect(() => {
         if (!isRecording && !isProcessing && transcribedText.trim() !== "") {
@@ -279,7 +288,8 @@ const MyPage = () => {
         //     throw error;
         // }
     };
-
+const avatarRef = useRef<any>(null);
+console.log('avatarRef from pagetsx', avatarRef)
     return (
         <>
         {/* Display on medium and large devices */}
@@ -289,18 +299,21 @@ const MyPage = () => {
                 <InterviewDetails onSubmit={handleSubmit} />
             ) : (
                 <LiveInterview
-                chats={chats}
-                name={details.name}
-                onCancelCall={onCancelCall2}
-                userSocket={userSocket}
-                isMicOn={isMicOn}
-                startRecording={startRecording}
-                stopRecording={stopRecording}
-                isRecording={isRecording}
-                nohaResponseProcessing={nohaResponseProcessing}
-                isProcessing={isProcessing}
-                isAudioPlaying={isAudioPlaying}
-                isSilence={isSilence}
+                    ref={avatarRef}
+                    chats={chats}
+                    name={details.name}
+                    onCancelCall={onCancelCall2}
+                    userSocket={userSocket}
+                    isMicOn={isMicOn}
+                    startRecording={startRecording}
+                    stopRecording={stopRecording}
+                    isRecording={isRecording}
+                    nohaResponseProcessing={nohaResponseProcessing}
+                    isProcessing={isProcessing}
+                    isAudioPlaying={isAudioPlaying}
+                    isSilence={isSilence}
+
+                    nohaResponseText={"I am NOha"}
                 />
             )
             )}
