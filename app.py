@@ -83,8 +83,11 @@ async def initialize(request: Request):
         # () call function: initialize_interview after checking live_code from DB
         user_id, interview_id = await initialize_interview(user_name, user_email) 
 
-        LiveCodeDAO.delete_live_code(live_code) # live code is deleted after the user is initialized
-
+        if live_code == CONST.DEVELOPER_LIVE_CODE: # measures taken for development
+            print("DEV LIVE CODE BEING USED")
+        else:
+            LiveCodeDAO.delete_live_code(live_code) # live code is deleted after the user is initialized
+            print("DELETED LIVE CODE AFTER USER INITIALIZATION")
         helper.pretty_log("interview_id", interview_id, 1)
 
         log.write_to_report(f"Candidate Interview Report\nInterview ID: {interview_id}\nCandidate Name: {user_name}\nPosition: Software Engineer (DSA Evaluation)\nCandidate Name: {user_name}\nInterview Conducted By: Noha\nDate: {helper.get_current_datetime()}\nOverall Score: 4.7 / 10")
@@ -177,7 +180,7 @@ async def initialize(request: Request):
 
         return initialization_response
     except LiveCodeNotFoundException:
-        raise HTTPException(status_code = 404, details = f"LIVE CODE {live_code} NOT FOUND IN THE DATABASE")
+        raise HTTPException(status_code = 404, detail = f"INVALID LIVE CODE")
     except Exception as e:
         logger.critical(f"ERROR INITIALIZING THE INTERVIEW : {e}")
         raise HTTPException(status_code=500, detail=f"ERROR INITIALIZING THE INTERVIEW : {e}")
