@@ -199,8 +199,8 @@ export default function InteractiveAvatar({ nohaResponseText, ref }: any) {
               </video>
              
             </div>
-          ) : !isLoadingSession && (
-            <div className="text-white">SPINNER...</div>
+          ) : isLoadingSession && (
+            <div className="text-white">Loading session...</div>
           )}
         </div>
       </div>
