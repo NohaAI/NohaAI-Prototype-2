@@ -98,13 +98,13 @@ export default function InteractiveAvatar({ nohaResponseText, ref }: any) {
         language: language,
         disableIdleTimeout: true,
       });
-console.log(res)
-ref.current.session = res
+      
+      console.log(res)
       setData(res);
       // default to voice mode
-      await avatar.current?.startVoiceChat({
-        useSilencePrompt: false,
-      });
+      // await avatar.current?.startVoiceChat({
+      //   useSilencePrompt: false,
+      // });
       // setChatMode("voice_mode");
     } catch (error) {
       console.error("Error starting avatar session:", error);
@@ -145,6 +145,13 @@ ref.current.session = res
     await avatar.current?.stopAvatar();
     setStream(undefined);
   }
+ 
+  useEffect(()=>{
+    console.log('data', data)
+    ref.current.data = 'data';
+    console.log('ref',ref)
+  }, [data]);
+
 
   if(ref){
     ref.current = {

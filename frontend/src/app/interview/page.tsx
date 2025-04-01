@@ -261,7 +261,7 @@ const MyPage = () => {
 
     useEffect(() => {
         avatarRef.current?.startSession()
-        console.log("Interview has started, interviewStarted:", interviewStarted);  
+        console.log("Interview has started, interviewStarted:", interviewStarted, avatarRef);  
     }, [interviewStarted]);
 
     console.log(avatarRef.current)
