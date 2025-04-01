@@ -7,8 +7,6 @@ import InteractiveAvatar from "./InterActiveAvatar/Index";
 
 const LiveInterview = ({ name,onSessionStart, onCancelCall, isRecording, stopRecording, startRecording, chats, nohaResponseProcessing, isAudioPlaying, isSilence, nohaResponseText, ref }: any) => {
   
-  console.log(ref)
-
   const videoRef = useRef<HTMLVideoElement | null>(null);
   
   const isRecordingRef = useRef(isRecording);  

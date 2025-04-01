@@ -291,7 +291,7 @@ const MyPage = () => {
 
     const onSessionStart = (data: any) => {
         avatarRef.current?.handleSpeak(nohaResponseText)
-        console.log("latestText", nohaResponseText);
+        // console.log("latestText", nohaResponseText);
     }
 
     return (

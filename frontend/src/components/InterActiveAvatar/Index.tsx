@@ -57,10 +57,10 @@ export default function InteractiveAvatar({ nohaResponseText, onSessionStart, re
       basePath: baseApiUrl(),
     });
     avatar.current.on(StreamingEvents.AVATAR_START_TALKING, (e) => {
-      // console.log("Avatar started talking", e);
+      console.log("Avatar started talking", e);
     });
     avatar.current.on(StreamingEvents.AVATAR_STOP_TALKING, (e) => {
-      // console.log("Avatar stopped talking", e);
+      console.log("Avatar stopped talking", e);
     });
     avatar.current.on(StreamingEvents.STREAM_DISCONNECTED, () => {
       // console.log("Stream disconnected");
@@ -99,11 +99,6 @@ export default function InteractiveAvatar({ nohaResponseText, onSessionStart, re
       console.log(res)
       setData(res);
       onSessionStart(res)
-      // default to voice mode
-      // await avatar.current?.startVoiceChat({
-      //   useSilencePrompt: false,
-      // });
-      // setChatMode("voice_mode");
     } catch (error) {
       console.error("Error starting avatar session:", error);
     } finally {
@@ -112,16 +107,13 @@ export default function InteractiveAvatar({ nohaResponseText, onSessionStart, re
   }
   
   async function handleSpeak(latestText: string) {
-    console.log("handleSpeak", latestText);
     setIsLoadingRepeat(true);
     if (!avatar.current) {
       console.log("Avatar API not initialized");
 
       return;
     }
-    // console.log("handleSpeak", text);
-    // console.log("handleSpeak", nohaResponseText);
-    speak()
+
     await avatar.current
       .speak({ text: latestText, taskType: TaskType.REPEAT, taskMode: TaskMode.SYNC })
       .catch((e) => {
@@ -129,9 +121,7 @@ export default function InteractiveAvatar({ nohaResponseText, onSessionStart, re
       });
     setIsLoadingRepeat(false);
   }
-const speak = () =>{
-  console.log('speak', nohaResponseText)
-}
+
   async function handleInterrupt() {
     if (!avatar.current) {
       console.log("Avatar API not initialized");
