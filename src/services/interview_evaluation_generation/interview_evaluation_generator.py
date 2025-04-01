@@ -36,8 +36,8 @@ def create_evaluation_report_buffer(interview_evaluation_data_object):
     
     for evaluation_summary_object in interview_evaluation_data_object.evaluation_summary_object_list:
         interview_evaluation_content.extend(build_evaluation_summary_section(layout, evaluation_summary_object))
-    
-    interview_evaluation_content.extend(build_recommendation_section(layout, interview_evaluation_data_object.overall_recommendation_object))
+    if interview_evaluation_data_object.overall_recommendation_object.content != None:
+        interview_evaluation_content.extend(build_recommendation_section(layout, interview_evaluation_data_object.overall_recommendation_object))
     
     # Generate and save PDF
     doc.build(interview_evaluation_content)
