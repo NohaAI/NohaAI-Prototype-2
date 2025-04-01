@@ -88,7 +88,8 @@ def prepare_interview_evaluation_data(user_email, code_snippet) -> InterviewEval
         assessment_payloads_object = AssessmentDAO.get_assessments(interview_id)
         
         chat_history = helper.convert_chat_history_object_to_dict(chat_history_object)
-        assessment_payloads = helper.convert_assessment_payload_object_to_dict(assessment_payloads_object)
+        # assessment_payloads = helper.convert_assessment_payload_object_to_dict(assessment_payloads_object)
+        assessment_payloads = assessment_payloads_object
         if len(assessment_payloads) == 0:
             raise EmptyAssessmentPayloadException(assessment_payloads = assessment_payloads)
     
