@@ -76,9 +76,6 @@ BOT_NAME = "Noha AI"
 ASSESSMENT_PAYLOAD_SCHEMA_PATH = "src.schemas.evaluation"
 # ASSESSMENT_PAYLOAD_SCHEMA = "assessment_payload.json"
 ASSESSMENT_PAYLOAD_SCHEMA = "assessment_payload_longest_8criterion.json"
-<<<<<<< Updated upstream
 
 #LIVE CODE WHILE DEVELOPING
 DEVELOPER_LIVE_CODE = "333333"
-=======
->>>>>>> Stashed changes
