@@ -1,7 +1,7 @@
 {
   "criteria": [
     {
-      "description": "Are the assumptions clarified?",
+      "description": "Enquiring about non-explicit assumptions",
       "weight": 10.0,
       "calculated_score": 0.0,
       "subcriteria": [

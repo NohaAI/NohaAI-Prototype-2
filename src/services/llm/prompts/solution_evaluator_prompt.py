@@ -1,6 +1,6 @@
 from langchain_core.prompts import ChatPromptTemplate
 
-def make_prompt_from_template_expt():
+def make_prompt_from_template():
   eval_prompt_str = """
     The following inputs are being sent as input to this prompt:
 
@@ -70,7 +70,7 @@ def make_prompt_from_template_expt():
   eval_prompt = ChatPromptTemplate.from_template(template=eval_prompt_str)
   return eval_prompt
 
-def make_prompt_from_template():
+def make_prompt_from_template_prod():
   eval_prompt_str = """
     The following inputs are being sent as input to this prompt:
 

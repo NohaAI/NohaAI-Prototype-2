@@ -4,6 +4,201 @@ from langchain_core.prompts import ChatPromptTemplate
 
 def classify_candidate_dialogue_prompt_template():
   prompt="""
+      You are an agent and your task is to classify the candidate's response into different classes as defined below and explain the rationale for classifying them as such. Ensure that you classify the response with only the labels listed below and that no new label is created.
+
+      ### **Given Inputs:**
+      - **bot_dialogue**: {bot_dialogue}  
+      - **candidate_dialogue**: {candidate_dialogue}  
+      - **chat_history**: {chat_history}  
+      - **distilled_candidate_dialogue**: {distilled_candidate_dialogue}  
+
+      ---
+
+      ### **Preprocessing Steps (Before Classification)**
+      Before beginning to classify the **candidate_dialogue**, apply the following transformations:  
+      1. **Confirmatory Responses:**  
+        - If candidate_dialogue contains simple confirmations like "yes", "no", "sure," assign it **directly** to distilled_candidate_dialogue without modification.  
+
+      2. **Other Responses:**  
+        - **Summarize the response** while preserving its meaning and assign the summarized text to distilled_candidate_dialogue.  
+
+      3. **Grammar & Typo Corrections:**  
+        - **Fix grammatical errors, typos, and punctuation** while ensuring clarity.  
+        - **The corrected version is assigned to distilled_candidate_dialogue.**  
+
+      ---
+
+      ## **Classification Categories**
+      🚨 **Important:**  
+      - **Only use distilled_candidate_dialogue for classification.**  
+      - **If you classify based on candidate_dialogue instead of distilled_candidate_dialogue, you will be penalized.**  
+      - **Choose exactly ONE category per response.**  
+
+      Each response must be classified as **one and only one** of the following:  
+
+      ### **1. technical**
+      📌 **When to classify:**  
+      - The candidate has **made an attempt to answer the problem**, regardless of correctness.  
+      - **Minor grammatical fixes do not affect classification.**  
+
+      ✅ **Example:**  
+      - Candidate: *"The corner keys I can think of is it can be a duplicate value."*  
+      - After correction: *"The corner cases I can think of are duplicate values."*  
+      - ✅ **Classify as 'technical'** because the candidate is attempting to answer.  
+
+      ---
+
+      ### **2. illegible**
+      📌 **When to classify:**  
+      A response is **illegible** **ONLY** if the **final distilled_candidate_dialogue** meets **at least one** of these conditions:  
+
+      1. **Gibberish or Nonsensical Content:**  
+        - The response consists **mostly** of random characters, non-standard words, or incoherent phrases.  
+        - More than **70 percent of the words are unrecognizable or meaningless**.  
+
+      2. **Severe Structural Incoherence:**  
+        - The sentence lacks **any logical flow** or **any readable subject-verb relationship**.  
+        - The meaning **cannot be derived**, even with correction attempts.  
+
+      3. **Completely Unclear Meaning:**  
+        - After fixing minor typos and grammar issues, the **core intent is still lost**.  
+
+      🚨 **Important:**  
+      - If the meaning is **recoverable after correction**, classify as something else (not ‘illegible’).  
+
+      ---
+
+      ### **3. irrelevant**
+      📌 **When to classify:**  
+      - The response **does not** answer the active question.  
+      - The candidate discusses **something unrelated** to problem-solving.  
+      - The response **references the main question when a follow-up should be answered.**  
+
+      ---
+
+      ### **4. interview_inquiry**
+      📌 **When to classify:**  
+      - The candidate asks about the **interview process** (e.g., duration, number of questions, format).  
+      - **Not** about the specific problem itself.  
+
+      ✅ **Example:**  
+      - *"How many questions are in this interview?"* → **interview_inquiry**  
+
+      ---
+
+      ### **5. confirmation**
+      📌 **When to classify:**  
+      - The candidate expresses willingness with **confirmatory responses**.  
+
+      ✅ **Examples:**  
+      - *"Yes."*, *"Sure."*, *"Alright."* → **confirmation**  
+
+      ---
+
+      ### **6. negation**
+      📌 **When to classify:**  
+      - The candidate expresses **reluctance** or **negative responses**.  
+
+      ✅ **Examples:**  
+      - *"No."*, *"Not really."*, *"I don’t think so."* → **negation**  
+
+      ---
+
+      ### **7. clarification(specific)**
+      📌 **When to classify:**  
+      - The candidate asks if **specific knowledge** (e.g., recursion, graphs) is needed.  
+      - The candidate **asks for definitions of technical terms**.  
+
+      ✅ **Example:**  
+      - *"Do I need to use recursion here?"* → **clarification(specific)**  
+
+      ---
+
+      ### **8. clarification(open)**
+      📌 **When to classify:**  
+      - The candidate asks for a **general explanation** or **stepwise guidance**.  
+
+      ✅ **Example:**  
+      - *"Can you explain how to approach this?"* → **clarification(open)**  
+
+      ---
+
+      ### **9. request(new_question)**
+      📌 **When to classify:**  
+      - The candidate **explicitly asks for a different question**.  
+
+      ✅ **Example:**  
+      - *"Can I get another question?"* → **request(new_question)**  
+
+      ---
+
+      ### **10. request(termination)**
+      📌 **When to classify:**  
+      - The candidate **initially requests** to end the interview.  
+      - **Check chat_history** to ensure it’s the first termination request.  
+
+      ---
+
+      ### **11. request(proceed)**
+      📌 **When to classify:**  
+      - The candidate requests to continue **without hesitation**.  
+
+      ✅ **Example:**  
+      - *"Can I proceed?"* → **request(proceed)**  
+
+      ---
+
+      ### **12. request(break)**
+      📌 **When to classify:**  
+      - The candidate **explicitly requests a break**.  
+
+      ---
+
+      ### **13. disregard**
+      📌 **When to classify:**  
+      - The candidate **uses offensive or unprofessional language**.  
+
+      ---
+
+      ### **14. illegitimate**
+      📌 **When to classify:**  
+      - The candidate asks for direct solutions, shortcuts, or problem hints.  
+
+      ✅ **Example:**  
+      - *"Can you tell me the answer?"* → **illegitimate**  
+
+      ---
+
+      ### **15. inability**
+      📌 **When to classify:**  
+      - The candidate **explicitly states** they **cannot solve** the problem.  
+
+      ✅ **Example:**  
+      - *"I don’t know how to solve this."* → **inability**  
+
+      ---
+
+      ### **16. uncertainty**
+      📌 **When to classify:**  
+      - The candidate expresses doubt about what to do next.  
+
+      ✅ **Example:**  
+      - *"I’m not sure if this is correct."* → **uncertainty**  
+
+      ---
+
+      ## **Response Format**
+      
+      Return the classification in **exactly this format**:  
+      ["class", "rationale", "distilled_candidate_dialogue"]
+
+    """
+  classify_candidate_dialogue_prompt=ChatPromptTemplate.from_template(template=prompt)
+  return classify_candidate_dialogue_prompt
+
+
+def classify_candidate_dialogue_prompt_template_dev():
+  prompt="""
   
   You are an agent and your task is to classify the candidate's response into different classes as defined below and explain the rationale for classifying them as such. Ensure that you classify the response with only the labels listed below and that no new label is created.
 
@@ -80,7 +275,6 @@ def classify_candidate_dialogue_prompt_template():
   - Classify the distilled_candidate_dialogue as 'clarification(specific)' when the following criteria are met:
     * The candidate asks if certain knowledge (e.g., data structures, recursion, system design) is necessary
     * The candidate asks for definitions about specific terms listed in the question
-    * The question is framed to verify the interview's scope and expectations
     
   - Classify the distilled_candidate_dialogue as 'clarification(open)' when the following criteria are met:
     * The distilled_candidate_dialogue represents a generic/non-specific request expecting detailed guidance or a stepwise explanation  
