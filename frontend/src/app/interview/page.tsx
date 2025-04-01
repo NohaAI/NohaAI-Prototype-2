@@ -294,6 +294,15 @@ const MyPage = () => {
         // console.log("latestText", nohaResponseText);
     }
 
+    const onStartPlaying = () => {
+        setIsAudioPlaying(true)
+    }
+
+    const onStopPlaying = () => {
+        setIsAudioPlaying(false)
+    }
+
+
     return (
         <>
         {/* Display on medium and large devices */}
@@ -318,6 +327,8 @@ const MyPage = () => {
                     isAudioPlaying={isAudioPlaying}
                     isSilence={isSilence}
                     nohaResponseText={nohaResponseText}
+                    onStartPlaying={onStartPlaying}
+                    onStopPlaying={onStopPlaying}
                 />
             )
             )}

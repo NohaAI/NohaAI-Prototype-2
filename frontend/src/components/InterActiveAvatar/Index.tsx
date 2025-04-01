@@ -11,8 +11,9 @@ import StreamingAvatar, {
 
 import { useEffect, useRef, useState } from "react";
 import { usePrevious } from "ahooks";
+import { on } from "stream";
 
-export default function InteractiveAvatar({ nohaResponseText, onSessionStart, ref }: any) {
+export default function InteractiveAvatar({ nohaResponseText, onSessionStart, onStartPlaying, onStopPlaying, ref }: any) {
   
   const [isLoadingSession, setIsLoadingSession] = useState(false);
   const [isLoadingRepeat, setIsLoadingRepeat] = useState(false);
@@ -58,9 +59,11 @@ export default function InteractiveAvatar({ nohaResponseText, onSessionStart, re
     });
     avatar.current.on(StreamingEvents.AVATAR_START_TALKING, (e) => {
       console.log("Avatar started talking", e);
+      onStartPlaying();
     });
     avatar.current.on(StreamingEvents.AVATAR_STOP_TALKING, (e) => {
       console.log("Avatar stopped talking", e);
+      onStopPlaying();
     });
     avatar.current.on(StreamingEvents.STREAM_DISCONNECTED, () => {
       // console.log("Stream disconnected");
