@@ -6,16 +6,17 @@ including calculating scores using weighted averages, and storing results in a d
 import sys, json, copy
 
 print(sys.path)
-from src.utils import logger, interview_computation, json_helper
+
+from src.utils import logger as LOGGER 
+from src.utils import interview_computation, json_helper
 from src.services.llm.prompts import solution_evaluator_prompt
 from src.services.llm import llm_service
 from src.utils import helper as helper
 from src.config import constants as CONST
+from src.config import logging_config as LOGCONF
 # from src.dao import subcriterion
 # from src.dao import chat_history as chat_history
 
-# Initialize logger
-logger = logger.get_logger(__name__)
 
 async def evaluate_solution(session_state, chat_history, assessment):
     """
@@ -31,20 +32,20 @@ async def evaluate_solution(session_state, chat_history, assessment):
     Returns:
         dict: A response containing the evaluation results.
     """
-    logger.info("\n\n\n>>>>>>>>>>>FUNCTION [evaluate_solution] >>>>>>>>>>>>>>>>>>>>>>>>>>\n")
+    LOGGER.log_info("\n\n\n>>>>>>>>>>>FUNCTION [evaluate_solution] >>>>>>>>>>>>>>>>>>>>>>>>>>\n")
 
-    print (type(assessment))
-    print (len(assessment))
-    print (assessment[-1])
+    # print (type(assessment))
+    # print (len(assessment))
+    # print (assessment[-1])
 
     assessment_record = assessment[-1]
     assessment_payload = assessment_record['assessment_payloads'][-1]
 
-    helper.pretty_log("session_state", session_state, 1)
-    helper.pretty_log("chat_history", chat_history, 1)
-    helper.pretty_log("assessment", assessment)
-    helper.pretty_log_list("criteria_scores", assessment_payload["criteria_scores"], 1)
-    helper.pretty_log_list("subcriteria_scores", assessment_payload["subcriteria_scores"], 1)
+    LOGGER.pretty_log("session_state", session_state)
+    LOGGER.pretty_log("chat_history", chat_history, LOGCONF.DEBUG1)
+    LOGGER.pretty_log("assessment", assessment, LOGCONF.DEBUG2)
+    LOGGER.pretty_log("criteria_scores", assessment_payload["criteria_scores"], LOGCONF.DEBUG2)
+    LOGGER.pretty_log("subcriteria_scores", assessment_payload["subcriteria_scores"], LOGCONF.DEBUG2)
 
     prompt_bot_dialogue = session_state["bot_dialogue"]
     prompt_distilled_candidate_dialogue = session_state["candidate_dialogue"]
@@ -63,16 +64,18 @@ async def evaluate_solution(session_state, chat_history, assessment):
     evaluate_solution_prompt = solution_evaluator_prompt.make_prompt_from_template()
     llm_model = llm_service.get_openai_model()
     evaluate_solution_chain = (evaluate_solution_prompt | llm_model)
-    print("before calling eval_chain.abatch ...")
+    print("calling eval_chain.abatch ...")
     llm_response_evaluate_solution = await evaluate_solution_chain.abatch(llm_inputs)
     llm_content_evaluate_solution = json.loads(llm_response_evaluate_solution[0].content)
     
-    helper.pretty_log("EVALUATE SOLUTION LLM OUTPUT", llm_content_evaluate_solution, 1)
+    LOGGER.log_info("EVALUATE SOLUTION LLM OUTPUT")
     
     updated_prompt_assessment_payload = llm_content_evaluate_solution["prompt_assessment_payload"]
     solution_evaluator_rationale = llm_content_evaluate_solution["rationale"]
-    print(json.dumps(updated_prompt_assessment_payload, indent=3))
-    print(solution_evaluator_rationale)
+    LOGGER.pretty_log("updated_prompt_assessment_payload", updated_prompt_assessment_payload, LOGCONF.DEBUG1, compact=True)
+    subcriteria_scores = helper.get_subcriteria_scores(updated_prompt_assessment_payload)
+    LOGGER.pretty_log("subcriteria_scores", subcriteria_scores)
+    LOGGER.pretty_log("solution_evaluator_rationale", solution_evaluator_rationale)
     
     computed_assessment_payload = await interview_computation.compute_turn_score(updated_prompt_assessment_payload)
     # updated_json = json.loads(updated_assessment_payload)
@@ -90,11 +93,11 @@ async def evaluate_solution(session_state, chat_history, assessment):
     print("(5) \n" + json.dumps(assessment_record))
     print("(6) \n" + json.dumps(assessment))
 
-    helper.pretty_log("session_state", session_state, 1)
-    helper.pretty_log("chat_history", chat_history, 1)
-    helper.pretty_log("criteria_scores", computed_assessment_payload["criteria_scores"], 1)
-    helper.pretty_log("subcriteria_scores", computed_assessment_payload["subcriteria_scores"], 1)
-    helper.pretty_log("assessment", assessment, 1)
+    LOGGER.pretty_log("session_state", session_state)
+    LOGGER.pretty_log("chat_history", chat_history, LOGCONF.DEBUG1)
+    LOGGER.pretty_log("assessment", assessment, LOGCONF.DEBUG2)
+    LOGGER.pretty_log("criteria_scores", assessment_payload["criteria_scores"], LOGCONF.DEBUG2)
+    LOGGER.pretty_log("subcriteria_scores", assessment_payload["subcriteria_scores"], LOGCONF.DEBUG2)
     
     return assessment, solution_evaluator_rationale
 
@@ -104,7 +107,7 @@ async def evaluate_solution(session_state, chat_history, assessment):
 def return_max_eval(eval1, eval2):
     """
     Combines two evaluation dictionaries by taking the maximum score for each question.
-    Includes logger.info statements to compare scores from eval1, eval2, and the resulting eval3.
+    Includes LOGGER.log_info statements to compare scores from eval1, eval2, and the resulting eval3.
     
     Args:
         eval1: List of dictionaries containing question-score pairs (scores as strings)

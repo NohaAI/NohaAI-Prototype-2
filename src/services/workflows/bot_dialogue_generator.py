@@ -1,17 +1,16 @@
-from src.utils.logger import get_logger
-from src.utils import helper as helper
+from src.utils import logger as helper
 from src.services.llm import llm_service
 from src.config import constants as CONST
 import json
-from src.services.llm.prompts.bot_dialogue_prompt import bot_dialogue_prompt_template 
-# Initialize logger
-logger = get_logger(__name__)
+from src.services.llm.prompts.bot_dialogue_prompt import bot_dialogue_prompt_template
+from src.utils import logger as LOGGER
+from src.config import logging_config as LOGCONF
 
 async def generate_dialogue(session_state, chat_history, assessment, rationale=None):
-    logger.info("\n\n>>>>>>>>>>>FUNCTION [generate dialogue] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n")
+    LOGGER.log_info("\n\n>>>>>>>>>>>FUNCTION [generate dialogue] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n")
     
-    helper.pretty_log("session_state", session_state, 1)
-    helper.pretty_log("chat_history", chat_history, 1)  
+    LOGGER.pretty_log("session_state", session_state)
+    LOGGER.pretty_log("chat_history", chat_history, LOGCONF.DEBUG1)  
     # non_technical_class_labels=["illegible", "irrelevant", "clarification(specific)", "clarification(open)", "request(guidance)", "request(termination)", "request(proceed)", "request(break)", "disregard", "illegitimate", "uncertainty"]
     if not session_state['solution_classifier_executed']:
         class_label = session_state['label_class1']
@@ -56,11 +55,13 @@ async def generate_dialogue(session_state, chat_history, assessment, rationale=N
     session_state['bot_dialogue'] = bot_dialogue
     chat_history[-1]['bot_dialogue'] = bot_dialogue
     session_state['next_action'] = bot_dialogue_next_action
+    session_state['candidate_dialogue'] = None
+    session_state['distilled_candidate_dialogue'] = None
 
-    helper.pretty_log("session_state", session_state)
-    helper.pretty_log("chat_history", chat_history)
-    helper.pretty_log("assessment", assessment)
+    LOGGER.pretty_log("session_state", session_state)
+    LOGGER.pretty_log("chat_history", chat_history, LOGCONF.DEBUG1)  
+    
 
-    logger.info("\n\n>>>>>>>>>>>FUNCTION EXIT [bot_dialogue_generator] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
+    LOGGER.log_info("\n\n>>>>>>>>>>>FUNCTION EXIT [bot_dialogue_generator] >>>>>>>>>>>>>>>>>>>>>>>>>>\n\n")
     return bot_dialogue_rationale, bot_dialogue_causal_subcriterion
 

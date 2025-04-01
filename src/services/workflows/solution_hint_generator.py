@@ -1,10 +1,11 @@
+import src.config.logging_config
 from src.utils import logger
 import src.services.llm as llm
 from src.services.llm.prompts.solution_hint_prompt import make_prompt_from_template
 from src.services.llm.llm_service import get_chain
 
 # Initialize logger
-logger = logger.get_logger(__name__)
+logger = src.config.logging_config.get_logger(__name__)
 
 async def generate_hint(input_request):
     try:

@@ -7,15 +7,14 @@ from typing import List, Dict, Optional, Union
 import os
 import logging
 from dotenv import load_dotenv
-from src.utils.logger import get_logger
+from src.config.logging_config import get_logger
 from src.dao.interview import get_interview_metadata
 from src.dao.exceptions import InterviewNotFoundException
 from src.services.llm import llm_service
 import json
 from src.dao.criterion import fetch_criteria
 from src.services.llm.prompts.hint_prompt import hint_prompt_template,hint_prompt_template_if_else,hint_prompt_template_assumption_corner_cases,hint_prompt_template_data_structures,hint_prompt_template_algorithms,hint_prompt_template_time_complexity,hint_prompt_template_space_complexity
-# Initialize logger
-logger = get_logger(__name__)
+from src.utils import logger as LOGGER
 
 async def generate_hint(chat_history,answer_evaluation,hint_count):
     criteria=await fetch_criteria(1)
@@ -34,8 +33,8 @@ async def generate_hint(chat_history,answer_evaluation,hint_count):
     hint_prompt_sc=hint_prompt_template_space_complexity()
     llm_model = llm_service.get_openai_model()
 
-    logger.info(f"ANSWER EVALUATION {answer_evaluation}")
-    logger.info(f"HINT COUNT AFTER {len(chat_history)} : {hint_count}")
+    LOGGER.log_info(f"ANSWER EVALUATION {answer_evaluation}")
+    LOGGER.log_info(f"HINT COUNT AFTER {len(chat_history)} : {hint_count}")
     
     assumption_score = answer_evaluation["criteria_scores"][0]          
     corner_case_score = answer_evaluation["criteria_scores"][1]        
