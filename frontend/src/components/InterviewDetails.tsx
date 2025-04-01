@@ -4,10 +4,11 @@ import { useState } from "react";
 import { X } from "lucide-react";
 
 interface InterviewDetailsProps {
+    errorMsg: string;
     onSubmit: (data: { name: string; email: string; live_code: string }) => void;
 }
 
-const InterviewDetails: React.FC<InterviewDetailsProps> = ({ onSubmit }) => {
+const InterviewDetails: React.FC<InterviewDetailsProps> = ({ onSubmit, errorMsg }) => {
     const router = useRouter();
     const [formData, setFormData] = useState({ name: "", email: "", live_code: "" });
     const [loading, setLoading] = useState(false);
@@ -18,10 +19,16 @@ const InterviewDetails: React.FC<InterviewDetailsProps> = ({ onSubmit }) => {
     };
 
     const handleSubmit = async () => {
-        if (!formData.name || !formData.email || !formData.live_code) return;
-        console.log(formData);
-        setLoading(true);
-        onSubmit({ ...formData });
+        try {
+            if (!formData.name || !formData.email || !formData.live_code) return;
+            console.log(formData);
+            setLoading(true);
+            onSubmit({ ...formData });
+            setLoading(false);
+        } catch (error) {
+            setLoading(false);
+        }
+   
     };
 
     return (
@@ -38,7 +45,8 @@ const InterviewDetails: React.FC<InterviewDetailsProps> = ({ onSubmit }) => {
                 <p className="text-gray-300 text-center mt-2">
                     Begin by providing your interview details.
                 </p>
-
+                
+                <div className="absolute text-red-400 ml-32 mt-5  ">{errorMsg}</div>
                 {/* Input Section */}
                 <div className="mt-10 space-y-6">
                     {/* Name Field */}

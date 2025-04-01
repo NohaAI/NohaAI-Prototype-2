@@ -12,7 +12,8 @@ const MyPage = () => {
     const [details, setDetails] = useState({} as any);
     const [callEnded, setCallEnded] = useState(false);
     const [backendServiceLink] = useState(
-	"https://test.noha.ai/backend"
+	// "https://test.noha.ai/backend"
+    "http://localhost:5001"
         // "http://34.47.214.185:5001"
         // "https://apis.noha.ai"
         );
@@ -29,6 +30,8 @@ const MyPage = () => {
 
     const recognitionRef = useRef<any>(null);
     const [isSilence, setIsSilence] = useState<boolean | null>(null)
+    
+    const [errorMsg, setErrorMsg] = useState<string>("");
 
     // const startConnection = async (userDetails: any) => {
     //     const socketConnection = io(backendServiceLink + '/guest', { transports: ["websocket"] });
@@ -68,10 +71,20 @@ const MyPage = () => {
             updateChats(initializeRes.data.session_state.bot_dialogue);
             speakText(initializeRes.data.session_state.bot_dialogue)
 
-        } catch (error) {
-            console.error("Error in startConnection2:", error);
-            throw error; 
-        }
+        } catch (error: any) {
+            let errorMessage = "Unknown error occurred";
+        
+            // Check if the error has a response (API error)
+            if (error.response && error.response.data && error.response.data.detail) {
+                errorMessage = error.response.data.detail; // Extract the "detail" field
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+        
+            setErrorMsg(errorMessage);
+            console.error("Error in startConnection2:", errorMessage);
+            throw error;
+        }        
     };
     
     const disconnect2 = async() =>{
@@ -285,21 +298,21 @@ const MyPage = () => {
         <div className="hidden lg:block">
             {!callEnded && (
             !interviewStarted ? (
-                <InterviewDetails onSubmit={handleSubmit} />
+                <InterviewDetails errorMsg={errorMsg} onSubmit={handleSubmit} />
             ) : (
                 <LiveInterview
-                chats={chats}
-                name={details.name}
-                onCancelCall={onCancelCall2}
-                userSocket={userSocket}
-                isMicOn={isMicOn}
-                startRecording={startRecording}
-                stopRecording={stopRecording}
-                isRecording={isRecording}
-                nohaResponseProcessing={nohaResponseProcessing}
-                isProcessing={isProcessing}
-                isAudioPlaying={isAudioPlaying}
-                isSilence={isSilence}
+                    chats={chats}
+                    name={details.name}
+                    onCancelCall={onCancelCall2}
+                    userSocket={userSocket}
+                    isMicOn={isMicOn}
+                    startRecording={startRecording}
+                    stopRecording={stopRecording}
+                    isRecording={isRecording}
+                    nohaResponseProcessing={nohaResponseProcessing}
+                    isProcessing={isProcessing}
+                    isAudioPlaying={isAudioPlaying}
+                    isSilence={isSilence}
                 />
             )
             )}
