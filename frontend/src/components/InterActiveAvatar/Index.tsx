@@ -99,6 +99,7 @@ export default function InteractiveAvatar({ nohaResponseText, ref }: any) {
         disableIdleTimeout: true,
       });
       
+      res.current = { ...res.current, sessionData: res }
       console.log(res)
       setData(res);
       // default to voice mode
@@ -146,11 +147,11 @@ export default function InteractiveAvatar({ nohaResponseText, ref }: any) {
     setStream(undefined);
   }
  
-  useEffect(()=>{
-    console.log('data', data)
-    ref.current.data = 'data';
-    console.log('ref',ref)
-  }, [data]);
+  // useEffect(()=>{
+  //   console.log('data', data)
+  //   ref.current.data = 'data';
+  //   console.log('ref',ref)
+  // }, [data]);
 
 
   if(ref){

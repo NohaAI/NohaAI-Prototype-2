@@ -3,6 +3,7 @@ import Feedback from "@/components/Feedback";
 import InterviewDetails from "@/components/InterviewDetails";
 import LiveInterview from "@/components/LiveInterview";
 import axios from "axios";
+import { data } from "framer-motion/client";
 import { useEffect, useRef, useState } from "react";
 // import { io } from "socket.io-client";
 
@@ -264,7 +265,11 @@ const MyPage = () => {
         console.log("Interview has started, interviewStarted:", interviewStarted, avatarRef);  
     }, [interviewStarted]);
 
-    console.log(avatarRef.current)
+    console.log('avatarRef.current', avatarRef.current)
+
+    useEffect(() => {
+        console.log(data)
+    }, [data])
 
     useEffect(() => {
         if (!isRecording && !isProcessing && transcribedText.trim() !== "") {
