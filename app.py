@@ -1,15 +1,15 @@
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-import json
+import json, os
+from src.config import env_settings as ENV
 import importlib.resources as res
-import traceback
 from typing import Dict, Any
+from src.utils import logger as LOGGER
 from src.utils import helper as helper
 
 # Import statements remain the same as in the original Flask app
 # from src.dao.interview_session_state import add_interview_session_state
-from src.utils import logger as log
 from src.api.chat_history import batch_insert_chat_history
 # from src.dao.interview_question_evaluation import batch_insert_interview_question_evaluation
 from src.services.workflows.graph import get_next_response
@@ -20,11 +20,22 @@ from src.dao.assessment_data.assessment_record import AssessmentRecord
 from src.dao.chat_history import ChatHistoryDAO
 from src.dao.assessment import AssessmentDAO
 from src.config import constants as CONST
+from src.config import logging_config as LOGCONF
 
-# Ensure logs are visible
-logger = log.get_logger(__name__)
-
+# Initialize the FastAPI app
 app = FastAPI()
+
+# Load environment variables
+try:
+    from src.config import env_settings as ENV
+    BACKEND_URL = ENV.BACKEND_URL
+    FRONTEND_URL = ENV.FRONTEND_URL
+    RUN_UVICORN = ENV.RUN_UVICORN
+except ImportError:
+    # Fallback defaults (if env_settings.py is missing)
+    BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:5001")
+    FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    RUN_UVICORN = bool(os.getenv("RUN_UVICORN", "True") == "True")
 
 
 # Allow frontend domain or allow all (*) for testing
@@ -48,18 +59,18 @@ app.add_middleware(
 
 @app.get('/connect')
 async def connect():
-    logger.info("\n>>>>>>>>>>>FUNCTION [connect] >>>>>>>>>>>>>>>>>>>>>>>>>>\n")
+    LOGGER.log_info("\n>>>>>>>>>>>FUNCTION [connect] >>>>>>>>>>>>>>>>>>>>>>>>>>\n")
     #TODO: USE ONLY FOR WEBSOCKETS
-    logger.info("\n\n\n Client connected successfully.............................")
+    LOGGER.log_info("\n\n Client connected successfully.............................\n")
     return {"message": "Connected successfully ......"}
     
 @app.post('/initialize')
 async def initialize(request: Request):
-    logger.info("\n>>>>>>>>>>>FUNCTION [initialize] >>>>>>>>>>>>>>>>>>>>>>>>>>\n")
+    LOGGER.log_info("\n>>>>>>>>>>>FUNCTION [initialize] >>>>>>>>>>>>>>>>>>>>>>>>>>\n")
     try:
         # () call library function: fastapi.Request.request
         initialization_request = await request.json()
-        logger.info(f"INITIALIZATION REQUEST FROM CLIENT {initialization_request}")
+        LOGGER.log_info(f"INITIALIZATION REQUEST FROM CLIENT {initialization_request}")
         
         if not initialization_request:
             raise HTTPException(status_code=400, detail="Missing request body")
@@ -71,20 +82,19 @@ async def initialize(request: Request):
             raise HTTPException(status_code=400, detail="Missing 'user_email' in initialization_request body")
         
         user_name = initialization_request['user_name']
-        user_email = initialization_request['user_email']   
+        user_email = initialization_request['user_email']  
         
         # () call function: initialize_interview
         user_id, interview_id = await initialize_interview(user_name, user_email)
       
-        helper.pretty_log("interview_id", interview_id, 1)
+        LOGGER.pretty_log("interview_id", interview_id)
 
-        log.write_to_report(f"Candidate Interview Report\nInterview ID: {interview_id}\nCandidate Name: {user_name}\nPosition: Software Engineer (DSA Evaluation)\nCandidate Name: {user_name}\nInterview Conducted By: Noha\nDate: {helper.get_current_datetime()}\nOverall Score: 4.7 / 10")
+        LOGGER.write_to_report(f"Candidate Interview Report\nInterview ID: {interview_id}\nCandidate Name: {user_name}\nPosition: Software Engineer (DSA Evaluation)\nCandidate Name: {user_name}\nInterview Conducted By: Noha\nDate: {helper.get_current_datetime()}\nOverall Score: 4.7 / 10")
       
         # () call function: generate_greeting
         greeting = await generate_greeting(user_id) 
 
-        helper.pretty_log("greeting", greeting, 1)
-
+        LOGGER.pretty_log("greeting", greeting, LOGCONF.DEBUG2)
 
         session_state = {
             "primary_question": CONST.DEF_PRIMARY_QUESTION,
@@ -160,27 +170,27 @@ async def initialize(request: Request):
         ############ END BLOCK, DISCUSS AND DELETE ##################
 
 
-        helper.pretty_log("session_state", session_state, 1)
-        helper.pretty_log("chat_history", chat_history, 1)
-        helper.pretty_log("assessment", assessment, 1)
+        LOGGER.pretty_log("session_state", session_state, LOGCONF.DEBUG)
+        LOGGER.pretty_log("chat_history", chat_history, LOGCONF.DEBUG)
+        LOGGER.pretty_log("assessment", assessment, LOGCONF.DEBUG)
 
-        logger.info("\n\n\n\n>>>>>>>>>>>FUNCTION EXIT [initialize] >>> SENDING ABOVE PAYLOADS AS FRONT-END RESPONSE >>>>>>>>>>>>>>>>>>>>>>>\n\n")
+        LOGGER.log_info("\n\n\n\n>>>>>>>>>>>FUNCTION EXIT [initialize] >>> SENDING ABOVE PAYLOADS AS FRONT-END RESPONSE >>>>>>>>>>>>>>>>>>>>>>>\n\n")
 
         return initialization_response
     
     except Exception as e:
-        logger.critical(f"ERROR INITIALIZING THE INTERVIEW : {e}")
+        LOGGER.log_error(f"ERROR INITIALIZING THE INTERVIEW : {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"ERROR INITIALIZING THE INTERVIEW : {e}")
 
 
 @app.post('/chat')
 async def chat(request: Request):
-    logger.info("\n\n\n\n<<<<<<<<<<< FUNCTION ENTER [chat] <<< RECEIVING PAYLOADS FROM FRONT-END REQUESTS <<<<<<<<<<<<<<<<<<<<< \n\n")
+    LOGGER.log_info("\n\n\n\n<<<<<<<<<<< FUNCTION ENTER [chat] <<< RECEIVING PAYLOADS FROM FRONT-END REQUESTS <<<<<<<<<<<<<<<<<<<<< \n\n")
 
-    logger.info("\n>>>>>>>>>>>FUNCTION [chat] >>>>>>>>>>>>>>>>>>>>>>>>>>\n")
+    LOGGER.log_info("\n>>>>>>>>>>>FUNCTION [chat] >>>>>>>>>>>>>>>>>>>>>>>>>>\n")
     try:
         chat_request = await request.json()
-        # logger.info(f"CHAT REQUEST FROM CLIENT : {json.dumps(chat_request, indent=4)} ")
+        # LOGGER.log_info(f"CHAT REQUEST FROM CLIENT : {json.dumps(chat_request, indent=4)} ")
 
         # Validate request body
         if not chat_request:
@@ -200,8 +210,8 @@ async def chat(request: Request):
         chat_history = chat_request["chat_history"]
         assessment = chat_request["assessment"]
 
-        helper.pretty_log("session_state", session_state, 1)
-        helper.pretty_log("chat_history", chat_history, 1)
+        LOGGER.pretty_log("session_state", session_state)
+        LOGGER.pretty_log("chat_history", chat_history, LOGCONF.DEBUG2)
         
         # chat_history = ChatHistoryRecord()  
         # chat_history.extend(chat_history_data)  
@@ -215,9 +225,9 @@ async def chat(request: Request):
             assessment
         )
 
-        logger.info("\n>>>>>>>>>>>RE-ENTERING FUNCTION [chat] ?????????>>>>>>^^^^^^^^^>>>>>>>>?????")
-        helper.pretty_log("session_state", session_state)
-        helper.pretty_log("chat_history", chat_history)
+        LOGGER.log_info("\n>>>>>>>>>>>RE-ENTERING FUNCTION [chat] ?????????>>>>>>^^^^^^^^^>>>>>>>>?????")
+        LOGGER.pretty_log("session_state", session_state)
+        LOGGER.pretty_log("chat_history", chat_history, LOGCONF.DEBUG2)
 
         chat_response = {
             "session_state": session_state,
@@ -225,15 +235,15 @@ async def chat(request: Request):
             "assessment": assessment
         }
         
-        logger.info("\n\n\n\n>>>>>>>>>>>FUNCTION EXIT [chat] >>> SENDING PAYLOADS AS FRONT-END RESPONSE >>>>>>>>>>>>>>>>>>>>>>>\n\n")
+        LOGGER.log_info("\n\n\n\n>>>>>>>>>>>FUNCTION EXIT [chat] >>> SENDING PAYLOADS AS FRONT-END RESPONSE >>>>>>>>>>>>>>>>>>>>>>>\n\n")
         return chat_response
     except Exception as e:
-        logger.critical(f"ERROR PROCESSING CANDIDATE CHAT REQUEST : {e}", exc_info=True)
+        LOGGER.log_error(f"ERROR PROCESSING CANDIDATE CHAT REQUEST : {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"ERROR PROCESSING CANDIDATE CHAT REQUEST : {e}") from e   
 
 @app.post('/terminate')
 async def terminate(request: Request):
-    logger.info("\n>>>>>>>>>>>FUNCTION [terminate] >>>>>>>>>>>>>>>>>>>>>>>>>>\n")
+    LOGGER.log_info("\n>>>>>>>>>>>FUNCTION [terminate] >>>>>>>>>>>>>>>>>>>>>>>>>>\n")
     termination_request = await request.json()
     
     # Validate request body
@@ -263,10 +273,10 @@ async def terminate(request: Request):
 
     # try:
     #     batch_insert_chat_history(chat_history)
-    #     logger.info(f"DATA ADDED TO CHAT HISTORY TABLE")
+    #     LOGGER.log_info(f"DATA ADDED TO CHAT HISTORY TABLE")
 
     #     batch_insert_interview_question_evaluation(assessment_payload_record)
-    #     logger.info(f"DATA ADDED TO INTERVIEW QUESTION EVALUATION TABLE")
+    #     LOGGER.log_info(f"DATA ADDED TO INTERVIEW QUESTION EVALUATION TABLE")
 
     #     add_interview_session_state(
     #         session_state['interview_id'], 
@@ -283,14 +293,14 @@ async def terminate(request: Request):
     #         session_state['bot_dialogue_type'], 
     #         session_state['complexity']
     #     )
-    #     logger.info(f"DATA ADDED TO INTERVIEW SESSION STATE TABLE")
+    #     LOGGER.log_info(f"DATA ADDED TO INTERVIEW SESSION STATE TABLE")
 
     #     return {"message": "DATABASE WRITE OPERATIONS SUCCESSFULL FOR CHAT_HISTORY, INTERVIEW_QUESTION_EVALUATION, INTERVIEW_SESSION_STATE"}
     # except Exception as e:
     #     logger.critical(f"ERROR TERMINATING THE INTERVIEW {e}")
     #     raise HTTPException(status_code=500, detail=f"ERROR TERMINATING THE INTERVIEW : {e}")
-    helper.pretty_log("session_state", session_state)
-    helper.pretty_log("chat_history", chat_history)
+    LOGGER.pretty_log("session_state", session_state)
+    LOGGER.pretty_log("chat_history", chat_history, LOGCONF.DEBUG1)
 
     terminate_response = {
         "session_state": session_state,
@@ -298,10 +308,14 @@ async def terminate(request: Request):
         "assessment": assessment
     }
 
-    logger.info("\n\n\n\n>>>>>>>>>>>FUNCTION EXIT [terminate] >>> SENDING PAYLOADS AS FRONT-END RESPONSE >>>>>>>>>>>>>>>>>>>>>>>\n\n")
+    LOGGER.log_info("\n\n\n\n>>>>>>>>>>>FUNCTION EXIT [terminate] >>> SENDING PAYLOADS AS FRONT-END RESPONSE >>>>>>>>>>>>>>>>>>>>>>>\n\n")
     return terminate_response
 
 @app.get('/disconnect')
 async def disconnect():
-    logger.info("Client disconnect successfully......................................\n\n\n")
+    LOGGER.log_info("Client disconnect successfully......................................\n\n\n")
     return {"message": "Disconnected successfully"}
+
+if __name__ == '__main__':
+     import uvicorn
+     uvicorn.run(app, host="127.0.0.1", port=5001)
