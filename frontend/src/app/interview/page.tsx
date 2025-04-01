@@ -12,9 +12,10 @@ const MyPage = () => {
     const [details, setDetails] = useState({} as any);
     const [callEnded, setCallEnded] = useState(false);
     const [backendServiceLink] = useState(
-	"https://test.noha.ai/backend"
+		// "https://test.noha.ai/backend"
         // "http://34.47.214.185:5001"
         // "https://apis.noha.ai"
+		"http://127.0.0.1:5001"
         );
     const [userSocket, setUserSocket] = useState<any>(null);
     const [chats, setChats] = useState<Array<any>>([]);
