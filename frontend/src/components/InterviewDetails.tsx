@@ -4,7 +4,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 
 interface InterviewDetailsProps {
-    onSubmit: (data: { name: string; email: string; live_code: number }) => void;
+    onSubmit: (data: { name: string; email: string; live_code: string }) => void;
 }
 
 const InterviewDetails: React.FC<InterviewDetailsProps> = ({ onSubmit }) => {
@@ -14,15 +14,14 @@ const InterviewDetails: React.FC<InterviewDetailsProps> = ({ onSubmit }) => {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        if (name === "live_code" && !/^[0-9]*$/.test(value)) return;
         setFormData({ ...formData, [name]: value });
     };
 
     const handleSubmit = async () => {
-        if (!formData.name || !formData.email || formData.live_code === "") return;
+        if (!formData.name || !formData.email || !formData.live_code) return;
         console.log(formData);
         setLoading(true);
-        onSubmit({ ...formData, live_code: Number(formData.live_code) });
+        onSubmit({ ...formData });
     };
 
     return (

@@ -161,8 +161,8 @@ const MyPage = () => {
             window.speechSynthesis.speak(utterance);
     };
 
-    const handleSubmit = (data: { name: string; email: string, live_code: number }) => {
-        console.log("Form submitted with data:", data);
+    const handleSubmit = (data: { name: string; email: string, live_code: string }) => {
+        console.log("Form submitted with data:", typeof(data.live_code));
         setDetails({ ...data });
         // startConnection(data);
         startConnection2({...data})
@@ -246,9 +246,7 @@ const MyPage = () => {
     
         recognitionRef.current = recognition;
         recognition.start();
-    };
-    
-    
+    };    
     
     const stopRecording = () => {
         setIsRecording(false);
