@@ -5,7 +5,7 @@ import { BeatLoader, ScaleLoader } from "react-spinners";
 import InteractiveAvatar from "./InterActiveAvatar/Index";
 
 
-const LiveInterview = ({ name, onCancelCall, isRecording, stopRecording, startRecording, chats, nohaResponseProcessing, isAudioPlaying, isSilence, nohaResponseText, ref }: any) => {
+const LiveInterview = ({ name,onSessionStart, onCancelCall, isRecording, stopRecording, startRecording, chats, nohaResponseProcessing, isAudioPlaying, isSilence, nohaResponseText, ref }: any) => {
   
   console.log(ref)
 
@@ -102,7 +102,7 @@ const LiveInterview = ({ name, onCancelCall, isRecording, stopRecording, startRe
       <div className="w-[474px] h-[458px]  ">
         <div className="relative bg-[#1F1F1F] rounded-lg p-4 flex flex-col justify-center items-center h-full">
           {isAudioPlaying && <ScaleLoader color="white" className="absolute right-4 top-4" />}
-          <InteractiveAvatar ref={ref} nohaResponseText={nohaResponseText}/>
+          <InteractiveAvatar ref={ref} onSessionStart={onSessionStart} nohaResponseText={nohaResponseText}/>
           <p className="text-white mt-2 absolute left-3 bottom-2">Noha</p>
         </div>
         {nohaResponseProcessing && <BeatLoader color="white" className="mt-4" />}

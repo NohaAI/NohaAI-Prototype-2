@@ -261,15 +261,11 @@ const MyPage = () => {
     };
 
     useEffect(() => {
-        avatarRef.current?.startSession()
-        console.log("Interview has started, interviewStarted:", interviewStarted, avatarRef);  
+        if(interviewStarted) {
+            avatarRef.current?.startSession()
+            console.log("Interview has started, interviewStarted:", interviewStarted, avatarRef);  
+        }
     }, [interviewStarted]);
-
-    console.log('avatarRef.current', avatarRef.current)
-
-    useEffect(() => {
-        console.log(data)
-    }, [data])
 
     useEffect(() => {
         if (!isRecording && !isProcessing && transcribedText.trim() !== "") {
@@ -293,6 +289,11 @@ const MyPage = () => {
         // }
     };
 
+    const onSessionStart = (data: any) => {
+        avatarRef.current?.handleSpeak()
+        console.log("Session started", data);
+    }
+
     return (
         <>
         {/* Display on medium and large devices */}
@@ -302,6 +303,7 @@ const MyPage = () => {
                 <InterviewDetails onSubmit={handleSubmit} />
             ) : (
                 <LiveInterview
+                onSessionStart={onSessionStart} 
                     ref={avatarRef}
                     chats={chats}
                     name={details.name}

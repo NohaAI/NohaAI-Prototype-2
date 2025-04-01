@@ -12,7 +12,9 @@ import StreamingAvatar, {
 import { useEffect, useRef, useState } from "react";
 import { usePrevious } from "ahooks";
 
-export default function InteractiveAvatar({ nohaResponseText, ref }: any) {
+export default function InteractiveAvatar({ nohaResponseText, onSessionStart, ref }: any) {
+  console.log('nohaResponseText',nohaResponseText)
+  
   const [isLoadingSession, setIsLoadingSession] = useState(false);
   const [isLoadingRepeat, setIsLoadingRepeat] = useState(false);
   const [stream, setStream] = useState<MediaStream>();
@@ -102,6 +104,7 @@ export default function InteractiveAvatar({ nohaResponseText, ref }: any) {
       res.current = { ...res.current, sessionData: res }
       console.log(res)
       setData(res);
+      onSessionStart(res)
       // default to voice mode
       // await avatar.current?.startVoiceChat({
       //   useSilencePrompt: false,
@@ -146,13 +149,6 @@ export default function InteractiveAvatar({ nohaResponseText, ref }: any) {
     await avatar.current?.stopAvatar();
     setStream(undefined);
   }
- 
-  // useEffect(()=>{
-  //   console.log('data', data)
-  //   ref.current.data = 'data';
-  //   console.log('ref',ref)
-  // }, [data]);
-
 
   if(ref){
     ref.current = {
@@ -191,7 +187,7 @@ export default function InteractiveAvatar({ nohaResponseText, ref }: any) {
 
   return (
       <div>
-        <button className="text-white" onClick={handleSpeak}>SPeak</button>
+        {/* <button className="text-white" onClick={handleSpeak}>SPeak</button> */}
         <div className="flex flex-col justify-center items-center">
           {stream ? (
             <div className="h-[458px] w-[474px] justify-center items-center flex rounded-lg overflow-hidden">
