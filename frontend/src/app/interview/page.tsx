@@ -122,7 +122,7 @@ const MyPage = () => {
             setChatMetaData(res.data)
             updateChats(res.data.session_state.bot_dialogue);
             
-            avatarRef?.current?.handleSpeak()
+            avatarRef?.current?.handleSpeak(res.data.session_state.bot_dialogue)
             if(res.data.session_state.termination){
                 disconnect2()
                 stopRecording();
@@ -290,8 +290,8 @@ const MyPage = () => {
     };
 
     const onSessionStart = (data: any) => {
-        avatarRef.current?.handleSpeak()
-        console.log("Session started", data);
+        avatarRef.current?.handleSpeak(nohaResponseText)
+        console.log("latestText", nohaResponseText);
     }
 
     return (

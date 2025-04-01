@@ -1,0 +1,396 @@
+2025-04-01 15:02:17,922:app:INFO:
+>>>>>>>>>>>FUNCTION [connect] >>>>>>>>>>>>>>>>>>>>>>>>>>
+
+2025-04-01 15:02:17,922:app:INFO:
+
+
+ Client connected successfully.............................
+2025-04-01 15:02:17,932:app:INFO:
+>>>>>>>>>>>FUNCTION [initialize] >>>>>>>>>>>>>>>>>>>>>>>>>>
+
+2025-04-01 15:02:17,932:app:INFO:INITIALIZATION REQUEST FROM CLIENT {'user_name': 'fwef', 'user_email': 'demo@gmail.com', 'live_code': '78789789798'}
+2025-04-01 15:02:17,933:app:CRITICAL:ERROR INITIALIZING THE INTERVIEW : 400: Live code should be an integer
+2025-04-01 15:06:23,848:app:INFO:
+>>>>>>>>>>>FUNCTION [connect] >>>>>>>>>>>>>>>>>>>>>>>>>>
+
+2025-04-01 15:06:23,849:app:INFO:
+
+
+ Client connected successfully.............................
+2025-04-01 15:06:23,858:app:INFO:
+>>>>>>>>>>>FUNCTION [initialize] >>>>>>>>>>>>>>>>>>>>>>>>>>
+
+2025-04-01 15:06:23,859:app:INFO:INITIALIZATION REQUEST FROM CLIENT {'user_name': 'fwef', 'user_email': 'fweffe@few.cew', 'live_code': '1'}
+2025-04-01 15:06:24,255:app:INFO:
+>>>>>>>>>>>FUNCTION [connect] >>>>>>>>>>>>>>>>>>>>>>>>>>
+
+2025-04-01 15:06:24,255:app:INFO:
+
+
+ Client connected successfully.............................
+2025-04-01 15:06:24,278:app:INFO:
+>>>>>>>>>>>FUNCTION [initialize] >>>>>>>>>>>>>>>>>>>>>>>>>>
+
+2025-04-01 15:06:24,279:app:INFO:INITIALIZATION REQUEST FROM CLIENT {'user_name': 'fwef', 'user_email': 'fweffe@few.cew', 'live_code': '1'}
+2025-04-01 15:11:07,966:app:INFO:
+>>>>>>>>>>>FUNCTION [connect] >>>>>>>>>>>>>>>>>>>>>>>>>>
+
+2025-04-01 15:11:07,967:app:INFO:
+
+
+ Client connected successfully.............................
+2025-04-01 15:11:07,973:app:INFO:
+>>>>>>>>>>>FUNCTION [initialize] >>>>>>>>>>>>>>>>>>>>>>>>>>
+
+2025-04-01 15:11:07,974:app:INFO:INITIALIZATION REQUEST FROM CLIENT {'user_name': 'fwef', 'user_email': 'fweffe@few.cew', 'live_code': '1'}
+2025-04-01 15:11:30,006:app:INFO:
+>>>>>>>>>>>FUNCTION [connect] >>>>>>>>>>>>>>>>>>>>>>>>>>
+
+2025-04-01 15:11:30,006:app:INFO:
+
+
+ Client connected successfully.............................
+2025-04-01 15:11:30,012:app:INFO:
+>>>>>>>>>>>FUNCTION [initialize] >>>>>>>>>>>>>>>>>>>>>>>>>>
+
+2025-04-01 15:11:30,012:app:INFO:INITIALIZATION REQUEST FROM CLIENT {'user_name': 'fwef', 'user_email': 'fweffe@few.cew', 'live_code': '333333'}
+2025-04-01 15:11:30,318:src.utils.helper:INFO:
+==== user_name ====
+fwef
+=================
+2025-04-01 15:11:30,319:src.utils.helper:INFO:
+==== user_email ====
+fweffe@few.cew
+=================
+2025-04-01 15:11:30,525:src.utils.helper:INFO:
+==== inserting interview_query ... ====
+251
+=================
+2025-04-01 15:11:30,525:src.utils.helper:INFO:
+==== inserting interview_query statement ... ====
+
+                INSERT INTO Interview (user_id, interview_date, interview_recording_url)
+                VALUES (%s, %s, %s)
+                RETURNING interview_id
+            
+=================
+2025-04-01 15:11:30,525:src.utils.helper:INFO:
+==== interview_date ====
+2025-04-01 15:11:30.525878
+=================
+2025-04-01 15:11:30,525:src.utils.helper:INFO:
+==== interview_recording_url ====
+N/A
+=================
+2025-04-01 15:11:30,727:src.utils.helper:INFO:
+==== interview_id ====
+(1174,)
+=================
+2025-04-01 15:11:30,739:src.utils.helper:INFO:
+==== i ====
+1174
+=================
+2025-04-01 15:11:30,741:src.utils.helper:INFO:
+==== interview_id ====
+1174
+=================
+2025-04-01 15:11:30,742:src.services.workflows.candidate_greeter:INFO:
+>>>>>>>>>>>FUNCTION [generate_greeting] >>>>>>>>>>>>>>>>>>>>>>>>>>
+
+2025-04-01 15:11:31,076:src.utils.helper:INFO:
+==== greeting ====
+Hello fwef, I am Noha! I am your interviewer today. We have planned a data structures and algorithms interview with you, are you good to go?
+=================
+2025-04-01 15:11:31,079:src.utils.helper:INFO:
+==== session_state ====
+{
+    "primary_question": null,
+    "question_id": null,
+    "interview_id": 1174,
+    "bot_dialogue": "Hello fwef, I am Noha! I am your interviewer today. We have planned a data structures and algorithms interview with you, are you good to go?",
+    "candidate_dialogue": null,
+    "turn_number": 0,
+    "label_class1": null,
+    "label_class2": null,
+    "solution_classifier_executed": false,
+    "next_action": "Pass",
+    "termination": false,
+    "guardrail_count": 0,
+    "consecutive_termination_request_count": 0,
+    "contiguous_technical_guardrail_count": 0,
+    "contiguous_non_technical_guardrail_count": 0,
+    "questions_asked": [],
+    "bot_dialogue_type": null,
+    "complexity": 1
+}
+=================
+2025-04-01 15:11:31,079:src.utils.helper:INFO:
+==== chat_history ====
+[
+    {
+        "interview_id": 1174,
+        "question_id": null,
+        "bot_dialogue_type": "greeting",
+        "bot_dialogue": "Hello fwef, I am Noha! I am your interviewer today. We have planned a data structures and algorithms interview with you, are you good to go?",
+        "candidate_dialogue": null,
+        "distilled_candidate_dialogue": null
+    }
+]
+=================
+2025-04-01 15:11:31,079:src.utils.helper:INFO:
+==== assessment ====
+[
+    {
+        "interview_id": 1174,
+        "question_id": null,
+        "primary_question_score": 0.0,
+        "assessment_payloads": [
+            {
+                "criteria": [
+                    {
+                        "description": "Are the assumptions clarified?",
+                        "weight": 10.0,
+                        "calculated_score": 0.0,
+                        "subcriteria": [
+                            {
+                                "description": "If the candidate explicitly clarifies technical assumptions of basic difficulty",
+                                "weight": 6.0,
+                                "score": 0.0
+                            },
+                            {
+                                "description": "If the candidate explicitly clarifies technical assumptions of moderate difficulty",
+                                "weight": 8.0,
+                                "score": 0.0
+                            },
+                            {
+                                "description": "If the candidate explicitly clarifies technical assumptions of high difficulty",
+                                "weight": 10.0,
+                                "score": 0.0
+                            }
+                        ]
+                    },
+                    {
+                        "description": "Does the candidate account for corner cases?",
+                        "weight": 10.0,
+                        "calculated_score": 0.0,
+                        "subcriteria": [
+                            {
+                                "description": "If the candidate explicitly clarifies corner cases of basic difficulty",
+                                "weight": 6.0,
+                                "score": 0.0
+                            },
+                            {
+                                "description": "If the candidate explicitly clarifies corner cases of moderate difficulty",
+                                "weight": 8.0,
+                                "score": 0.0
+                            },
+                            {
+                                "description": "If the candidate explicitly clarifies corner cases of high difficulty",
+                                "weight": 10.0,
+                                "score": 0.0
+                            }
+                        ]
+                    },
+                    {
+                        "description": "Does the candidate choose the appropriate data structure for the problem?",
+                        "weight": 10.0,
+                        "calculated_score": 0.0,
+                        "subcriteria": [
+                            {
+                                "description": "The candidate proposes an unsuitable data structure",
+                                "weight": 6.0,
+                                "score": 0.0
+                            },
+                            {
+                                "description": "The candidate proposes a working yet suboptimal data structure",
+                                "weight": 8.0,
+                                "score": 0.0
+                            },
+                            {
+                                "description": "The candidate proposes an optimal data structure",
+                                "weight": 10.0,
+                                "score": 0.0
+                            }
+                        ]
+                    },
+                    {
+                        "description": "Does the candidate select a suitable algorithm for the task?",
+                        "weight": 10.0,
+                        "calculated_score": 0.0,
+                        "subcriteria": [
+                            {
+                                "description": "The candidate proposes a suboptimal algorithm",
+                                "weight": 6.0,
+                                "score": 0.0
+                            },
+                            {
+                                "description": "The candidate improves over the algorithm proposed earlier",
+                                "weight": 8.0,
+                                "score": 0.0
+                            },
+                            {
+                                "description": "The candidate proposes the most optimal algorithm",
+                                "weight": 10.0,
+                                "score": 0.0
+                            }
+                        ]
+                    },
+                    {
+                        "description": "Does the solution proposed by the candidate have optimal time complexity?",
+                        "weight": 10.0,
+                        "calculated_score": 0.0,
+                        "subcriteria": [
+                            {
+                                "description": "The candidate proposes an algorithm with a worst-case time complexity",
+                                "weight": 6.0,
+                                "score": 0.0
+                            },
+                            {
+                                "description": "The candidate proposes an algorithm with an average-case time complexity",
+                                "weight": 8.0,
+                                "score": 0.0
+                            },
+                            {
+                                "description": "The candidate proposes an algorithm with a best-case time complexity",
+                                "weight": 10.0,
+                                "score": 0.0
+                            }
+                        ]
+                    },
+                    {
+                        "description": "Does the solution proposed by the candidate have optimal space complexity?",
+                        "weight": 10.0,
+                        "calculated_score": 0.0,
+                        "subcriteria": [
+                            {
+                                "description": "The candidate proposes an algorithm with a worst-case space complexity",
+                                "weight": 6.0,
+                                "score": 0.0
+                            },
+                            {
+                                "description": "The candidate proposes an algorithm with an average-case space complexity",
+                                "weight": 8.0,
+                                "score": 0.0
+                            },
+                            {
+                                "description": "The candidate proposes an algorithm with a best-case space complexity",
+                                "weight": 10.0,
+                                "score": 0.0
+                            }
+                        ]
+                    },
+                    {
+                        "description": "Technical Communication",
+                        "weight": 10.0,
+                        "calculated_score": 0.0,
+                        "subcriteria": [
+                            {
+                                "description": "The candidate provides solution without any articulation or thought",
+                                "weight": 6.0,
+                                "score": 0.0
+                            },
+                            {
+                                "description": "The candidate provides a solution with scattered thoughts",
+                                "weight": 8.0,
+                                "score": 0.0
+                            },
+                            {
+                                "description": "The candidate provides a solution with a structured approach and a clear chain of thought",
+                                "weight": 10.0,
+                                "score": 0.0
+                            }
+                        ]
+                    }
+                ],
+                "criteria_scores": [],
+                "subcriteria_scores": [],
+                "final_score": 0.0
+            }
+        ]
+    }
+]
+=================
+2025-04-01 15:11:31,080:app:INFO:
+
+
+
+>>>>>>>>>>>FUNCTION EXIT [initialize] >>> SENDING ABOVE PAYLOADS AS FRONT-END RESPONSE >>>>>>>>>>>>>>>>>>>>>>>
+
+
+2025-04-01 15:11:37,775:app:INFO:
+>>>>>>>>>>>FUNCTION [terminate] >>>>>>>>>>>>>>>>>>>>>>>>>>
+
+2025-04-01 15:11:38,387:src.utils.helper:INFO:
+==== session_state ====
+{
+    "primary_question": null,
+    "question_id": null,
+    "interview_id": 1174,
+    "bot_dialogue": "Hello fwef, I am Noha! I am your interviewer today. We have planned a data structures and algorithms interview with you, are you good to go?",
+    "candidate_dialogue": null,
+    "turn_number": 0,
+    "label_class1": null,
+    "label_class2": null,
+    "solution_classifier_executed": false,
+    "next_action": "Pass",
+    "termination": false,
+    "guardrail_count": 0,
+    "consecutive_termination_request_count": 0,
+    "contiguous_technical_guardrail_count": 0,
+    "contiguous_non_technical_guardrail_count": 0,
+    "questions_asked": [],
+    "bot_dialogue_type": null,
+    "complexity": 1
+}
+=================
+2025-04-01 15:11:38,387:src.utils.helper:INFO:
+==== chat_history ====
+[
+    {
+        "interview_id": 1174,
+        "question_id": null,
+        "bot_dialogue_type": "greeting",
+        "bot_dialogue": "Hello fwef, I am Noha! I am your interviewer today. We have planned a data structures and algorithms interview with you, are you good to go?",
+        "candidate_dialogue": null,
+        "distilled_candidate_dialogue": null
+    }
+]
+=================
+2025-04-01 15:11:38,387:app:INFO:
+
+
+
+>>>>>>>>>>>FUNCTION EXIT [terminate] >>> SENDING PAYLOADS AS FRONT-END RESPONSE >>>>>>>>>>>>>>>>>>>>>>>
+
+
+2025-04-01 15:11:59,137:app:INFO:
+>>>>>>>>>>>FUNCTION [connect] >>>>>>>>>>>>>>>>>>>>>>>>>>
+
+2025-04-01 15:11:59,138:app:INFO:
+
+
+ Client connected successfully.............................
+2025-04-01 15:11:59,147:app:INFO:
+>>>>>>>>>>>FUNCTION [initialize] >>>>>>>>>>>>>>>>>>>>>>>>>>
+
+2025-04-01 15:11:59,148:app:INFO:INITIALIZATION REQUEST FROM CLIENT {'user_name': 'fwef', 'user_email': 'ewfw', 'live_code': '333333'}
+2025-04-01 15:11:59,435:src.utils.helper:INFO:
+==== user_name ====
+fwef
+=================
+2025-04-01 15:11:59,435:src.utils.helper:INFO:
+==== user_email ====
+ewfw
+=================
+2025-04-01 15:11:59,435:app:CRITICAL:ERROR INITIALIZING THE INTERVIEW : INVALID EMAIL FORMAT !!
+2025-04-01 15:17:18,987:app:INFO:
+>>>>>>>>>>>FUNCTION [connect] >>>>>>>>>>>>>>>>>>>>>>>>>>
+
+2025-04-01 15:17:18,987:app:INFO:
+
+
+ Client connected successfully.............................
+2025-04-01 15:17:18,993:app:INFO:
+>>>>>>>>>>>FUNCTION [initialize] >>>>>>>>>>>>>>>>>>>>>>>>>>
+
+2025-04-01 15:17:18,993:app:INFO:INITIALIZATION REQUEST FROM CLIENT {'user_name': 'Tarun', 'user_email': 'xsa@dw.xwdw', 'live_code': '3'}

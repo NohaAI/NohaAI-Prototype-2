@@ -13,7 +13,6 @@ import { useEffect, useRef, useState } from "react";
 import { usePrevious } from "ahooks";
 
 export default function InteractiveAvatar({ nohaResponseText, onSessionStart, ref }: any) {
-  console.log('nohaResponseText',nohaResponseText)
   
   const [isLoadingSession, setIsLoadingSession] = useState(false);
   const [isLoadingRepeat, setIsLoadingRepeat] = useState(false);
@@ -26,11 +25,6 @@ export default function InteractiveAvatar({ nohaResponseText, onSessionStart, re
   const [text, setText] = useState<string>(nohaResponseText);
   const mediaStream = useRef<HTMLVideoElement>(null);
   const avatar = useRef<StreamingAvatar | null>(null);
-
-
-  useEffect(() => {
-    // console.log('nohaResponseText from index',nohaResponseText)
-  }, [text])
 
   function baseApiUrl() {
     return "https://api.heygen.com";
@@ -117,23 +111,27 @@ export default function InteractiveAvatar({ nohaResponseText, onSessionStart, re
     }
   }
   
-  async function handleSpeak() {
-    console.log("handleSpeak");
+  async function handleSpeak(latestText: string) {
+    console.log("handleSpeak", latestText);
     setIsLoadingRepeat(true);
     if (!avatar.current) {
       console.log("Avatar API not initialized");
 
       return;
     }
-    // speak({ text: text, task_type: TaskType.REPEAT })
+    // console.log("handleSpeak", text);
+    // console.log("handleSpeak", nohaResponseText);
+    speak()
     await avatar.current
-      .speak({ text: nohaResponseText, taskType: TaskType.REPEAT, taskMode: TaskMode.SYNC })
+      .speak({ text: latestText, taskType: TaskType.REPEAT, taskMode: TaskMode.SYNC })
       .catch((e) => {
         console.log(e.message);
       });
     setIsLoadingRepeat(false);
   }
-
+const speak = () =>{
+  console.log('speak', nohaResponseText)
+}
   async function handleInterrupt() {
     if (!avatar.current) {
       console.log("Avatar API not initialized");
@@ -160,14 +158,14 @@ export default function InteractiveAvatar({ nohaResponseText, onSessionStart, re
       isLoadingRepeat
   }}
 
-  const previousText = usePrevious(text);
-  useEffect(() => {
-    if (!previousText && text) {
-      avatar.current?.startListening();
-    } else if (previousText && !text) {
-      avatar?.current?.stopListening();
-    }
-  }, [text, previousText]);
+  // const previousText = usePrevious(text);
+  // useEffect(() => {
+  //   if (!previousText && text) {
+  //     avatar.current?.startListening();
+  //   } else if (previousText && !text) {
+  //     avatar?.current?.stopListening();
+  //   }
+  // }, [text, previousText]);
 
   useEffect(() => {
     return () => {
