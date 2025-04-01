@@ -78,10 +78,9 @@ async def initialize(request: Request):
         user_name = initialization_request['user_name']
         user_email = initialization_request['user_email']   
         live_code = initialization_request['live_code']
-        if not isinstance(live_code, int):
-            raise HTTPException(status_code=400, detail="Live code should be an integer") #raised when live_code is not int
+        print(type(live_code))
         
-        LiveCodeDAO.check_live_code(live_code=live_code) # returns True otherwise raise LiveCodeNotFoundException
+        LiveCodeDAO.check_live_code(live_code = live_code) # returns True otherwise raise LiveCodeNotFoundException
         # () call function: initialize_interview after checking live_code from DB
         user_id, interview_id = await initialize_interview(user_name, user_email) 
 
