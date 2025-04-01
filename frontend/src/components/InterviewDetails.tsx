@@ -4,27 +4,29 @@ import { useState } from "react";
 import { X } from "lucide-react";
 
 interface InterviewDetailsProps {
-    onSubmit: (data: { name: string; email: string }) => void;
+    onSubmit: (data: { name: string; email: string; live_code: number }) => void;
 }
 
 const InterviewDetails: React.FC<InterviewDetailsProps> = ({ onSubmit }) => {
     const router = useRouter();
-    const [formData, setFormData] = useState({ name: "", email: "" });
+    const [formData, setFormData] = useState({ name: "", email: "", live_code: "" });
     const [loading, setLoading] = useState(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        if (name === "live_code" && !/^[0-9]*$/.test(value)) return;
+        setFormData({ ...formData, [name]: value });
     };
 
     const handleSubmit = async () => {
-        if (!formData.name || !formData.email) return;
-        
+        if (!formData.name || !formData.email || formData.live_code === "") return;
+        console.log(formData);
         setLoading(true);
-        onSubmit({...formData})
+        onSubmit({ ...formData, live_code: Number(formData.live_code) });
     };
 
     return (
-        <div className="fixed inset-0 flex justify-center   bg-gradient-to-br from-[#3600FF] to-[#361899] p-6">
+        <div className="fixed inset-0 flex justify-center bg-gradient-to-br from-[#3600FF] to-[#361899] p-6">
             {/* Close Button */}
             <button onClick={() => router.back()} className="absolute right-4 top-4 text-white">
                 <X size={24} />
@@ -62,6 +64,19 @@ const InterviewDetails: React.FC<InterviewDetailsProps> = ({ onSubmit }) => {
                             value={formData.email}
                             onChange={handleChange}
                             placeholder="Enter your email"
+                            className="w-full px-5 py-3 rounded-full bg-white text-gray-900 shadow-md outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+
+                    {/* Live Code Field */}
+                    <div className="flex flex-col">
+                        <label className="text-white text-lg font-bold mb-2">Live Code</label>
+                        <input
+                            type="text"
+                            name="live_code"
+                            value={formData.live_code}
+                            onChange={handleChange}
+                            placeholder="Enter live code"
                             className="w-full px-5 py-3 rounded-full bg-white text-gray-900 shadow-md outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
