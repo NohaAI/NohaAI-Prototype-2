@@ -70,7 +70,6 @@ const MyPage = () => {
           
             updateChats(initializeRes.data.session_state.bot_dialogue);
             setNohaResponseText(initializeRes.data.session_state.bot_dialogue)
-            // speakText(initializeRes.data.session_state.bot_dialogue)
             console.log(avatarRef)
 
         } catch (error) {
@@ -261,11 +260,11 @@ const MyPage = () => {
     };
 
     useEffect(() => {
-        if(interviewStarted){
-            avatarRef.current?.startSession()
-            avatarRef.current?.handleSpeak()
-        }
-    }, [interviewStarted])
+        avatarRef.current?.startSession()
+        console.log("Interview has started, interviewStarted:", interviewStarted);  
+    }, [interviewStarted]);
+
+    console.log(avatarRef.current)
 
     useEffect(() => {
         if (!isRecording && !isProcessing && transcribedText.trim() !== "") {

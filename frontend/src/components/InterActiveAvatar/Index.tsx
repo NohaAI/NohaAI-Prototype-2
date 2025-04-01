@@ -13,7 +13,6 @@ import { useEffect, useRef, useState } from "react";
 import { usePrevious } from "ahooks";
 
 export default function InteractiveAvatar({ nohaResponseText, ref }: any) {
-  console.log('nohaResponseText',nohaResponseText)
   const [isLoadingSession, setIsLoadingSession] = useState(false);
   const [isLoadingRepeat, setIsLoadingRepeat] = useState(false);
   const [stream, setStream] = useState<MediaStream>();
@@ -28,7 +27,7 @@ export default function InteractiveAvatar({ nohaResponseText, ref }: any) {
 
 
   useEffect(() => {
-    console.log('nohaResponseText from index',nohaResponseText)
+    // console.log('nohaResponseText from index',nohaResponseText)
   }, [text])
 
   function baseApiUrl() {
@@ -62,24 +61,24 @@ export default function InteractiveAvatar({ nohaResponseText, ref }: any) {
       basePath: baseApiUrl(),
     });
     avatar.current.on(StreamingEvents.AVATAR_START_TALKING, (e) => {
-      console.log("Avatar started talking", e);
+      // console.log("Avatar started talking", e);
     });
     avatar.current.on(StreamingEvents.AVATAR_STOP_TALKING, (e) => {
-      console.log("Avatar stopped talking", e);
+      // console.log("Avatar stopped talking", e);
     });
     avatar.current.on(StreamingEvents.STREAM_DISCONNECTED, () => {
-      console.log("Stream disconnected");
+      // console.log("Stream disconnected");
       endSession();
     });
     avatar.current?.on(StreamingEvents.STREAM_READY, (event) => {
-      console.log(">>>>> Stream ready:", event.detail);
+      // console.log(">>>>> Stream ready:", event.detail);
       setStream(event.detail);
     });
     avatar.current?.on(StreamingEvents.USER_START, (event) => {
-      console.log(">>>>> User started talking:", event);
+      // console.log(">>>>> User started talking:", event);
     });
     avatar.current?.on(StreamingEvents.USER_STOP, (event) => {
-      console.log(">>>>> User stopped talking:", event);
+      // console.log(">>>>> User stopped talking:", event);
     });
     try {
       const res = await avatar.current.createStartAvatar({
@@ -99,7 +98,8 @@ export default function InteractiveAvatar({ nohaResponseText, ref }: any) {
         language: language,
         disableIdleTimeout: true,
       });
-
+console.log(res)
+ref.current.session = res
       setData(res);
       // default to voice mode
       await avatar.current?.startVoiceChat({
