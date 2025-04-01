@@ -15,7 +15,7 @@ from src.services.workflows import solution_evaluator, subcriteria_generator
 from src.services.workflows.candidate_greeter import generate_greeting
 from src.services.workflows import solution_evaluator
 from src.services.workflows.hint_generator import generate_hint
-from src.utils.logger import get_logger
+from src.config.logging_config import get_logger
 from src.utils.response_helper import decorate_response
 from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool
 from src.dao.question import get_question_metadata
