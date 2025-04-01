@@ -57,7 +57,7 @@ const MyPage = () => {
     const startConnection2 = async (userDetails: any) => {
         try {
             const connectRes = await axios.get(`${backendServiceLink}/connect`);
-            const initializeRes = await axios.post(`${backendServiceLink}/initialize`, { user_name: userDetails.name, user_email: userDetails.email });
+            const initializeRes = await axios.post(`${backendServiceLink}/initialize`, { user_name: userDetails.name, user_email: userDetails.email, live_code: userDetails.live_code });
 
             console.log('start connection', connectRes)
             console.log('initialize data', initializeRes)
@@ -161,7 +161,8 @@ const MyPage = () => {
             window.speechSynthesis.speak(utterance);
     };
 
-    const handleSubmit = (data: { name: string; email: string }) => {
+    const handleSubmit = (data: { name: string; email: string, live_code: number }) => {
+        console.log("Form submitted with data:", data);
         setDetails({ ...data });
         // startConnection(data);
         startConnection2({...data})
