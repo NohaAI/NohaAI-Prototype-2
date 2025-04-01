@@ -16,10 +16,10 @@ const MyPage = () => {
     const [details, setDetails] = useState({} as any);
     const [callEnded, setCallEnded] = useState(false);
     const [backendServiceLink] = useState(
-	"https://test.noha.ai/backend"
-        // "http://34.47.214.185:5001"
-        // "https://apis.noha.ai"
-        );
+	        "https://test.noha.ai/backend"
+            // "http://localhost:5001"
+            // "http://34.47.214.185:5001"
+    );
     const [userSocket, setUserSocket] = useState<any>(null);
     const [chats, setChats] = useState<Array<any>>([]);
     
@@ -34,34 +34,12 @@ const MyPage = () => {
     const recognitionRef = useRef<any>(null);
     const [isSilence, setIsSilence] = useState<boolean | null>(null)
 
-    // const startConnection = async (userDetails: any) => {
-    //     const socketConnection = io(backendServiceLink + '/guest', { transports: ["websocket"] });
-    //     const greetMsg: string = `Hi ${userDetails.name}, Find an index in an array where the sum of elements to the left equals the sum to the right.`;
-
-    //     socketConnection.on("connect", () => {
-    //         console.log('Connected');
-    //         if (!interviewStarted) speakText(greetMsg);
-    //         setInterviewStarted(true);
-    //         updateChats(greetMsg);
-    //     });
-
-    //     socketConnection.on("disconnect", () => {
-    //         console.log("Client disconnected from server");
-    //     });
-
-    //     socketConnection.on("streamBack", (data) => {
-    //         console.log('Received AI response');
-    //         updateChats(data);
-    //         speakText(data);
-    //     });
-
-    //     setUserSocket(socketConnection);
-    // };
+    const [nohaResponse, setNohaResponse] = useState<any>(null)
 
     const startConnection2 = async (userDetails: any) => {
         try {
             const connectRes = await axios.get(`${backendServiceLink}/connect`);
-            const initializeRes = await axios.post(`${backendServiceLink}/initialize`, { user_name: userDetails.name, user_email: userDetails.email });
+            const initializeRes = await axios.post(`${backendServiceLink}/initialize`, { user_name: userDetails.name, user_email: userDetails.email, live_code: '333333' });
 
             console.log('start connection', connectRes)
             console.log('initialize data', initializeRes)
@@ -115,6 +93,7 @@ const MyPage = () => {
             console.log("rms=>:chatMetaData:", chatMetaData);
 
             const res = await axios.post(`${backendServiceLink}/chat`, chatMetaData);
+            setNohaResponse(res);
             setNohaResponseProcessing(false)
             console.log("Received Noha backend AI response", res.data);
             setNohaResponseText(res.data.session_state.bot_dialogue)
@@ -134,42 +113,18 @@ const MyPage = () => {
         }
     };
 
+    useEffect(()=>{
+        if(nohaResponse?.data.session_state.termination && !isAudioPlaying){
+            onCancelCall2()
+        }
+    }, [isAudioPlaying, nohaResponse])
+
     const updateChats = (msg: string, sender = "Noha AI") => {
         setChats((prevChats) => [
             { name: sender, message: msg },
             ...prevChats,
         ]);
     };
-
-    // const speakText = (text: string, info?: any) => {
-            
-    //         if (!window.speechSynthesis) {
-    //             console.error("Speech synthesis is not supported in this browser.");
-    //             return;
-    //         }
-        
-    //         const utterance = new SpeechSynthesisUtterance(text);
-    //         utterance.lang = "en-US";
-    //         utterance.rate = 1;
-    //         utterance.pitch = 1;
-
-    //         utterance.onstart = () =>{
-    //             console.log("Speech started");
-    //             setIsAudioPlaying(true)
-    //         }
-
-    //         utterance.onend = () => {
-    //             console.log("Speech finished");
-    //             setIsAudioPlaying(false)
-    //             if(info?.termination) {
-    //                 disconnect2()
-    //                 stopRecording();
-    //                 setCallEnded(true);
-    //             }
-    //         };
-
-    //         window.speechSynthesis.speak(utterance);
-    // };
 
     const handleSubmit = (data: { name: string; email: string }) => {
         setDetails({ ...data });
@@ -276,6 +231,8 @@ const MyPage = () => {
             setTranscribedText(""); // Reset after emitting
         }
     }, [isRecording, isProcessing]);
+
+    
 
     const sendFeedback = async (rating: number) => {
         window.location.reload();
