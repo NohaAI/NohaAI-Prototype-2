@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-import logging
 import uvicorn
 from src.dao.utils.execute_query import execute_query
 from src.dao.utils.connect import get_db_connection
@@ -7,8 +6,7 @@ from src.dao.exceptions import DatabaseConnectionError,DatabaseOperationError,Da
 from src.dao.exceptions import QuestionNotFoundException, QuestionTypeNotFoundException, NoQuestionForComplexityException
 from src.schemas.dao import QuestionResponse,QuestionRequest
 # Logging Configuration
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from src.utils import logger as LOGGER
 
 app = FastAPI()
 
@@ -37,7 +35,7 @@ async def get_question_metadata(question_id: int):
             question_metadata = execute_query(conn, question_query, (question_id,))
             
             if not question_metadata:
-                logger.error(f"Question with ID {question_id} not found in the database")
+                LOGGER.log_error(f"Question with ID {question_id} not found in the database")
                 raise QuestionNotFoundException(question_id)
                 
             return {
@@ -58,8 +56,8 @@ async def get_question_metadata(question_id: int):
 async def get_random_question_metadata(complexity: int, question_list: list[int]):
     try:
         with get_db_connection() as conn:
-            logger.info(f"QUESTION LIST RECEIVED IN QUESTION.PY {question_list} \n")
-            logger.info(f"TYPE OF QUESTION LIST RECEIVED IN QUESTION.PY {type(question_list)} \n")
+            LOGGER.log_info(f"QUESTION LIST RECEIVED IN QUESTION.PY {question_list} \n")
+            LOGGER.log_info(f"TYPE OF QUESTION LIST RECEIVED IN QUESTION.PY {type(question_list)} \n")
             if len(question_list) == 0: 
                 question_query = """
                     SELECT question_id, question,question_type_id, complexity FROM question
@@ -69,7 +67,7 @@ async def get_random_question_metadata(complexity: int, question_list: list[int]
                 """
                 get_question_metadata = execute_query(conn, question_query, (complexity,))
                 if not get_question_metadata:
-                    logger.error(f"NO QUESTIONS FOUND IN THE DATABASE")
+                    LOGGER.log_error(f"NO QUESTIONS FOUND IN THE DATABASE")
                     raise NoQuestionForComplexityException(complexity)
             else:
                 question_query = """
@@ -80,7 +78,7 @@ async def get_random_question_metadata(complexity: int, question_list: list[int]
                 """
                 get_question_metadata = execute_query(conn, question_query, (complexity, tuple(question_list),))
                 if not get_question_metadata:
-                    logger.error(f"NO QUESTIONS FOUND IN THE DATABASE")
+                    LOGGER.log_error(f"NO QUESTIONS FOUND IN THE DATABASE")
                     raise NoQuestionForComplexityException(complexity)
             return {
                 "question_id": get_question_metadata[0],
@@ -163,7 +161,7 @@ async def update_question(question_id: int, question: QuestionRequest, question_
             existing_type = execute_query(conn, verify_type_query, (question_type_id,))
             
             if not existing_type:
-                logger.error(f"Question type with ID {question_type_id} not found in the database ")
+                LOGGER.log_error(f"Question type with ID {question_type_id} not found in the database ", exc_info = True)
                 raise QuestionTypeNotFoundException(question_type_id)
             
             update_fields = []
@@ -181,7 +179,7 @@ async def update_question(question_id: int, question: QuestionRequest, question_
                 params.append(question.question_type)
             
             if not update_fields:
-                logger.error(f"Empty update fields provided to update_question")
+                LOGGER.log_error(f"Empty update fields provided to update_question", exc_info = True)
                 raise Exception("No update fields provided")
             
             update_query = f"""
@@ -200,7 +198,7 @@ async def update_question(question_id: int, question: QuestionRequest, question_
             )
             
             if not updated_question:
-                logger.error(f"Question with ID {question_id} not found in the database")
+                LOGGER.log_error(f"Question with ID {question_id} not found in the database", exc_info=True)
                 raise QuestionNotFoundException(question_id)
             return {
                 "question_id": updated_question[0],
@@ -241,7 +239,7 @@ async def delete_question(question_id: int):
             )
             
             if not deleted_question:
-                logger.error(f"Question with ID {question_id} not found in the database")
+                LOGGER.log_error(f"Question with ID {question_id} not found in the database", exc_info = True)
                 raise QuestionNotFoundException(question_id)
             return {"message": "Question deleted successfully"}
 
