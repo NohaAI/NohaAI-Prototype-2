@@ -23,16 +23,23 @@ class AssessmentDAO:
         SELECT question_id, primary_question_score, assessment_payloads 
         FROM assessment WHERE interview_id = %s
         """
-        records = execute_query(get_db_connection(), query, (interview_id,), fetch_one=False)
-        
-        assessments = []
-        for record in records:
-            assessments.append({
-                "question_id": record[0],
-                "primary_question_score": record[1],
-                "assessment_payloads": json.loads(record[2]) if record[2] else []  # Ensure JSON parsing
-            })
-        return assessments
+        try:
+            with get_db_connection() as conn:
+                records = execute_query(conn, query, (interview_id,), fetch_one=False) 
+                assessments = []
+                for record in records:
+                    assessments.append({
+                        "question_id": record[0],
+                        "primary_question_score": record[1],
+                        "assessment_payloads": json.loads(record[2]) if record[2] else []  # Ensure JSON parsing
+                    })
+                return assessments
+        except DatabaseConnectionError as e:
+            raise e
+        except DatabaseQueryError as e:
+            raise e
+        except DatabaseOperationError as e:
+            raise e
 
     @staticmethod
     def add_assessment(interview_id: int, question_id: int, primary_question_score: float, assessment_payloads: List[Dict]) -> None:
@@ -43,7 +50,15 @@ class AssessmentDAO:
         """
         
         assessment_payloads_json = json.dumps(assessment_payloads)  # Convert list of dicts to JSON
-        execute_query(get_db_connection(), query, (interview_id, question_id, primary_question_score, assessment_payloads_json))
+        try:
+            with get_db_connection() as conn:
+                execute_query(conn, query, (interview_id, question_id, primary_question_score, assessment_payloads_json))
+        except DatabaseConnectionError as e:
+            raise e
+        except DatabaseQueryError as e:
+            raise e
+        except DatabaseOperationError as e:
+            raise e
 
     @staticmethod
     def update_assessment(interview_id: int, question_id: int, primary_question_score: float, assessment_payloads: List[Dict]) -> None:
@@ -55,7 +70,16 @@ class AssessmentDAO:
         """
         
         assessment_payloads_json = json.dumps(assessment_payloads)
-        execute_query(get_db_connection(), query, (primary_question_score, assessment_payloads_json, interview_id, question_id))
+        try:
+            with get_db_connection() as conn:
+
+                execute_query(conn, query, (primary_question_score, assessment_payloads_json, interview_id, question_id))
+        except DatabaseConnectionError as e:
+            raise e
+        except DatabaseQueryError as e:
+            raise e
+        except DatabaseOperationError as e:
+            raise e
 
     @staticmethod
     def batch_insert_assessments(assessments: List[Dict]) -> None:
