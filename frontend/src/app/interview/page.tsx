@@ -12,8 +12,8 @@ const MyPage = () => {
     const [details, setDetails] = useState({} as any);
     const [callEnded, setCallEnded] = useState(false);
     const [backendServiceLink] = useState(
-	// "https://test.noha.ai/backend"
-    "http://localhost:5001"
+	"https://test.noha.ai/backend"
+    // "http://localhost:5001"
         // "http://34.47.214.185:5001"
         // "https://apis.noha.ai"
         );
@@ -174,11 +174,11 @@ const MyPage = () => {
             window.speechSynthesis.speak(utterance);
     };
 
-    const handleSubmit = (data: { name: string; email: string, live_code: string }) => {
+    const handleSubmit = async (data: { name: string; email: string, live_code: string }) => {
         console.log("Form submitted with data:", typeof(data.live_code));
         setDetails({ ...data });
         // startConnection(data);
-        startConnection2({...data})
+        await startConnection2({...data})
     };
 
     // const onCancelCall = () => {

@@ -23,7 +23,7 @@ const InterviewDetails: React.FC<InterviewDetailsProps> = ({ onSubmit, errorMsg 
             if (!formData.name || !formData.email || !formData.live_code) return;
             console.log(formData);
             setLoading(true);
-            onSubmit({ ...formData });
+            await onSubmit({ ...formData });
             setLoading(false);
         } catch (error) {
             setLoading(false);
