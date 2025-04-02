@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@heygen/streaming-avatar": "^2.0.10",
+    "@heygen/streaming-avatar": "^2.0.11",
     "ahooks": "^3.8.4",
     "axios": "^1.7.9",
     "framer-motion": "^12.4.3",

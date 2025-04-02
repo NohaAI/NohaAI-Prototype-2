@@ -102,20 +102,20 @@ const MyPage = () => {
             updateChats(res.data.session_state.bot_dialogue);
             
             avatarRef?.current?.handleSpeak(res.data.session_state.bot_dialogue)
-            if(res.data.session_state.termination){
-                disconnect2()
-                stopRecording();
-                setCallEnded(true);
-            }
-            // speakText(res.data.session_state.bot_dialogue, { termination:  res.data.session_state.termination })
-        } catch (error) {
+            // if(res.data.session_state.termination){
+            //     disconnect2()
+            //     stopRecording();
+            //     setCallEnded(true);
+            // }
+         } catch (error) {
             console.error("Error in handleStreamBack:", error);
         }
     };
 
     useEffect(()=>{
         if(nohaResponse?.data.session_state.termination && !isAudioPlaying){
-            onCancelCall2()
+            console.log('Terminate the interview')
+            // onCancelCall2()
         }
     }, [isAudioPlaying, nohaResponse])
 
@@ -257,6 +257,7 @@ const MyPage = () => {
 
     const onStopPlaying = () => {
         setIsAudioPlaying(false)
+        console.log('nohaResponse', nohaResponse)
     }
 
 
@@ -269,7 +270,7 @@ const MyPage = () => {
                 <InterviewDetails onSubmit={handleSubmit} />
             ) : (
                 <LiveInterview
-                onSessionStart={onSessionStart} 
+                    onSessionStart={onSessionStart} 
                     ref={avatarRef}
                     chats={chats}
                     name={details.name}
