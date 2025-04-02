@@ -143,33 +143,51 @@ const MyPage = () => {
 
     const speakText = (text: string, info?: any) => {
             
-            if (!window.speechSynthesis) {
-                console.error("Speech synthesis is not supported in this browser.");
-                return;
-            }
-        
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = "en-US";
-            utterance.rate = 1;
-            utterance.pitch = 1;
+        if (!window.speechSynthesis) {
+            console.error("Speech synthesis is not supported in this browser.");
+            return;
+        }
+        window.speechSynthesis.cancel(); // Stop any ongoing speech
 
-            utterance.onstart = () =>{
-                console.log("Speech started");
-                setIsAudioPlaying(true)
-            }
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "en-US";
+        utterance.rate = 0.9;
+        utterance.pitch = 1.2;
 
-            utterance.onend = () => {
-                console.log("Speech finished");
-                setIsAudioPlaying(false)
-                if(info?.termination) {
-                    disconnect2()
-                    stopRecording();
-                    setCallEnded(true);
-                }
+        const voices = window.speechSynthesis.getVoices();
+        // Try to find a female voice
+        const femaleVoice = voices.find((voice) =>  voice.name.toLowerCase().includes("female") || voice.name.toLowerCase().includes("samantha"))
+        if (femaleVoice) {
+            utterance.voice = femaleVoice;
+        } else if (voices.length > 0) {
+            utterance.voice = voices[0]; // Fallback to any available voice
+        }
+
+        console.log('femaleVoice', femaleVoice)
+
+        utterance.onstart = () =>{
+            console.log("Speech started");
+            setIsAudioPlaying(true)
+        }
+
+        utterance.onend = () => {
+            console.log("Speech finished");
+            setIsAudioPlaying(false)
+            if(info?.termination) {
+                disconnect2()
+                stopRecording();
+                setCallEnded(true);
+            }
+        };
+
+        if (voices.length === 0) {
+            window.speechSynthesis.onvoiceschanged = () => {
+                speakText(text, info);
             };
-
+        } else {
             window.speechSynthesis.speak(utterance);
-    };
+        }
+};
 
     const handleSubmit = async (data: { name: string; email: string, live_code: string }) => {
         console.log("Form submitted with data:", typeof(data.live_code));
