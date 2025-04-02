@@ -32,75 +32,77 @@ const InterviewDetails: React.FC<InterviewDetailsProps> = ({ onSubmit, errorMsg 
     };
 
     return (
-        <div className="fixed inset-0 flex justify-center bg-gradient-to-br from-[#3600FF] to-[#361899] p-6">
-            {/* Close Button */}
-            <button onClick={() => router.back()} className="absolute right-4 top-4 text-white">
-                <X size={24} />
-            </button>
+        <>
+            <div className="fixed inset-0 flex justify-center bg-gradient-to-br from-[#3600FF] to-[#361899] p-6">
+                {/* Close Button */}
+                <button onClick={() => router.back()} className="absolute right-4 top-4 text-white">
+                    <X size={24} />
+                </button>
 
-            <div className="relative w-full max-w-lg bg-transparent rounded-2xl p-8">
-                <h2 className="text-2xl md:text-3xl font-semibold text-white text-center">
-                    Meet Noha: Your intelligent conversational interviewer
-                </h2>
-                <p className="text-gray-300 text-center mt-2">
-                    Begin by providing your interview details.
-                </p>
-                
-                <div className="absolute text-red-400 ml-32 mt-5  ">{errorMsg}</div>
-                {/* Input Section */}
-                <div className="mt-10 space-y-6">
-                    {/* Name Field */}
-                    <div className="flex flex-col">
-                        <label className="text-white text-lg font-bold mb-2">Name</label>
-                        <input
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            placeholder="Enter your name"
-                            className="w-full px-5 py-3 rounded-full bg-white text-gray-900 shadow-md outline-none focus:ring-2 focus:ring-blue-500"
-                        />
+                <div className="relative w-full max-w-lg bg-transparent rounded-2xl p-8">
+                    <h2 className="text-2xl md:text-3xl font-semibold text-white text-center">
+                        Meet Noha: Your intelligent conversational interviewer
+                    </h2>
+                    <p className="text-gray-300 text-center mt-2">
+                        Begin by providing your interview details.
+                    </p>
+                    
+                    <div className="absolute text-red-400 ml-32 mt-5  ">{errorMsg}</div>
+                    {/* Input Section */}
+                    <div className="mt-10 space-y-6">
+                        {/* Name Field */}
+                        <div className="flex flex-col">
+                            <label className="text-white text-lg font-bold mb-2">Name</label>
+                            <input
+                                type="text"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleChange}
+                                placeholder="Enter your name"
+                                className="w-full px-5 py-3 rounded-full bg-white text-gray-900 shadow-md outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+
+                        {/* Email Field */}
+                        <div className="flex flex-col">
+                            <label className="text-white text-lg font-bold mb-2">Email</label>
+                            <input
+                                type="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                placeholder="Enter your email"
+                                className="w-full px-5 py-3 rounded-full bg-white text-gray-900 shadow-md outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+
+                        {/* Live Code Field */}
+                        <div className="flex flex-col">
+                            <label className="text-white text-lg font-bold mb-2">Live Code</label>
+                            <input
+                                type="text"
+                                name="live_code"
+                                value={formData.live_code}
+                                onChange={handleChange}
+                                placeholder="Enter live code"
+                                className="w-full px-5 py-3 rounded-full bg-white text-gray-900 shadow-md outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
                     </div>
 
-                    {/* Email Field */}
-                    <div className="flex flex-col">
-                        <label className="text-white text-lg font-bold mb-2">Email</label>
-                        <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            placeholder="Enter your email"
-                            className="w-full px-5 py-3 rounded-full bg-white text-gray-900 shadow-md outline-none focus:ring-2 focus:ring-blue-500"
-                        />
+                    {/* Submit Button */}
+                    <div className="text-center">
+                        <button
+                            onClick={handleSubmit}
+                            disabled={loading}
+                            className="mt-6 px-14 py-2 bg-gradient-to-r from-[#0D99FF] to-[#0A5992] text-white font-medium text-lg rounded-full shadow-md"
+                        >
+                            {loading ? "Joining..." : "Join"}
+                        </button>
                     </div>
-
-                    {/* Live Code Field */}
-                    <div className="flex flex-col">
-                        <label className="text-white text-lg font-bold mb-2">Live Code</label>
-                        <input
-                            type="text"
-                            name="live_code"
-                            value={formData.live_code}
-                            onChange={handleChange}
-                            placeholder="Enter live code"
-                            className="w-full px-5 py-3 rounded-full bg-white text-gray-900 shadow-md outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                </div>
-
-                {/* Submit Button */}
-                <div className="text-center">
-                    <button
-                        onClick={handleSubmit}
-                        disabled={loading}
-                        className="mt-6 px-14 py-2 bg-gradient-to-r from-[#0D99FF] to-[#0A5992] text-white font-medium text-lg rounded-full shadow-md"
-                    >
-                        {loading ? "Joining..." : "Join"}
-                    </button>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 
