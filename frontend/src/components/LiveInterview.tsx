@@ -105,7 +105,7 @@ const LiveInterview = ({ name, onSessionStart, onStartPlaying, onStopPlaying, on
           <p className="text-white mt-2 absolute left-3 bottom-2">Noha</p>
         </div>
         {nohaResponseProcessing && <BeatLoader color="white" className="mt-4" />}
-       {(isAudioPlaying || !nohaResponseProcessing) && <p className="mt-1 text-white">{chats[0].name === 'Noha AI' && chats[0].message}</p>}
+       {(isAudioPlaying || !nohaResponseProcessing) && <p className="mt-1 text-white text-[12px]">{chats[0].name === 'Noha AI' && chats[0].message}</p>}
       </div>
 
 

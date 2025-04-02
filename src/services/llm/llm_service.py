@@ -13,7 +13,7 @@ def get_openai_model():
     return llm
 
 def get_chain(prompt):
-    llm = get_openai_model(model=DEFAULT_MODEL)
+    llm = get_openai_model()
     chain = prompt | llm
     return chain
   

@@ -88,7 +88,8 @@ def prepare_interview_evaluation_data(user_email, code_snippet) -> InterviewEval
         assessment_payloads_object = AssessmentDAO.get_assessments(interview_id)
         
         chat_history = helper.convert_chat_history_object_to_dict(chat_history_object)
-        assessment_payloads = helper.convert_assessment_payload_object_to_dict(assessment_payloads_object)
+        # assessment_payloads = helper.convert_assessment_payload_object_to_dict(assessment_payloads_object)
+        assessment_payloads = assessment_payloads_object
         if len(assessment_payloads) == 0:
             raise EmptyAssessmentPayloadException(assessment_payloads = assessment_payloads)
     
@@ -112,7 +113,10 @@ def prepare_interview_evaluation_data(user_email, code_snippet) -> InterviewEval
         
         evaluation_summary_object_list = create_evaluation_summary_object_list(question_id_list, chat_history, assessment_payloads, criteria_list,code_snippet)
         
-        overall_recommendation_object = create_overall_recommendation_object(evaluation_summary_object_list, criteria_list) 
+        if assessment_payloads[0]["assessment_payloads"][-1]["final_score"] == 0:
+            overall_recommendation_object = OverallRecommendationObject (title =  "OVERALL RECOMMENDATION:", content = None)
+        else:
+            overall_recommendation_object = create_overall_recommendation_object(evaluation_summary_object_list, criteria_list) 
         
         return InterviewEvaluationDataObject( 
             header_object =  header_object, 

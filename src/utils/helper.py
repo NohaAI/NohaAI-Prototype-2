@@ -1,6 +1,5 @@
 from typing import Any
-import logging
-from src.utils.logger import get_logger
+from src.config import logging_config as LOGCONF
 from src.config import constants as CONST
 import importlib.resources as res
 from fastapi.responses import JSONResponse
@@ -10,8 +9,6 @@ import os
 from datetime import datetime
 
 
- # Configure logger if not already set up
-logger = get_logger(__name__)
 
 def get_current_datetime():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -126,122 +123,30 @@ def transform_subcriteria(input_data):
         result[main_criteria]['weight'].append(weight)
 
     return result
-
-def pretty_log_temp(title: str, data, log_level=logging.INFO):
-    """
-    Logs a structured dictionary or list in a pretty JSON format.
-
-    Args:
-        title (str): A descriptive title for the log entry.
-        data (dict | list | any): The structured data to log.
-        log_level (int, optional): Logging level (default is logging.INFO).
-    """
-
-    try:
-        if isinstance(data, list): 
-            if str(data) == "assessment":
-                print("INSIDE HELPER IF")
-                primary_question_score = str(data[-1]['primary_question_score'])
-                logger.log(log_level, primary_question_score)
-                criteria_scores = str(data[-1]['criteria_scores'])
-                logger.log(log_level, criteria_scores)
-                subcriteria_scores = str(data[-1]['subcriteria_scores'])
-                logger.log(log_level, subcriteria_scores)
-            else:
-                pretty_data = json.dumps(data, indent=4, ensure_ascii=False)
-        elif isinstance(data, dict):
-            pretty_data = json.dumps(data, indent=4, ensure_ascii=False)
-        else:
-            pretty_data = str(data)
-
-        log_message = f"\n==== {title} ====\n{pretty_data}\n================="
-        logger.log(log_level, log_message)
-    except Exception as e:
-        logger.error(f"Error while logging {title}: {e}")
         
-
-def pretty_log_for_local(title: str, data, log_level=0):
-    """
-    Logs a structured dictionary or list in a pretty JSON format.
-
-    Args:
-        title (str): A descriptive title for the log entry.
-        data (dict | list | any): The structured data to log.
-        log_level (int, optional): Logging level (default is logging.INFO).
-    """
-    try:
-        if isinstance(data, (dict, list)):  
-            pretty_data = json.dumps(data, indent=4, ensure_ascii=False)
-        else:
-            pretty_data = str(data)
-
-        log_message = f"\n==== {title} ====\n{pretty_data}\n================="
-
-        # Handle integer logging levels properly
-        if isinstance(log_level, int) and log_level not in [
-            logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL
-        ]:
-            if log_level == 1:
-                # print(f"[LOG LEVEL {log_level}] {log_message}")
-                print(f"{log_message}")
-        else:
-            logger.log(log_level, log_message)
-    except Exception as e:
-        logger.error(f"Error while logging {title}: {e}")
-
-        # Assuming logger is already configured elsewhere to write to FILElog
-def pretty_log(title: str, data, log_level=1):
-    """
-    Logs a structured dictionary or list in a pretty JSON format.
-    Prints to console and appends to FILElog.
-
-    Args:
-        title (str): A descriptive title for the log entry.
-        data (dict | list | any): The structured data to log.
-        log_level (int, optional): Logging level (default is logging.INFO).
-    """
-    try:
-        # Convert data to pretty JSON if it's a dict or list
-        if isinstance(data, (dict, list)):  
-            pretty_data = json.dumps(data, indent=4, ensure_ascii=False)
-        else:
-            pretty_data = str(data)
-
-        log_message = f"\n==== {title} ====\n{pretty_data}\n================="
-
-        # Always print to console
-        print(log_message)
-
-        # Log to FILElog using the logger
-        if isinstance(log_level, int) and log_level not in [
-            logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL
-        ]:
-            if log_level == 1:
-                logger.info(log_message)  # Default to INFO if an invalid level is given
-        else:
-            logger.log(log_level, log_message)  # Log at specified level
-    except Exception as e:
-        logger.error(f"Error while logging {title}: {e}")
-
-def pretty_log_list(title: str, data, log_level=0):
-    """
-    Logs a structured dictionary or list in a pretty JSON format.
-
-    Args:
-        title (str): A descriptive title for the log entry.
-        data (dict | list | any): The structured data to log.
-        log_level (int, optional): Logging level (default is logging.INFO).
-    """
-    try:
-        if isinstance(data, (dict)):  
-            pretty_data = json.dumps(data, indent=4, ensure_ascii=False)
-        else:
-            pretty_data = str(data)
-
-        log_message = f"\n==== {title} ====\n{pretty_data}\n================="
-        logger.log(log_level, log_message)
-    except Exception as e:
-        logger.error(f"Error while logging {title}: {e}")
-
 def filter_by_key(data, key, value):
     return [item for item in data if item.get(key) == value]
+
+def get_subcriteria_scores(assessment_payload):
+    """
+    Extracts subcriteria scores from the assessment payload.
+
+    Args:
+        assessment_payload (dict): The assessment payload.
+
+    Returns:
+        list: A list of subcriteria scores.
+    """
+    return [criterion.get("subcriteria_scores", []) for criterion in assessment_payload.get("criteria", [])]
+
+def get_criteria_scores(assessment_payload):
+    """
+    Extracts criteria scores from the assessment payload.
+
+    Args:
+        assessment_payload (dict): The assessment payload.
+
+    Returns:
+        list: A list of criteria scores.
+    """
+    return [criterion.get("criteria_scores", []) for criterion in assessment_payload.get("criteria", [])]

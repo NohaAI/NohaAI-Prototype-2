@@ -5,6 +5,7 @@ import LiveInterview from "@/components/LiveInterview";
 import axios from "axios";
 import { data } from "framer-motion/client";
 import { useEffect, useRef, useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
 // import { io } from "socket.io-client";
 
 const MyPage = () => {
@@ -16,10 +17,8 @@ const MyPage = () => {
     const [details, setDetails] = useState({} as any);
     const [callEnded, setCallEnded] = useState(false);
     const [backendServiceLink] = useState(
-	        "https://test.noha.ai/backend"
-            // "http://localhost:5001"
-            // "http://34.47.214.185:5001"
-    );
+	        process.env.NEXT_PUBLIC_BACKEND_URL
+        );
     const [userSocket, setUserSocket] = useState<any>(null);
     const [chats, setChats] = useState<Array<any>>([]);
     
@@ -33,13 +32,26 @@ const MyPage = () => {
 
     const recognitionRef = useRef<any>(null);
     const [isSilence, setIsSilence] = useState<boolean | null>(null)
+    
+    const [errorMsg, setErrorMsg] = useState<string>("");
 
     const [nohaResponse, setNohaResponse] = useState<any>(null)
+
+
+    useEffect(() => {
+        if(errorMsg){
+            toast(errorMsg, {
+                position: 'top-center',
+                autoClose: 5000,
+                theme: "dark",
+            })
+        }
+    }, [errorMsg])
 
     const startConnection2 = async (userDetails: any) => {
         try {
             const connectRes = await axios.get(`${backendServiceLink}/connect`);
-            const initializeRes = await axios.post(`${backendServiceLink}/initialize`, { user_name: userDetails.name, user_email: userDetails.email, live_code: '333333' });
+            const initializeRes = await axios.post(`${backendServiceLink}/initialize`, { user_name: userDetails.name, user_email: userDetails.email, live_code: userDetails.live_code });
 
             console.log('start connection', connectRes)
             console.log('initialize data', initializeRes)
@@ -51,10 +63,20 @@ const MyPage = () => {
             setNohaResponseText(initializeRes.data.session_state.bot_dialogue)
             console.log(avatarRef)
 
-        } catch (error) {
-            console.error("Error in startConnection2:", error);
-            throw error; 
-        }
+        } catch (error: any) {
+            let errorMessage = "Unknown error occurred";
+        
+            // Check if the error has a response (API error)
+            if (error.response && error.response.data && error.response.data.detail) {
+                errorMessage = error.response.data.detail; // Extract the "detail" field
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+        
+            setErrorMsg(errorMessage);
+            console.error("Error in startConnection2:", errorMessage);
+            throw error;
+        }        
     };
     
     const disconnect2 = async() =>{
@@ -126,10 +148,59 @@ const MyPage = () => {
         ]);
     };
 
-    const handleSubmit = (data: { name: string; email: string }) => {
+    const speakText = (text: string, info?: any) => {
+            
+        if (!window.speechSynthesis) {
+            console.error("Speech synthesis is not supported in this browser.");
+            return;
+        }
+        window.speechSynthesis.cancel(); // Stop any ongoing speech
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "en-US";
+        utterance.rate = 0.9;
+        utterance.pitch = 1.2;
+
+        const voices = window.speechSynthesis.getVoices();
+        // Try to find a female voice
+        const femaleVoice = voices.find((voice) =>  voice.name.toLowerCase().includes("female") || voice.name.toLowerCase().includes("samantha"))
+        if (femaleVoice) {
+            utterance.voice = femaleVoice;
+        } else if (voices.length > 0) {
+            utterance.voice = voices[0]; // Fallback to any available voice
+        }
+
+        console.log('femaleVoice', femaleVoice)
+
+        utterance.onstart = () =>{
+            console.log("Speech started");
+            setIsAudioPlaying(true)
+        }
+
+        utterance.onend = () => {
+            console.log("Speech finished");
+            setIsAudioPlaying(false)
+            if(info?.termination) {
+                disconnect2()
+                stopRecording();
+                setCallEnded(true);
+            }
+        };
+
+        if (voices.length === 0) {
+            window.speechSynthesis.onvoiceschanged = () => {
+                speakText(text, info);
+            };
+        } else {
+            window.speechSynthesis.speak(utterance);
+        }
+};
+
+    const handleSubmit = async (data: { name: string; email: string, live_code: string }) => {
+        console.log("Form submitted with data:", typeof(data.live_code));
         setDetails({ ...data });
         // startConnection(data);
-        startConnection2({...data})
+        await startConnection2({...data})
     };
 
     const onCancelCall2 = () =>{
@@ -204,7 +275,7 @@ const MyPage = () => {
     
         recognitionRef.current = recognition;
         recognition.start();
-    };   
+    };    
     
     const stopRecording = () => {
         setIsRecording(false);
@@ -260,6 +331,7 @@ const MyPage = () => {
 
     return (
         <>
+        <ToastContainer/>
         {/* Display on medium and large devices */}
         <div className="hidden lg:block">
             {!callEnded && (

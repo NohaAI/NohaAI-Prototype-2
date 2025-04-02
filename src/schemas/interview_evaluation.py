@@ -54,7 +54,7 @@ class OverallRecommendationObject:
     """Represents the final hiring recommendation, including a title and a detailed assessment of the candidate's performance."""
    
     title: str  # The section header (e.g., "OVERALL RECOMMENDATION").
-    content: str  # The final recommendation based on the candidate's evaluation.
+    content: Union[str,None]  # The final recommendation based on the candidate's evaluation.
 
 @dataclass
 class InterviewEvaluationDataObject:

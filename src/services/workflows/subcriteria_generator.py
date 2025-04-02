@@ -2,7 +2,7 @@ from typing import Any, Dict, List
 from src.dao.criterion import fetch_criteria
 from src.dao.subcriterion import batch_insert_subcriteria, fetch_subcriteria
 from src.schemas.endpoints import GenerateSubCriteriaRequest
-from src.utils.logger import get_logger
+from src.config.logging_config import get_logger
 from src.services.llm.prompts import subcriteria_generator_prompt
 from src.services.llm import llm_service
 import src.utils as utils

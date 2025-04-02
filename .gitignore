@@ -2,17 +2,17 @@
 temp/
 _personal/
 # ignore ALL files with the following extension
-*.log				
-*.env				
-*.venv
+*.log
+*.env
 *.ini
 *.csv
 *.txt
 *.pdf
 *.sh
+# ignore ALL files within any python virtual environment
+venv/
+.venv/
 ##### specific patterns to be updated here 							
 __pycache__/
-pyvenv.cfg
-database.ini
-.env
 .vscode
+env_settings.py

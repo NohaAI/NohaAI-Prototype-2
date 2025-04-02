@@ -10,7 +10,7 @@ from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 from src.schemas.endpoints.schema import GenerateSubCriteriaRequest,EvaluateAnswerRequest, GenerateHintRequest
 from src.services.workflows import solution_evaluator, subcriteria_generator
-from src.utils.logger import get_logger
+from src.config.logging_config import get_logger
 from typing import List
 from src.utils.helper import decorate_response
 from src.dao.utils.db_utils import get_db_connection,execute_query,DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError,DB_CONFIG,connection_pool

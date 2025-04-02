@@ -82,8 +82,10 @@ def prepare_interview_evaluation_data(session_state, chat_history, assessment_pa
         candidate_details_object = create_candidate_details_object(session_state, assessment_payloads)
         
         evaluation_summary_object_list = create_evaluation_summary_object_list(session_state, chat_history, assessment_payloads, criteria_list,code_snippet)
-        
-        overall_recommendation_object = create_overall_recommendation_object(evaluation_summary_object_list, criteria_list) 
+        if assessment_payloads[0]["assessment_payloads"][-1]["final_score"] == 0:
+            overall_recommendation_object = OverallRecommendationObject (title =  "OVERALL RECOMMENDATION:", content = None)
+        else:
+            overall_recommendation_object = create_overall_recommendation_object(evaluation_summary_object_list, criteria_list) 
         
         return InterviewEvaluationDataObject( 
             header_object =  header_object, 

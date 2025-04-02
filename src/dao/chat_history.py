@@ -5,9 +5,7 @@ from src.dao.exceptions import ChatHistoryNotFoundException, InterviewNotFoundEx
 from psycopg2.extras import execute_values
 from src.dao.chat_history_data.chat_history_record import ChatHistoryRecord  # Import the data object
 from typing import List, Optional, Dict
-import logging
-
-logger = logging.getLogger(__name__)
+from src.utils import logger as LOGGER
 
 class ChatHistoryDAO:
     def get_chat_history(self, interview_id: int) -> List[ChatHistoryRecord]:
@@ -24,7 +22,7 @@ class ChatHistoryDAO:
                 """
                 records = execute_query(conn, query, (interview_id,), fetch_one=False)
                 if not records:
-                    logger.info(f"No chat history found for interview ID {interview_id}")
+                    LOGGER.log_info(f"No chat history found for interview ID {interview_id}")
                     return []  # Return an empty list or raise a custom exception
             
                 # Map to data objects
@@ -32,13 +30,13 @@ class ChatHistoryDAO:
 
                 return chat_history_records
         except DatabaseConnectionError as e:
-            logger.exception("Database connection error")
+            LOGGER.log_error("Database connection error", exc_info = True)
             raise e
         except DatabaseQueryError as e:
-            logger.exception("Database query error")
+            LOGGER.log_error("Database query error", exc_info = True)
             raise e
         except DatabaseOperationError as e:
-            logger.exception("Database operation error")
+            LOGGER.log_error("Database operation error", exc_info = True)
             raise e
 
     def get_filtered_chat_history(self, interview_id: int, question_id: Optional[int] = None) -> List[Dict[str, str]]:
@@ -79,13 +77,13 @@ class ChatHistoryDAO:
                     })
                 return filtered_history
         except DatabaseConnectionError as e:
-            logger.exception("Database connection error")
+            LOGGER.log_error("Database connection error", exc_info = True)
             raise e
         except DatabaseQueryError as e:
-            logger.exception("Database query error")
+            LOGGER.log_error("Database query error", exc_info = True)
             raise e
         except DatabaseOperationError as e:
-            logger.exception("Database operation error")
+            LOGGER.log_error("Database operation error", exc_info = True)
             raise e
 
     def update_chat_history(self, chat_history_turn_id: int, bot_dialogue: str = None, candidate_dialogue: str = None, bot_dialogue_type: str = None) -> Dict:
@@ -139,13 +137,13 @@ class ChatHistoryDAO:
                     "bot_dialogue_type": updated_record[5],
                 }
         except DatabaseConnectionError as e:
-            logger.exception("Database connection error")
+            LOGGER.log_error("Database connection error", exc_info = True)
             raise e
         except DatabaseQueryError as e:
-            logger.exception("Database query error")
+            LOGGER.log_error("Database query error", exc_info = True)
             raise e
         except DatabaseOperationError as e:
-            logger.exception("Database operation error")
+            LOGGER.log_error("Database operation error", exc_info = True)
             raise e
 
     def add_chat_history(self, interview_id: int, question_id: int, bot_dialogue: str, candidate_dialogue: str, distilled_candidate_dialogue: str,
@@ -186,13 +184,13 @@ class ChatHistoryDAO:
                     "bot_dialogue_type": result[6]
                 }
         except DatabaseConnectionError as e:
-            logger.exception("Database connection error")
+            LOGGER.log_error("Database connection error", exc_info = True)
             raise e
         except DatabaseQueryError as e:
-            logger.exception("Database query error")
+            LOGGER.log_error("Database query error", exc_info = True)
             raise e
         except DatabaseOperationError as e:
-            logger.exception("Database operation error")
+            LOGGER.log_error("Database operation error", exc_info = True)
             raise e
 
     def batch_insert_chat_history(self, chat_history_records: List[Dict]) -> List[Dict]:
@@ -243,7 +241,7 @@ class ChatHistoryDAO:
                     )
                     for record in chat_history_records
                 ]
-                logger.info(f"Values: {values}")
+                LOGGER.log_info(f"Values: {values}")
                 if not values:
                     return []  # No records to insert
 
@@ -271,12 +269,12 @@ class ChatHistoryDAO:
                     VALUES %s
                     RETURNING chat_history_turn_id, interview_id, question_id, bot_dialogue, candidate_dialogue, distilled_candidate_dialogue, bot_dialogue_type
                 """
-                logger.info(f"Insert query: {insert_query}")
+                LOGGER.log_info(f"Insert query: {insert_query}")
                 cursor = conn.cursor()
                 results = execute_values(cursor, insert_query, values, fetch=True)
                 conn.commit()
 
-                logger.info(f"Results: {results}")
+                LOGGER.log_info(f"Results: {results}")
 
                 # Convert results to dictionaries
                 inserted_records = [
@@ -295,13 +293,13 @@ class ChatHistoryDAO:
             return inserted_records
 
         except DatabaseConnectionError as e:
-            logger.exception("Database connection error")
+            LOGGER.log_error("Database connection error", exc_info = True)
             raise e
         except DatabaseQueryError as e:
-            logger.exception("Database query error")
+            LOGGER.log_error("Database query error", exc_info = True)
             raise e
         except DatabaseOperationError as e:
-            logger.exception("Database operation error")
+            LOGGER.log_error("Database operation error", exc_info = True)
             raise e
             
 
@@ -329,14 +327,14 @@ class ChatHistoryDAO:
 
                     return {"message": "chat history deleted successfully"}
                 except Exception as e:
-                    logger.error(f"Error deleting chat history : {e}")
+                    LOGGER.log_error(f"Error deleting chat history : {e}", exc_info=True)
                     raise
         except DatabaseConnectionError as e:
-            logger.exception("Database connection error")
+            LOGGER.log_error("Database connection error", exc_info = True)
             raise e
         except DatabaseQueryError as e:
-            logger.exception("Database query error")
+            LOGGER.log_error("Database query error", exc_info = True)
             raise e
         except DatabaseOperationError as e:
-            logger.exception("Database operation error")
+            LOGGER.log_error("Database operation error", exc_info = True)
             raise e

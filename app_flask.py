@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 # from src.services.workflows.dialogue_flow import get_next_response
 from src.dao.interview_session_state import add_interview_session_state
-from src.utils.logger import get_logger
+from src.config.logging_config import get_logger
 import json
 import traceback
 from src.dao.chat_history import batch_insert_chat_history

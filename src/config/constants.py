@@ -11,8 +11,10 @@ THRESHOLD_COMPLEXITY = 1
 THRESHOLD_TOTAL_NUMBER_OF_QUESTIONS = 2
 
 # BOT CANNED DIALOGUES ############################################################
-GREETING_SUFFIX_DEV = "Ready?"
 GREETING_SUFFIX = "I am Noha! I am your interviewer today. We have planned a data structures and algorithms interview with you, are you good to go?"
+GREETING_SUFFIX = "I'm Noha, and I'll be your interviewer today. I hope you're having a great day!. We will be covering Data Structures and Algorithms today, so when you're ready to respond, you can unmute your microphone by clicking the button below or pressing the space bar. Once you've  completed your answer, you can mute it again the same way. Are you ready to go?"
+GREETING_SUFFIX = "I’m Noha, your interviewer today. We’ll focus on Data Structures and Algorithms. To respond, unmute using the button below or the space bar; mute again the same way after answering. Ready?"
+GREETING_SUFFIX = "Ready?"
 QUESTION_SOLVED = "Okay, now that you have answered the algorithmic aspects, can you begin writing the code ?"
 GUARDRAIL_TRIGGERED_QUESTIONS_REMAIN = "Sorry, there seems to be a lack of clarity in your responses. Let us move on to the next question: "
 GUARDRAIL_TRIGGERED_NO_QUESTIONS_REMAIN = "Sorry, there seems to be a lack of clarity in your responses. Let us conclude here."
@@ -74,3 +76,6 @@ BOT_NAME = "Noha AI"
 ASSESSMENT_PAYLOAD_SCHEMA_PATH = "src.schemas.evaluation"
 # ASSESSMENT_PAYLOAD_SCHEMA = "assessment_payload.json"
 ASSESSMENT_PAYLOAD_SCHEMA = "assessment_payload_longest_8criterion.json"
+
+#LIVE CODE WHILE DEVELOPING
+DEVELOPER_LIVE_CODE = "333333"

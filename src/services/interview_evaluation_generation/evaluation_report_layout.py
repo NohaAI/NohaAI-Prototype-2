@@ -54,20 +54,21 @@ def build_evaluation_summary_section(layout: PDFLayout, evaluation_summary_objec
         evaluation_summary_content.append(Paragraph(code_text, layout.styles.code_style))
         evaluation_summary_content.append(Spacer(1, layout.spacing.alter_code))
         
-        # Score
-        evaluation_summary_content.append(Paragraph("SCORE:", layout.styles.heading_style))
-        evaluation_summary_content.append(Paragraph(f"{evaluation_summary_object.question_score}/10", layout.styles.normal_style))
-        evaluation_summary_content.append(Spacer(1, layout.spacing.alter_paragraph))
+        # COMMENTED UNTIL SCORE DISTRIBUTION IS COHERENT    
+        # # Score
+        # evaluation_summary_content.append(Paragraph("SCORE:", layout.styles.heading_style))
+        # evaluation_summary_content.append(Paragraph(f"{evaluation_summary_object.question_score}/10", layout.styles.normal_style))
+        # evaluation_summary_content.append(Spacer(1, layout.spacing.alter_paragraph))
         
-        # Score distribution
-        evaluation_summary_content.append(Paragraph("SCORE DISTRIBUTION:", layout.styles.heading_style))
+        # # Score distribution
+        # evaluation_summary_content.append(Paragraph("SCORE DISTRIBUTION:", layout.styles.heading_style))
         
-        for i, score in enumerate(evaluation_summary_object.criteria_scores):
-            if i < len(criteria_list):  # Make sure we don't exceed the criteria_list list
-                evaluation_summary_content.append(Paragraph(
-                    f"<b>{criteria_list[i]}:</b> {score}/10", 
-                    layout.styles.normal_style
-                ))
+        # for i, score in enumerate(evaluation_summary_object.criteria_scores):
+        #     if i < len(criteria_list):  # Make sure we don't exceed the criteria_list list
+        #         evaluation_summary_content.append(Paragraph(
+        #             f"<b>{criteria_list[i]}:</b> {score}/10", 
+        #             layout.styles.normal_style
+        #         ))
     
     evaluation_summary_content.append(Spacer(1, layout.spacing.alter_section))
     return evaluation_summary_content

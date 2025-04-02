@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 import uvicorn
+import src.config.logging_config
 from src.utils import logger
 from src.services.llm import llm_service
 from src.services.llm.prompts.policy_violation_prompt import policy_violation_prompt_template
-logger = logger.get_logger(__name__)
+logger = src.config.logging_config.get_logger(__name__)
 app=FastAPI()
 
 @app.get('/policy_violation_service')
