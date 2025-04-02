@@ -4,6 +4,7 @@ import InterviewDetails from "@/components/InterviewDetails";
 import LiveInterview from "@/components/LiveInterview";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
 // import { io } from "socket.io-client";
 
 const MyPage = () => {
@@ -53,6 +54,17 @@ const MyPage = () => {
 
     //     setUserSocket(socketConnection);
     // };
+
+
+    useEffect(() => {
+        if(errorMsg){
+            toast(errorMsg, {
+                position: 'top-center',
+                autoClose: 5000,
+                theme: "dark",
+            })
+        }
+    }, [errorMsg])
 
     const startConnection2 = async (userDetails: any) => {
         try {
@@ -309,11 +321,12 @@ const MyPage = () => {
 
     return (
         <>
+        <ToastContainer/>
         {/* Display on medium and large devices */}
         <div className="hidden lg:block">
             {!callEnded && (
             !interviewStarted ? (
-                <InterviewDetails errorMsg={errorMsg} onSubmit={handleSubmit} />
+                <InterviewDetails onSubmit={handleSubmit} />
             ) : (
                 <LiveInterview
                     chats={chats}
