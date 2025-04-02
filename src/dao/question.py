@@ -93,6 +93,26 @@ async def get_random_question_metadata(complexity: int, question_list: list[int]
     except DatabaseOperationError as e:
         raise e
 
+def fetch_question_by_ids(question_id_list):
+    try:
+        with get_db_connection() as conn:
+            fetch_questions_query = f"""
+                SELECT question 
+                FROM Question 
+                WHERE question_id IN %s 
+                ORDER BY CASE 
+                    { " ".join([f"WHEN question_id = {qid} THEN {i}" for i, qid in enumerate(question_id_list)]) }
+                END
+            """ #order by case is necessary to return questions in the same order of question_id_list
+            questions_list_tuples = execute_query(conn, fetch_questions_query, (tuple(question_id_list),), fetch_one=False)
+            return [question_tuple[0] for question_tuple in questions_list_tuples]
+    except DatabaseConnectionError as e:
+        raise e
+    except DatabaseQueryError as e:
+        raise e
+    except DatabaseOperationError as e:
+        raise e
+
 @app.post("/question-service", response_model=QuestionResponse)
 async def add_question(question: str, question_type_id: int, complexity: int):
     """

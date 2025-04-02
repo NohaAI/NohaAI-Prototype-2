@@ -30,6 +30,8 @@ const MyPage = () => {
 
     const recognitionRef = useRef<any>(null);
     const [isSilence, setIsSilence] = useState<boolean | null>(null)
+    
+    const [errorMsg, setErrorMsg] = useState<string>("");
 
     // const startConnection = async (userDetails: any) => {
     //     const socketConnection = io(backendServiceLink + '/guest', { transports: ["websocket"] });
@@ -58,7 +60,7 @@ const MyPage = () => {
     const startConnection2 = async (userDetails: any) => {
         try {
             const connectRes = await axios.get(`${backendServiceLink}/connect`);
-            const initializeRes = await axios.post(`${backendServiceLink}/initialize`, { user_name: userDetails.name, user_email: userDetails.email });
+            const initializeRes = await axios.post(`${backendServiceLink}/initialize`, { user_name: userDetails.name, user_email: userDetails.email, live_code: userDetails.live_code });
 
             console.log('start connection', connectRes)
             console.log('initialize data', initializeRes)
@@ -69,10 +71,20 @@ const MyPage = () => {
             updateChats(initializeRes.data.session_state.bot_dialogue);
             speakText(initializeRes.data.session_state.bot_dialogue)
 
-        } catch (error) {
-            console.error("Error in startConnection2:", error);
-            throw error; 
-        }
+        } catch (error: any) {
+            let errorMessage = "Unknown error occurred";
+        
+            // Check if the error has a response (API error)
+            if (error.response && error.response.data && error.response.data.detail) {
+                errorMessage = error.response.data.detail; // Extract the "detail" field
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+        
+            setErrorMsg(errorMessage);
+            console.error("Error in startConnection2:", errorMessage);
+            throw error;
+        }        
     };
     
     const disconnect2 = async() =>{
@@ -162,10 +174,11 @@ const MyPage = () => {
             window.speechSynthesis.speak(utterance);
     };
 
-    const handleSubmit = (data: { name: string; email: string }) => {
+    const handleSubmit = async (data: { name: string; email: string, live_code: string }) => {
+        console.log("Form submitted with data:", typeof(data.live_code));
         setDetails({ ...data });
         // startConnection(data);
-        startConnection2({...data})
+        await startConnection2({...data})
     };
 
     // const onCancelCall = () => {
@@ -246,9 +259,7 @@ const MyPage = () => {
     
         recognitionRef.current = recognition;
         recognition.start();
-    };
-    
-    
+    };    
     
     const stopRecording = () => {
         setIsRecording(false);
@@ -287,21 +298,21 @@ const MyPage = () => {
         <div className="hidden lg:block">
             {!callEnded && (
             !interviewStarted ? (
-                <InterviewDetails onSubmit={handleSubmit} />
+                <InterviewDetails errorMsg={errorMsg} onSubmit={handleSubmit} />
             ) : (
                 <LiveInterview
-                chats={chats}
-                name={details.name}
-                onCancelCall={onCancelCall2}
-                userSocket={userSocket}
-                isMicOn={isMicOn}
-                startRecording={startRecording}
-                stopRecording={stopRecording}
-                isRecording={isRecording}
-                nohaResponseProcessing={nohaResponseProcessing}
-                isProcessing={isProcessing}
-                isAudioPlaying={isAudioPlaying}
-                isSilence={isSilence}
+                    chats={chats}
+                    name={details.name}
+                    onCancelCall={onCancelCall2}
+                    userSocket={userSocket}
+                    isMicOn={isMicOn}
+                    startRecording={startRecording}
+                    stopRecording={stopRecording}
+                    isRecording={isRecording}
+                    nohaResponseProcessing={nohaResponseProcessing}
+                    isProcessing={isProcessing}
+                    isAudioPlaying={isAudioPlaying}
+                    isSilence={isSilence}
                 />
             )
             )}

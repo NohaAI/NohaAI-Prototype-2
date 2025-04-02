@@ -105,6 +105,12 @@ class InterviewSessionStateNotFoundException(Exception):
         self.interview_id = interview_id
         self.message = f"No interview_session_state found with interview_id: {self.interview_id}"
         super().__init__(self.message)
+class LiveCodeNotFoundException(Exception):  
+    """Exception raised when live code is not found in the database."""
+    def __init__(self, live_code):
+        self.live_code = live_code
+        self.message = f"live_code: {self.live_code} does not exist"
+        super().__init__(self.message)
 
 class DatabaseConnectionError(Exception):
     """Raised when database connection fails"""

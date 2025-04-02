@@ -7,10 +7,12 @@ _personal/
 *.ini
 *.csv
 *.txt
+*.pdf
+*.sh
 # ignore ALL files within any python virtual environment
 venv/
 .venv/
-##### specific patterns to be updated here 
+##### specific patterns to be updated here 							
 __pycache__/
 .vscode
 env_settings.py

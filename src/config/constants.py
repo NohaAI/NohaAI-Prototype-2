@@ -1,8 +1,8 @@
 # Application-wide constants
 
 # INTERVIEW THRESHOLDS ############################################################
-THRESHOLD_MAX_TURNS = 10
-THRESHOLD_SCORE = 5.0
+THRESHOLD_MAX_TURNS = 15
+THRESHOLD_SCORE = 10.0
 THRESHOLD_MAX_CONTIGUOUS_TECHNICAL_GUARDRAIL_COUNT = 4
 THRESHOLD_MAX_CONTIGUOUS_NON_TECHNICAL_GUARDRAIL_COUNT = 4
 THRESHOLD_MAX_CONTIGUOUS_NON_TECHNICAL_NO_PRIMARY_QUESTION_GUARDRAIL_COUNT = 2
@@ -12,6 +12,7 @@ THRESHOLD_TOTAL_NUMBER_OF_QUESTIONS = 2
 
 # BOT CANNED DIALOGUES ############################################################
 GREETING_SUFFIX = "I am Noha! I am your interviewer today. We have planned a data structures and algorithms interview with you, are you good to go?"
+GREETING_SUFFIX = "I'm Noha, and I'll be your interviewer today. I hope you're having a great day!. We will be covering Data Structures and Algorithms today, so when you're ready to respond, you can unmute your microphone by clicking the button below or pressing the space bar. Once you've  completed your answer, you can mute it again the same way. Are you ready to go?"
 GREETING_SUFFIX = "I’m Noha, your interviewer today. We’ll focus on Data Structures and Algorithms. To respond, unmute using the button below or the space bar; mute again the same way after answering. Ready?"
 GREETING_SUFFIX = "Ready?"
 QUESTION_SOLVED = "Okay, now that you have answered the algorithmic aspects, can you begin writing the code ?"
@@ -69,7 +70,12 @@ DEF_DISTILLED_CANDIDATE_DIALOGUE = None # Set dynamically from candidate_classif
 DEF_PRIMARY_QUESTION_SCORE = 0.0
 DEF_ASSESSMENT_PAYLOADS = None
 
+# BOT NAME
+BOT_NAME = "Noha AI"
 # ASSESSMENT DATA DEFAULTS ###########################################################
 ASSESSMENT_PAYLOAD_SCHEMA_PATH = "src.schemas.evaluation"
 # ASSESSMENT_PAYLOAD_SCHEMA = "assessment_payload.json"
 ASSESSMENT_PAYLOAD_SCHEMA = "assessment_payload_longest_8criterion.json"
+
+#LIVE CODE WHILE DEVELOPING
+DEVELOPER_LIVE_CODE = "333333"
