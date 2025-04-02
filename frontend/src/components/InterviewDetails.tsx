@@ -76,7 +76,7 @@ const InterviewDetails: React.FC<InterviewDetailsProps> = ({ onSubmit }) => {
 
                         {/* Live Code Field */}
                         <div className="flex flex-col">
-                            <label className="text-white text-lg font-bold mb-2">Live Code</label>
+                            <label className="text-white text-lg font-bold mb-2">Access Code</label>
                             <input
                                 type="text"
                                 name="live_code"
