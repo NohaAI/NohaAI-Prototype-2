@@ -1,3 +1,4 @@
+import pytz
 # Application-wide constants
 
 # INTERVIEW THRESHOLDS ############################################################
@@ -79,3 +80,6 @@ ASSESSMENT_PAYLOAD_SCHEMA = "assessment_payload_longest_8criterion.json"
 
 #LIVE CODE WHILE DEVELOPING
 DEVELOPER_LIVE_CODE = "333333"
+
+#TIME ZONE FOR DATES
+IST = pytz.timezone("Asia/Kolkata")

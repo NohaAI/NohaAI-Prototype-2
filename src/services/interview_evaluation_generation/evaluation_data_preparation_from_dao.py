@@ -9,7 +9,6 @@ from src.services.workflows.overall_recommendation_generator import generate_ove
 from src.dao.assessment import AssessmentDAO
 from src.dao.chat_history import ChatHistoryDAO
 from src.dao.user import get_candidate_interview_id
-
 from src.exceptions.report_generation_exceptions import EmptyAssessmentPayloadException, EmptyChatHistoryException
 
 
@@ -37,7 +36,7 @@ def create_candidate_details_object(interview_id, assessment_payloads) -> List[C
     interview_date_obj = candidate_details['interview_date']
     interview_date = interview_date_obj.date()
     interview_time = interview_date_obj.time().strftime("%H:%M:%S")
-    report_generation_date = datetime.now().date()
+    report_generation_date = datetime.now(const.IST).date()
     overall_score,total_possible_score = helper.calculate_overall_score(assessment_payloads)
     candidate_details_object = [
         CandidateDetailItem(label= "Candidate Name", value= candidate_name),

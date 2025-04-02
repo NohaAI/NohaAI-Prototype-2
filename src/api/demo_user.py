@@ -10,7 +10,7 @@ from fastapi import status
 from datetime import datetime
 from src.utils import logger as LOGGER
 from src.config import logging_config as LOGCONF
-
+from src.config import constants as CONST
 def is_valid_email(email):
     pattern = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
     return re.match(pattern, email) is not None
@@ -69,7 +69,7 @@ async def initialize_interview(user_name, user_email):
                 RETURNING interview_id
             """
             LOGGER.pretty_log("inserting interview_query statement ...", insert_interview_query,  LOGCONF.DEBUG2)
-            interview_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+            interview_date = datetime.now(CONST.IST).strftime('%Y-%m-%d %H:%M:%S.%f')
             interview_recording_url="N/A"
             LOGGER.pretty_log("interview_date", interview_date,  LOGCONF.DEBUG2)
             LOGGER.pretty_log("interview_recording_url", interview_recording_url,  LOGCONF.DEBUG2)

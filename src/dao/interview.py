@@ -7,7 +7,7 @@ from src.dao.utils.connect import get_db_connection
 from src.dao.exceptions import DatabaseConnectionError,DatabaseOperationError,DatabaseQueryError
 from src.dao.exceptions import UserNotFoundException,InterviewNotFoundException
 from src.schemas.dao import InterviewRequest,InterviewResponse
-
+from src.config import constants as CONST
 # Logging Configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
