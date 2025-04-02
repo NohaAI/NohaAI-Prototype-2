@@ -1,0 +1,195 @@
+
+%%{init: {'theme':'forest'}}%%
+
+sequenceDiagram
+
+    Title Sequence diagram of .stream_llm_response() of /server.py
+
+    participant p1 as stream_llm_response()<br>:server.py/server.py
+    participant p2 as <br>:srcdaointerview_session_state.py/interview_session_state.py
+    participant p3 as <br>:srcdaoutilsdb_utils.py/db_utils.py
+    participant p4 as <br>:noha_dialogue.py/noha_dialogue.py
+    participant p5 as <br>:srcservicesworkflowscandidate_dialogue_classifier.py/candidate_dialogue_classifier.py
+    participant p6 as <br>:srcservicesllmpromptsclassify_candidate_dialogue_prompt.py/classify_candidate_dialogue_prompt.py
+    participant p7 as llm_service<br>:srcservicesllmllm_service.py/llm_service.py
+    participant p8 as <br>:srcservicesworkflowsbot_dialogue_generator.py/bot_dialogue_generator.py
+    participant p9 as <br>:srcservicesllmpromptsbot_dialogue_prompt.py/bot_dialogue_prompt.py
+    participant p10 as <br>:srcservicesworkflowsanswer_classifer.py/answer_classifer.py
+    participant p11 as <br>:srcservicesllmpromptsanswer_classifier_prompt.py/answer_classifier_prompt.py
+    participant p12 as <br>:srcservicesworkflowsanswer_evaluator.py/answer_evaluator.py
+    participant p13 as subcriterion<br>:srcdaosubcriterion.py/subcriterion.py
+    participant p14 as chat_hist<br>:srcdaochat_history.py/chat_history.py
+    participant p15 as <br>:srcdaochat_history.py/chat_history.py
+    participant p16 as answer_evaluator_prompt<br>:srcservicesllmpromptsanswer_evaluator_prompt.py/answer_evaluator_prompt.py
+    participant p17 as llm<br>:srcservicesllmllm_service.py/llm_service.py
+    participant p18 as interview_computation<br>:srcutilsinterview_computation.py/interview_computation.py
+    participant p19 as <br>:srcdaointerview_question_evaluation.py/interview_question_evaluation.py
+    participant p20 as <br>:srcdaoquestion.py/question.py
+    participant p21 as <br>:server.py/server.py
+
+
+	p1 ->>+ p2: 1: get_interview_session_state(interview_id)
+	p2 ->>+ p3: 1.1: get_db_connection()
+	p3 -->>- p2: 1.1: return value
+	p2 ->>+ p3: 1.2: execute_query(conn, query, (interview_id,),<br>fetch_one=True)
+	p3 -->>- p2: 1.2: return value
+	p2 -->>- p1: 1: return value
+	p1 ->>+ p4: 2: get_bot_dialogue(user_input, session_state)
+	p4 ->>+ p5: 2.1: classify_candidate_dialogue(session_state['current_question'],<br>, user_input, session_state[<br>'interim_chat_history'])
+	p5 ->>+ p6: 2.1.1: classify_candidate_dialogue_prompt_template()
+	p6 -->>- p5: 2.1.1: return value
+	p5 ->>+ p7: 2.1.2: get_openai_model(model = "gpt-4o-mini")
+	p7 -->>- p5: 2.1.2: return value
+	p5 -->>- p4: 2.1: return value
+	p4 ->>+ p8: 2.2: generate_dialogue(candidate_dialogue_label, session_state[<br>['interim_chat_history'], user_input,<br>, session_state['current_question'],<br>, session_state['hint_count'],<br>session_state['assessment_payload'],<br>None,None)
+	p8 ->>+ p9: 2.2.1: bot_dialogue_prompt_template()
+	p9 -->>- p8: 2.2.1: return value
+	p8 ->>+ p7: 2.2.2: get_openai_model(model = "gpt-4o-mini")
+	p7 -->>- p8: 2.2.2: return value
+	p8 -->>- p4: 2.2: return value
+	p4 ->>+ p10: 2.3: classify_candidate_answer(session_state['meta_payload'].question,<br>, user_input, session_state[<br>'interim_chat_history'])
+	p10 ->>+ p11: 2.3.1: classify_candidate_answer_prompt_template()
+	p11 -->>- p10: 2.3.1: return value
+	p10 ->>+ p7: 2.3.2: get_openai_model(model = "gpt-4o-mini")
+	p7 -->>- p10: 2.3.2: return value
+	p10 -->>- p4: 2.3: return value
+	p4 ->>+ p12: 2.4: evaluate_answer(session_state['meta_payload'])
+	p12 ->>+ p13: 2.4.1: fetch_subcriteria(question_id)
+	p13 ->>+ p3: 2.4.1.1: get_db_connection()
+	p3 -->>- p13: 2.4.1.1: return value
+	p13 ->>+ p3: 2.4.1.2: execute_query(conn, check_question_query, (<br>question_id,))
+	p3 -->>- p13: 2.4.1.2: return value
+	p13 ->>+ p3: 2.4.1.3: execute_query(conn, query, (question_id,),<br>fetch_one=False)
+	p3 -->>- p13: 2.4.1.3: return value
+	p13 -->>- p12: 2.4.1: return value
+	p12 ->>+ p14: 2.4.2: get_chat_history(interview_id)
+	p14 ->>+ p3: 2.4.2.1: get_db_connection()
+	p3 -->>- p14: 2.4.2.1: return value
+	p14 ->>+ p3: 2.4.2.2: execute_query(conn,interview_check_query,(<br>interview_id,))
+	p3 -->>- p14: 2.4.2.2: return value
+	p14 ->>+ p3: 2.4.2.3: execute_query(conn, chat_history_query, (interview_id,<br>), fetch_one=False)
+	p3 -->>- p14: 2.4.2.3: return value
+	p14 ->>+ p15: 2.4.2.4: refine_chat_history(result)
+	p15 -->>- p14: 2.4.2.4: return value
+	p14 -->>- p12: 2.4.2: return value
+	p12 ->>+ p16: 2.4.3: make_prompt_from_template()
+	p16 -->>- p12: 2.4.3: return value
+	p12 ->>+ p17: 2.4.4: get_openai_model(model = "gpt-4o-mini")
+	p17 -->>- p12: 2.4.4: return value
+	p12 ->>+ p12: 2.4.5: return_max_eval(evaluation_results,prev_eval)
+	p12 -->>- p12: 2.4.5: return value
+	p12 ->>+ p18: 2.4.6: compute_turn_score_interim(assessment_payload_ready_for_computation)<br>
+	p18 -->>- p12: 2.4.6: return value
+	p12 -->>- p4: 2.4: return value
+	p4 ->>+ p8: 2.5: generate_dialogue(candidate_answer_label, session_state[<br>['interim_chat_history'], user_input,<br>,session_state['current_question'],<br>, session_state['hint_count'],<br>session_state['assessment_payload'],<br>, session_state['meta_payload'].question,<br>,candidate_answer_classification_rationale)<br>
+	p8 ->>+ p9: 2.5.1: bot_dialogue_prompt_template()
+	p9 -->>- p8: 2.5.1: return value
+	p8 ->>+ p7: 2.5.2: get_openai_model(model = "gpt-4o-mini")
+	p7 -->>- p8: 2.5.2: return value
+	p8 -->>- p4: 2.5: return value
+	p4 ->>+ p5: 2.6: classify_candidate_dialogue(session_state['meta_payload'].question,<br>, user_input, session_state[<br>'interim_chat_history'])
+	p5 ->>+ p6: 2.6.1: classify_candidate_dialogue_prompt_template()
+	p6 -->>- p5: 2.6.1: return value
+	p5 ->>+ p7: 2.6.2: get_openai_model(model = "gpt-4o-mini")
+	p7 -->>- p5: 2.6.2: return value
+	p5 -->>- p4: 2.6: return value
+	p4 ->>+ p8: 2.7: generate_dialogue(candidate_dialogue_label, session_state[<br>['interim_chat_history'], user_input,<br>, session_state['current_question'],<br>, session_state['hint_count'],<br>session_state['assessment_payload'],<br>,session_state['meta_payload'].<br>question,None)
+	p8 ->>+ p9: 2.7.1: bot_dialogue_prompt_template()
+	p9 -->>- p8: 2.7.1: return value
+	p8 ->>+ p7: 2.7.2: get_openai_model(model = "gpt-4o-mini")
+	p7 -->>- p8: 2.7.2: return value
+	p8 -->>- p4: 2.7: return value
+	p4 ->>+ p10: 2.8: classify_candidate_answer(session_state['meta_payload'].question,<br>, user_input, session_state[<br>'interim_chat_history'])
+	p10 ->>+ p11: 2.8.1: classify_candidate_answer_prompt_template()
+	p11 -->>- p10: 2.8.1: return value
+	p10 ->>+ p7: 2.8.2: get_openai_model(model = "gpt-4o-mini")
+	p7 -->>- p10: 2.8.2: return value
+	p10 -->>- p4: 2.8: return value
+	p4 ->>+ p12: 2.9: evaluate_answer(session_state['meta_payload'],<br>,session_state['assessment_payload'][<br>'evaluation_results'])
+	p12 ->>+ p13: 2.9.1: fetch_subcriteria(question_id)
+	p13 ->>+ p3: 2.9.1.1: get_db_connection()
+	p3 -->>- p13: 2.9.1.1: return value
+	p13 ->>+ p3: 2.9.1.2: execute_query(conn, check_question_query, (<br>question_id,))
+	p3 -->>- p13: 2.9.1.2: return value
+	p13 ->>+ p3: 2.9.1.3: execute_query(conn, query, (question_id,),<br>fetch_one=False)
+	p3 -->>- p13: 2.9.1.3: return value
+	p13 -->>- p12: 2.9.1: return value
+	p12 ->>+ p14: 2.9.2: get_chat_history(interview_id)
+	p14 ->>+ p3: 2.9.2.1: get_db_connection()
+	p3 -->>- p14: 2.9.2.1: return value
+	p14 ->>+ p3: 2.9.2.2: execute_query(conn,interview_check_query,(<br>interview_id,))
+	p3 -->>- p14: 2.9.2.2: return value
+	p14 ->>+ p3: 2.9.2.3: execute_query(conn, chat_history_query, (interview_id,<br>), fetch_one=False)
+	p3 -->>- p14: 2.9.2.3: return value
+	p14 ->>+ p15: 2.9.2.4: refine_chat_history(result)
+	p15 -->>- p14: 2.9.2.4: return value
+	p14 -->>- p12: 2.9.2: return value
+	p12 ->>+ p16: 2.9.3: make_prompt_from_template()
+	p16 -->>- p12: 2.9.3: return value
+	p12 ->>+ p17: 2.9.4: get_openai_model(model = "gpt-4o-mini")
+	p17 -->>- p12: 2.9.4: return value
+	p12 ->>+ p12: 2.9.5: return_max_eval(evaluation_results,prev_eval)
+	p12 -->>- p12: 2.9.5: return value
+	p12 ->>+ p18: 2.9.6: compute_turn_score_interim(assessment_payload_ready_for_computation)<br>
+	p18 -->>- p12: 2.9.6: return value
+	p12 -->>- p4: 2.9: return value
+	p4 ->>+ p8: 2.10: generate_dialogue(candidate_answer_label, session_state[<br>['interim_chat_history'], user_input,<br>,session_state['current_question'],<br>, session_state['hint_count'],<br>session_state['assessment_payload'],<br>, session_state['meta_payload'].question,<br>,candidate_answer_classification_rationale)<br>
+	p8 ->>+ p9: 2.10.1: bot_dialogue_prompt_template()
+	p9 -->>- p8: 2.10.1: return value
+	p8 ->>+ p7: 2.10.2: get_openai_model(model = "gpt-4o-mini")
+	p7 -->>- p8: 2.10.2: return value
+	p8 -->>- p4: 2.10: return value
+	p4 ->>+ p19: 2.11: add_question_evaluation(session_state['meta_payload'].<br>.interview_id, session_state[<br>['meta_payload'].question_id,<br>session_state['final_score'], json.<br>.dumps(session_state['assessment_payload'])<br>)
+	p19 ->>+ p3: 2.11.1: get_db_connection()
+	p3 -->>- p19: 2.11.1: return value
+	p19 ->>+ p3: 2.11.2: execute_query(conn, interview_check_query, (<br>(interview_id,), fetch_one=True)<br>
+	p3 -->>- p19: 2.11.2: return value
+	p19 ->>+ p3: 2.11.3: execute_query(conn, question_check_query, (<br>(question_id,), fetch_one=True)<br>
+	p3 -->>- p19: 2.11.3: return value
+	p19 ->>+ p3: 2.11.4: execute_query( conn, insert_query,<br>,                    (interview_id,<br>, question_id, score, evaluation_results)<br>),                    fetch_one=True,<br>,                    commit=True<br>               )
+	p3 -->>- p19: 2.11.4: return value
+	p19 -->>- p4: 2.11: return value
+	p4 ->>+ p15: 2.12: batch_insert_chat_history(session_state['meta_payload'].<br>.interview_id, session_state[<br>['meta_payload'].question_id,<br>,session_state['interim_chat_history'])<br>
+	p15 ->>+ p3: 2.12.1: get_db_connection()
+	p3 -->>- p15: 2.12.1: return value
+	p15 ->>+ p3: 2.12.2: execute_query(conn, interview_check_query, (<br>interview_id,))
+	p3 -->>- p15: 2.12.2: return value
+	p15 ->>+ p3: 2.12.3: execute_query(conn, question_check_query, (<br>question_id,))
+	p3 -->>- p15: 2.12.3: return value
+	p15 -->>- p4: 2.12: return value
+	p4 ->>+ p20: 2.13: get_question_metadata(session_state['meta_payload'].<br>question_id)
+	p20 ->>+ p3: 2.13.1: get_db_connection()
+	p3 -->>- p20: 2.13.1: return value
+	p20 ->>+ p3: 2.13.2: execute_query(conn, question_query, (question_id,))
+	p3 -->>- p20: 2.13.2: return value
+	p20 -->>- p4: 2.13: return value
+	p4 ->>+ p19: 2.14: add_question_evaluation(session_state['meta_payload'].<br>.interview_id, session_state[<br>['meta_payload'].question_id,<br>session_state['final_score'], json.<br>.dumps(session_state['assessment_payload'])<br>)
+	p19 ->>+ p3: 2.14.1: get_db_connection()
+	p3 -->>- p19: 2.14.1: return value
+	p19 ->>+ p3: 2.14.2: execute_query(conn, interview_check_query, (<br>(interview_id,), fetch_one=True)<br>
+	p3 -->>- p19: 2.14.2: return value
+	p19 ->>+ p3: 2.14.3: execute_query(conn, question_check_query, (<br>(question_id,), fetch_one=True)<br>
+	p3 -->>- p19: 2.14.3: return value
+	p19 ->>+ p3: 2.14.4: execute_query( conn, insert_query,<br>,                    (interview_id,<br>, question_id, score, evaluation_results)<br>),                    fetch_one=True,<br>,                    commit=True<br>               )
+	p3 -->>- p19: 2.14.4: return value
+	p19 -->>- p4: 2.14: return value
+	p4 ->>+ p15: 2.15: batch_insert_chat_history(session_state['meta_payload'].<br>.interview_id, session_state[<br>['meta_payload'].question_id,<br>,session_state['interim_chat_history'])<br>
+	p15 ->>+ p3: 2.15.1: get_db_connection()
+	p3 -->>- p15: 2.15.1: return value
+	p15 ->>+ p3: 2.15.2: execute_query(conn, interview_check_query, (<br>interview_id,))
+	p3 -->>- p15: 2.15.2: return value
+	p15 ->>+ p3: 2.15.3: execute_query(conn, question_check_query, (<br>question_id,))
+	p3 -->>- p15: 2.15.3: return value
+	p15 -->>- p4: 2.15: return value
+	p4 -->>- p1: 2: return value
+	p1 ->>+ p2: 3: update_interview_session_state(interview_id, json.dumps(<br>session_state))
+	p2 ->>+ p3: 3.1: get_db_connection()
+	p3 -->>- p2: 3.1: return value
+	p2 ->>+ p3: 3.2: execute_query(conn, check_query, (interview_id,<br>), fetch_one=True)
+	p3 -->>- p2: 3.2: return value
+	p2 ->>+ p3: 3.3: execute_query( conn, update_query,<br>,                     (<br>(interview_session_state, interview_id,<br>, ),                     fetch_one=True,<br>,                    commit=True<br>               )
+	p3 -->>- p2: 3.3: return value
+	p2 -->>- p1: 3: return value
+	p1 ->>+ p21: 4: send_tts_audio(dialogue_response, websocket,<br>save_path=".audio.wav")
+	p21 -->>- p1: 4: return value
+        

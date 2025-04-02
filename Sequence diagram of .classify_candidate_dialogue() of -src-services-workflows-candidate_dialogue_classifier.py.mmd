@@ -1,0 +1,17 @@
+
+%%{init: {'theme':'forest'}}%%
+
+sequenceDiagram
+
+    Title Sequence diagram of .classify_candidate_dialogue() of /src/services/workflows/candidate_dialogue_classifier.py
+
+    participant p1 as classify_candidate_dialogue()<br>:workflows/candidate_dialogue_classifier.py/candidate_dialogue_classifier.py
+    participant p2 as <br>:llm/prompts/classify_candidate_dialogue_prompt.py/classify_candidate_dialogue_prompt.py
+    participant p3 as llm_service<br>:llm/llm_service.py/llm_service.py
+
+
+	p1 ->>+ p2: 1: classify_candidate_dialogue_prompt_template()
+	p2 -->>- p1: 1: return value
+	p1 ->>+ p3: 2: get_openai_model(model = "gpt-4o-mini")
+	p3 -->>- p1: 2: return value
+        

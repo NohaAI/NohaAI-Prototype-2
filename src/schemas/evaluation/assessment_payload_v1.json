@@ -1,0 +1,109 @@
+{
+    "criteria": [
+      {
+        "description": "Are the assumptions clarified?",
+        "weight": 10.0,
+        "calculated_score": 0.0,
+        "subcriteria": [
+          {
+            "description": "If the candidate explicitly clarifies technical assumptions of basic difficulty",
+            "weight": 6.0,
+            "score": 0.0
+          },
+          {
+            "description": "If the candidate explicitly clarifies technical assumptions of moderate difficulty",
+            "weight": 10.0,
+            "score": 0.0
+          }
+        ]
+      },
+      {
+        "description": "Does the candidate account for corner cases?",
+        "weight": 10.0,
+        "calculated_score": 0.0,
+        "subcriteria": [
+          {
+            "description": "If the candidate explicitly clarifies corner cases of basic difficulty",
+            "weight": 6.0,
+            "score": 0.0
+          },
+          {
+            "description": "If the candidate explicitly clarifies corner cases of moderate difficulty",
+            "weight": 10.0,
+            "score": 0.0
+          }
+        ]
+      },
+      {
+        "description": "Does the candidate choose the appropriate data structure for the problem?",
+        "weight": 10.0,
+        "calculated_score": 0.0,
+        "subcriteria": [
+          {
+            "description": "The candidate proposes a working yet suboptimal data structure",
+            "weight": 6.0,
+            "score": 0.0
+          },
+          {
+            "description": "The candidate proposes an optimal data structure",
+            "weight": 10.0,
+            "score": 0.0
+          }
+        ]
+      },
+      {
+        "description": "Does the candidate select a suitable algorithm for the task?",
+        "weight": 10.0,
+        "calculated_score": 0.0,
+        "subcriteria": [
+          {
+            "description": "The candidate proposes a suboptimal algorithm",
+            "weight": 6.0,
+            "score": 0.0
+          },
+          {
+            "description": "The candidate improves over the algorithm proposed earlier",
+            "weight": 10.0,
+            "score": 0.0
+          }
+        ]
+      },
+      {
+        "description": "Does the solution proposed by the candidate have optimal time complexity?",
+        "weight": 10.0,
+        "calculated_score": 0.0,
+        "subcriteria": [
+          {
+            "description": "The candidate proposes an algorithm with a worst-case time complexity",
+            "weight": 6.0,
+            "score": 0.0
+          },
+          {
+            "description": "The candidate proposes an algorithm with an average-case time complexity",
+            "weight": 10.0,
+            "score": 0.0
+          }
+        ]
+      },
+      {
+        "description": "Does the solution proposed by the candidate have optimal space complexity?",
+        "weight": 10.0,
+        "calculated_score": 0.0,
+        "subcriteria": [
+          {
+            "description": "The candidate proposes an algorithm with a worst-case space complexity",
+            "weight": 6.0,
+            "score": 0.0
+          },
+          {
+            "description": "The candidate proposes an algorithm with an average-case space complexity",
+            "weight": 10.0,
+            "score": 0.0
+          }
+        ]
+      }
+    ],
+    "criteria_scores": [],
+    "subcriteria_scores": [],
+    "final_score": 0.0
+  }
