@@ -113,9 +113,9 @@ const MyPage = () => {
     };
 
     useEffect(()=>{
-        if(nohaResponse?.data.session_state.termination && !isAudioPlaying){
-            console.log('Terminate the interview')
-            // onCancelCall2()
+        if(nohaResponse?.data.session_state.termination && !isAudioPlaying && !avatarRef.current?.isLoadingRepeat){
+            console.log('Terminate the interview', avatarRef.current)
+            onCancelCall2()
         }
     }, [isAudioPlaying, nohaResponse])
 
@@ -232,8 +232,6 @@ const MyPage = () => {
         }
     }, [isRecording, isProcessing]);
 
-    
-
     const sendFeedback = async (rating: number) => {
         window.location.reload();
         // try {
@@ -257,7 +255,6 @@ const MyPage = () => {
 
     const onStopPlaying = () => {
         setIsAudioPlaying(false)
-        console.log('nohaResponse', nohaResponse)
     }
 
 
