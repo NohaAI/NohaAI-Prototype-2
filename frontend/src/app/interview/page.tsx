@@ -156,7 +156,7 @@ const MyPage = () => {
 
         const voices = window.speechSynthesis.getVoices();
         // Try to find a female voice
-        const femaleVoice = voices.find((voice) =>  voice.name.toLowerCase().includes("samantha"))
+        const femaleVoice = voices.find((voice) =>  voice.name.toLowerCase().includes("female") || voice.name.toLowerCase().includes("samantha"))
         if (femaleVoice) {
             utterance.voice = femaleVoice;
         } else if (voices.length > 0) {
