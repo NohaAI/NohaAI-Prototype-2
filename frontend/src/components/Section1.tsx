@@ -75,41 +75,21 @@ const Section1: React.FC = () => {
             competency-based interviews to effortlessly identify top talent—no
             more manual interviews.
           </p>
-          <div className="mt-4 text-center block md:hidden">
-        <Link
-          href={"https://www.youtube.com/watch?v=D_RWdG1eIAc"}
-          className=""
-        >
-          <button className="px-6 py-3 border border-[#77FFF1] text-white rounded-full">
-            Watch a demo
-          </button>
-        </Link>
-      </div>
           {/* Buttons */}
           <div className="mt-6 flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 text-center md:text-left">
-            {/* <Link href={"/interview"}>
+            <Link href={"/interview"}>
               <button className="px-8 py-3 text-black font-semibold rounded-full bg-gradient-to-r from-[#77FFF1] to-[#0B9284] ">
                 Try Noha
               </button>
-            </Link> */}
-            {/* <Link href={"https://www.youtube.com/watch?v=D_RWdG1eIAc"}>
+            </Link>
+            <Link href={"https://www.youtube.com/watch?v=D_RWdG1eIAc"}>
               <button className="px-6 py-3 border border-[#77FFF1] text-white rounded-full">
                 Watch a demo
               </button>
-            </Link> */}
+            </Link>
           </div>
         </div>
         <div className="hidden md:block w-72 h-72 bg-[#16073D] rounded-full"></div>
-      </div>
-      <div className="absolute top-[44%] left-[45%] hidden md:block">
-        <Link
-          href={"https://www.youtube.com/watch?v=D_RWdG1eIAc"}
-          className=""
-        >
-          <button className="px-6 py-3 border border-[#77FFF1] text-white rounded-full">
-            Watch a demo
-          </button>
-        </Link>
       </div>
   
     </div>
