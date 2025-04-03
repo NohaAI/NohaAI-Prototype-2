@@ -17,9 +17,12 @@ const InterviewDetails: React.FC<InterviewDetailsProps> = ({ onSubmit }) => {
         setFormData({ ...formData, [name]: value });
     };
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault(); // Prevent default form submission behavior
+        
+        if (!formData.name || !formData.email || !formData.live_code) return;
+
         try {
-            if (!formData.name || !formData.email || !formData.live_code) return;
             console.log(formData);
             setLoading(true);
             await onSubmit({ ...formData });
@@ -27,7 +30,6 @@ const InterviewDetails: React.FC<InterviewDetailsProps> = ({ onSubmit }) => {
         } catch (error) {
             setLoading(false);
         }
-   
     };
 
     return (
@@ -45,9 +47,9 @@ const InterviewDetails: React.FC<InterviewDetailsProps> = ({ onSubmit }) => {
                     <p className="text-gray-300 text-center mt-2">
                         Begin by providing your interview details.
                     </p>
-                    
-                    {/* Input Section */}
-                    <div className="mt-10 space-y-6">
+
+                    {/* Form Section */}
+                    <form onSubmit={handleSubmit} className="mt-10 space-y-6">
                         {/* Name Field */}
                         <div className="flex flex-col">
                             <label className="text-white text-lg font-bold mb-2">Name</label>
@@ -59,6 +61,7 @@ const InterviewDetails: React.FC<InterviewDetailsProps> = ({ onSubmit }) => {
                                 onChange={handleChange}
                                 placeholder="Enter your name"
                                 className="w-full px-5 py-3 rounded-full bg-white text-gray-900 shadow-md outline-none focus:ring-2 focus:ring-blue-500"
+                                required
                             />
                         </div>
 
@@ -72,6 +75,7 @@ const InterviewDetails: React.FC<InterviewDetailsProps> = ({ onSubmit }) => {
                                 onChange={handleChange}
                                 placeholder="Enter your email"
                                 className="w-full px-5 py-3 rounded-full bg-white text-gray-900 shadow-md outline-none focus:ring-2 focus:ring-blue-500"
+                                required
                             />
                         </div>
 
@@ -85,20 +89,21 @@ const InterviewDetails: React.FC<InterviewDetailsProps> = ({ onSubmit }) => {
                                 onChange={handleChange}
                                 placeholder="Enter live code"
                                 className="w-full px-5 py-3 rounded-full bg-white text-gray-900 shadow-md outline-none focus:ring-2 focus:ring-blue-500"
+                                required
                             />
                         </div>
-                    </div>
 
-                    {/* Submit Button */}
-                    <div className="text-center">
-                        <button
-                            onClick={handleSubmit}
-                            disabled={loading}
-                            className="mt-6 px-14 py-2 bg-gradient-to-r from-[#0D99FF] to-[#0A5992] text-white font-medium text-lg rounded-full shadow-md"
-                        >
-                            {loading ? "Joining..." : "Join"}
-                        </button>
-                    </div>
+                        {/* Submit Button */}
+                        <div className="text-center">
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="mt-6 px-14 py-2 bg-gradient-to-r from-[#0D99FF] to-[#0A5992] text-white font-medium text-lg rounded-full shadow-md"
+                            >
+                                {loading ? "Joining..." : "Join"}
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </>
