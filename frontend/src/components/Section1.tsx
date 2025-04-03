@@ -89,9 +89,15 @@ const Section1: React.FC = () => {
             </Link>
           </div>
         </div>
-        <div className="hidden md:block w-72 h-72 bg-[#16073D] rounded-full"></div>
+        <div className="hidden bg-black md:block w-72 h-72 rounded-full overflow-hidden">
+          <img
+            src="/NohaAI High res.png"
+            alt="Noha AI"
+            className="w-full h-full object-cover"
+          />
+        </div>
       </div>
-  
+
     </div>
   );
 };
