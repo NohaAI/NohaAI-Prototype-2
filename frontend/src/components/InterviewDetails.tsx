@@ -52,6 +52,7 @@ const InterviewDetails: React.FC<InterviewDetailsProps> = ({ onSubmit }) => {
                         <div className="flex flex-col">
                             <label className="text-white text-lg font-bold mb-2">Name</label>
                             <input
+                                autoFocus
                                 type="text"
                                 name="name"
                                 value={formData.name}
