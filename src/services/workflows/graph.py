@@ -241,6 +241,9 @@ async def perform_actions(session_state, chat_history, assessment):
             session_state['primary_question'] = question    # reinitialize the primary question
             session_state['question_id'] = question_id    # set the question_id in session state (field was added relatively later)
             session_state['bot_dialogue'] = session_state['bot_dialogue'] + question    # set bot dialogue in session state with the new question
+            session_state['consecutive_termination_request_count'] = 0
+            session_state['contiguous_technical_guardrail_count'] = 0
+            session_state['contiguous_non_technical_guardrail_count'] = 0
             chat_history[-1]['bot_dialogue'] = session_state['bot_dialogue'] + question   # set bot dialogue in chat history with the new question 
             chat_history[-1]['question_id'] = question_id   # update the chat history with the question id 
             assessment_record = assessment[-1]
@@ -270,10 +273,12 @@ async def perform_actions(session_state, chat_history, assessment):
             else:
                 session_state['bot_dialogue'] = question    # set bot dialogue in session_state with the new question
                 chat_history[-1]['bot_dialogue'] = question   # set bot dialogue in chat history with the new question
-            
+
             session_state['question_id'] = question_id    # set the question_id in session state (field was added relatively later)
             chat_history[-1]['question_id'] = question_id   # update the chat history with the question id 
-
+            session_state['consecutive_termination_request_count'] = 0
+            session_state['contiguous_technical_guardrail_count'] = 0
+            session_state['contiguous_non_technical_guardrail_count'] = 0
             ### PREPARING A NEW ASSESSMENT RECORD ###################################
             assessment_record = {'interview_id':session_state['interview_id'], 'question_id': question_id, 'primary_question_score': CONST.DEF_PRIMARY_QUESTION_SCORE, 'assessment_payloads': [helper.get_assessment_payload()] }
             assessment.append(assessment_record)
