@@ -111,7 +111,7 @@ const MyPage = () => {
 
     useEffect(()=>{
         return ()=>{
-            disconnect2()
+            if(interviewStarted) disconnect2()
         }
     }, [])
 
