@@ -89,7 +89,7 @@ const Section1: React.FC = () => {
             </Link>
           </div>
         </div>
-        <div className="hidden bg-black md:block w-72 h-72 rounded-full overflow-hidden">
+        <div className="hidden bg-[#77FFF1] md:block w-72 h-72 rounded-full overflow-hidden">
           <img
             src="/NohaAI High res.png"
             alt="Noha AI"
