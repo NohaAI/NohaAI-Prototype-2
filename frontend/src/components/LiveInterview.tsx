@@ -85,30 +85,35 @@ const LiveInterview = ({ name, onCancelCall, isRecording, stopRecording, startRe
   };
 
   return (
-    <div className="min-h-screen bg-black px-4 flex flex-row justify-center  pt-[5%] gap-4">
+    <div className="min-h-screen bg-black">
+      
+      <div className="px-4 flex flex-row justify-center  pt-[4%] gap-4">
 
-      {/* User Video */}
-      <div className="relative bg-[#1F1F1F] rounded-lg p-4 flex flex-col justify-center items-center w-full md:w-[474px] md:h-[458px]">
-        {isRecording ? 
-          <Mic color="white" size={20} className="absolute top-2 right-2"/>
-            :
-          <MicOff color="white" size={20} className="absolute top-2 right-2"/>
-        }
-        <video ref={videoRef} autoPlay playsInline muted className="w-full h-[90%] object-cover rounded-lg" />
-        <p className="text-white mt-2 absolute left-3 bottom-2">{name}</p>
-      </div>
-
-      {/* Noha AI */}
-      <div className="w-[474px] h-[458px]">
-        <div className="relative bg-[#1F1F1F] rounded-lg p-4 flex flex-col justify-center items-center h-full">
-          {isAudioPlaying && <ScaleLoader color="white" className="absolute right-4 top-4" />}
-          <img src="noha.png" alt="Noha AI" className="w-[226px] h-[226px] object-cover" />
-          <p className="text-white mt-2 absolute left-3 bottom-2">Noha</p>
+        {/* User Video */}
+        <div className="relative bg-[#1F1F1F] rounded-lg p-4 flex flex-col justify-center items-center md:w-[474px] md:h-[458px]">
+          {isRecording ? 
+            <Mic color="white" size={20} className="absolute top-2 right-2"/>
+              :
+            <MicOff color="white" size={20} className="absolute top-2 right-2"/>
+          }
+          <video ref={videoRef} autoPlay playsInline muted className="w-full h-[90%] object-cover rounded-lg" />
+          <p className="text-white mt-2 absolute left-3 bottom-2">{name}</p>
         </div>
-        {nohaResponseProcessing && <BeatLoader color="white" className="mt-4" />}
-       {(isAudioPlaying || !nohaResponseProcessing) && <p className="mt-1 text-white text-[12px]">{chats[0].name === 'Noha AI' && chats[0].message}</p>}
+
+        {/* Noha AI */}
+        <div className="w-[474px] h-[458px]">
+          <div className="relative bg-[#1F1F1F] rounded-lg p-4 flex flex-col justify-center items-center h-full">
+            {isAudioPlaying && <ScaleLoader color="white" className="absolute right-4 top-4" />}
+            <img src="noha.png" alt="Noha AI" className="w-[226px] h-[226px] object-cover" />
+            <p className="text-white mt-2 absolute left-3 bottom-2">Noha</p>
+          </div>
+        </div> 
       </div>
 
+      <div className="bg-gray-800 mx-auto mt-2 w-[950px] h-[100px] z-10 flex justify-center items-center text-center p-1 border border-gray-200 rounded-lg">
+        {nohaResponseProcessing && <BeatLoader color="white" className="mt-4" />}
+        {(isAudioPlaying || !nohaResponseProcessing) && <p className="mt-1 text-white text-md">{chats[0].name === 'Noha AI' && chats[0].message}</p>}
+      </div>
 
       {/* Call Controls */}
       <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 w-[326px]">
@@ -126,7 +131,7 @@ const LiveInterview = ({ name, onCancelCall, isRecording, stopRecording, startRe
           >
             <div className="flex flex-1 items-center justify-center">
               <Mic className="w-6 h-6" />
-             <span className="font-semibold text-lg ml-2">Talking</span>
+            <span className="font-semibold text-lg ml-2">Talking</span>
             </div>
             <div className="absolute right-2">
               {isSilence !== null && !isSilence && <ScaleLoader color="white" height={"12px"} />}
