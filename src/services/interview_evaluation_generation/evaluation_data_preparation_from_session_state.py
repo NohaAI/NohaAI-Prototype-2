@@ -7,11 +7,13 @@ from src.services.workflows.evaluation_summary_generator import generate_evaluat
 from src.schemas.interview_evaluation import HeaderObject, CandidateDetailItem, EvaluationSummaryObject, OverallRecommendationObject, InterviewEvaluationDataObject
 from src.services.workflows.overall_recommendation_generator import generate_overall_recommendation
 
-def create_criteria_list(assessment_payloads):
-    assessment_payload = assessment_payloads[0] #pick any assessment_payload since all have the same criteria
+def create_criteria_list(assessment):
+    assessment_record = assessment[0] #pick any assessment_payload since all have the same criteria
     criteria_list = []
-    for criterion in assessment_payload['assessment_payloads'][-1]['criteria']:
+    for criterion in assessment_record['assessment_payloads'][-1]['criteria']:
         criteria_list.append(criterion['description'])
+    criteria_list[0], criteria_list[3] = criteria_list[3], criteria_list[0] #swaps criteria in the following order [algo, ds, assump, corner, time, space, comms] 
+    criteria_list[1], criteria_list[2] = criteria_list[2], criteria_list[1]
     return criteria_list
 
 def create_header_object() -> HeaderObject:

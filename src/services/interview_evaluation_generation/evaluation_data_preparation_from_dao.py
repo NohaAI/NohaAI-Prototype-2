@@ -17,6 +17,8 @@ def create_criteria_list(assessment):
     criteria_list = []
     for criterion in assessment_record['assessment_payloads'][-1]['criteria']:
         criteria_list.append(criterion['description'])
+    criteria_list[0], criteria_list[3] = criteria_list[3], criteria_list[0] #swaps criteria in the following order [algo, ds, assump, corner, time, space, comms] 
+    criteria_list[1], criteria_list[2] = criteria_list[2], criteria_list[1]
     return criteria_list
 
 
