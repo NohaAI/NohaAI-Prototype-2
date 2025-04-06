@@ -4,12 +4,13 @@ from datetime import datetime
 from typing import List
 from src.utils import helper
 from src.services.workflows.evaluation_summary_generator import generate_evaluation_summary
-from src.schemas.interview_evaluation import HeaderObject, CandidateDetailItem, EvaluationSummaryObject, OverallRecommendationObject, InterviewEvaluationDataObject
+from src.schemas.interview_evaluation import HeaderObject, CandidateDetailItem, EvaluationSummaryObject, OverallRecommendationObject, InterviewEvaluationDataObject, AppendixObject
 from src.services.workflows.overall_recommendation_generator import generate_overall_recommendation
 from src.dao.assessment import AssessmentDAO
 from src.dao.chat_history import ChatHistoryDAO
 from src.dao.user import get_candidate_interview_id
 from src.exceptions.report_generation_exceptions import EmptyAssessmentPayloadException, EmptyChatHistoryException
+
 
 
 def create_criteria_list(assessment):
@@ -30,7 +31,7 @@ def create_header_object() -> HeaderObject:
         font = {"name": "Helvetica-Bold", "size": 16}
     )
 
-def create_candidate_details_object(interview_id, assessment_payloads) -> List[CandidateDetailItem]:
+def create_candidate_details_object(interview_id) -> List[CandidateDetailItem]:
     #TODO: update the get_candidate_name to fetch interview_date, time 
     
     candidate_details = get_candidate_details(interview_id)
@@ -50,17 +51,16 @@ def create_candidate_details_object(interview_id, assessment_payloads) -> List[C
     ]
     return candidate_details_object
 
-def create_evaluation_summary_object_list(question_id_list, chat_history, assessment_payloads, criteria_list ,code_snippet) -> List[EvaluationSummaryObject]:
+def create_evaluation_summary_object_list(question_id_list, chat_history, assessment_payloads, criteria_list ) -> List[EvaluationSummaryObject]:
     evaluation_summary_object_list = []
     
     evaluation_summary_list = generate_evaluation_summary(question_id_list, chat_history, assessment_payloads, criteria_list)
     #preparing list of EvaluationSummaryObject
-    for i, ((question, criteria_scores, question_score, evaluation_summary), code_snippet) in enumerate(zip(evaluation_summary_list, code_snippet)):
+    for idx, (question, criteria_scores, question_score, evaluation_summary) in enumerate(evaluation_summary_list):
         evaluation_object = EvaluationSummaryObject(
-            question_number = i+1,
+            question_number = idx+1,
             question = question,
             evaluation_summary = evaluation_summary,
-            code_snippet = code_snippet,
             question_score = question_score,
             criteria_scores = criteria_scores
         )
@@ -76,6 +76,20 @@ def create_overall_recommendation_object(evaluation_summary_object_list, criteri
         content =  overall_recommendation
     )
     
+def create_appendix_object(candidate_name, chat_history ,code_snippet, video_url = "N/A") -> AppendixObject:
+    chat_history_list = []
+    for chat_history_record in chat_history:
+        chat_history_list.append({
+        "Noha": chat_history_record['bot_dialogue'],
+        f"{candidate_name}": chat_history_record['distilled_candidate_dialogue']
+    })
+        
+    return AppendixObject(
+        code_snippet = code_snippet,
+        chat_history = chat_history_list,
+        video_url = video_url
+    )
+
 # def prepare_interview_evaluation_data(session_state, chat_history, assessment_payloads,code_snippet = None) -> InterviewevaluationDataObject:
 def prepare_interview_evaluation_data(user_email, code_snippet) -> InterviewEvaluationDataObject:
         
@@ -110,10 +124,12 @@ def prepare_interview_evaluation_data(user_email, code_snippet) -> InterviewEval
 
         header_object = create_header_object()
         
-        candidate_details_object = create_candidate_details_object(interview_id, assessment_payloads)
+        candidate_details_object = create_candidate_details_object(interview_id)
         
-        evaluation_summary_object_list = create_evaluation_summary_object_list(question_id_list, chat_history, assessment_payloads, criteria_list,code_snippet)
-        
+        evaluation_summary_object_list = create_evaluation_summary_object_list(question_id_list, chat_history, assessment_payloads, criteria_list)
+
+        appendix_object = create_appendix_object(candidate_details_object[0].value, chat_history, code_snippet, video_url = "N/A")
+
         if assessment_payloads[0]["assessment_payloads"][-1]["final_score"] == 0:
             overall_recommendation_object = OverallRecommendationObject (title =  "OVERALL RECOMMENDATION:", content = None)
         else:
@@ -124,6 +140,7 @@ def prepare_interview_evaluation_data(user_email, code_snippet) -> InterviewEval
             candidate_details_object =  candidate_details_object,
             evaluation_summary_object_list =  evaluation_summary_object_list,
             overall_recommendation_object =  overall_recommendation_object,
+            appendix_object = appendix_object
         )
     except Exception as e:
         print(f"ERROR OCCERED WHILE PREPARING DATA USING DATABASE : {e}")
