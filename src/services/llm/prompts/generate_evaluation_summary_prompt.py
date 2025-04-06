@@ -36,13 +36,28 @@ def generate_evaluation_summary_prompt_template():
 
     Your evaluation report should be returned as a dictionary with the following structure:
 
+    Return a dictionary with EXACTLY this structure:
+
     {{
         "evaluation_summary": 
-        "PARAGRAPH 1 providing an objective overview of how the candidate addressed all the criteria. 
-        PARAGRAPH 2 highlighting the candidate's specific strengths and weaknesses based on the criteria and their solution attempt."
+            {{
+            "summary":"PARAGRAPH 1 providing an objective overview of how the candidate addressed all the criteria.",
+            "strengths_weakness" : "PARAGRAPH 2 highlighting the candidate's specific strengths and weaknesses based on the criteria and their solution attempt."
+            }}
     }}
 
-    The evaluation_summary should consist of two paragraphs: the first paragraph providing an objective overview of the candidate's performance, and the second paragraph analyzing their strengths and weaknesses.
+    IMPORTANT:
+    1.DO NOT include or reference any numerical scores or percentages in the evaluation text, even if they are provided in prompt_criteria_scores or prompt_question_score. 
+
+    Important formatting requirements:
+    
+    1. Format the output as a proper Python dictionary that can be directly evaluated
+    2. Do not include any text outside the dictionary
+    3. Do not use triple quotes, markdown formatting, or code blocks
+    4. Ensure the output can be directly parsed by Python's eval() function
+    5. Base your evaluation SOLELY on what is present in the prompt_chat_history
+    6. If prompt_criteria_scores are available, ensure your feedback aligns with these scores
+    
     """
   prompt_current = """
     Given:
