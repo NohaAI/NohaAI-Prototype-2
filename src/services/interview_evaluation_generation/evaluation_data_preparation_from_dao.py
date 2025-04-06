@@ -37,14 +37,14 @@ def create_candidate_details_object(interview_id, assessment_payloads) -> List[C
     interview_date = interview_date_obj.date()
     interview_time = interview_date_obj.time().strftime("%H:%M:%S")
     report_generation_date = datetime.now(const.IST).date()
-    overall_score,total_possible_score = helper.calculate_overall_score(assessment_payloads)
+    # overall_score,total_possible_score = helper.calculate_overall_score(assessment_payloads)
     candidate_details_object = [
         CandidateDetailItem(label= "Candidate Name", value= candidate_name),
         CandidateDetailItem(label= "Interview ID", value= interview_id),
         CandidateDetailItem(label= "Date", value= interview_date),
         CandidateDetailItem(label= "Time", value= interview_time),
         CandidateDetailItem(label= "Interview Conducted By", value= const.BOT_NAME),
-        CandidateDetailItem(label= "Overall Score", value= f"{overall_score}/{total_possible_score}")
+        # CandidateDetailItem(label= "Overall Score", value= f"{overall_score}/{total_possible_score}")
     ]
     return candidate_details_object
 
