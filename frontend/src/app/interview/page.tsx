@@ -5,8 +5,10 @@ import LiveInterview from "@/components/LiveInterview";
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
+import Head from 'next/head';
 // import { io } from "socket.io-client";
 
+ 
 const MyPage = () => {
 
     const [interviewStarted, setInterviewStarted] = useState<boolean>(false);
@@ -321,6 +323,7 @@ const MyPage = () => {
 
     return (
         <>
+        <title>Noha AI Interview</title>
         <ToastContainer/>
         {/* Display on medium and large devices */}
         <div className="hidden lg:block">
