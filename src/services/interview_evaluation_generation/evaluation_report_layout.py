@@ -15,9 +15,18 @@ def build_candidate_details_section(layout: PDFLayout, candidate_details):
     for detail in candidate_details:
         candidate_details_content.append(Paragraph(f"<b>{detail.label}:</b> " + f"{detail.value}", layout.styles.normal_style))
         candidate_details_content.append(Spacer(1, layout.spacing.alter_paragraph))
-    
     candidate_details_content.append(Spacer(1, layout.spacing.alter_section))
     return candidate_details_content
+
+def build_interview_summary_section(layout: PDFLayout, interview_summary_object):
+    """Build content for interview summary section"""
+    interview_summary_content = []
+    interview_summary_content.append(Paragraph(interview_summary_object.title, layout.styles.heading_style))
+    interview_summary_content.append(Paragraph(interview_summary_object.content, layout.styles.normal_style))
+    interview_summary_content.append(Spacer(1, layout.spacing.alter_paragraph))
+    interview_summary_content.append(Paragraph("The questions asked and the highlights of the answers provided are summarized below", layout.styles.normal_style))
+    interview_summary_content.append(Spacer(1, layout.spacing.alter_paragraph))
+    return interview_summary_content
 
 def build_evaluation_summary_section(layout: PDFLayout, evaluation_summary_object):
     """Build content for a single evaluation"""
@@ -34,7 +43,6 @@ def build_evaluation_summary_section(layout: PDFLayout, evaluation_summary_objec
         
     # Evaluation summary
     evaluation_summary_content.append(Paragraph("EVALUATION SUMMARY:", layout.styles.heading_style))
-    criteria_list = []
     if evaluation_summary_object.question_score == 0:
         evaluation_summary_content.append(Paragraph(f"{evaluation_summary_object.evaluation_summary}", layout.styles.normal_style))
     else:
@@ -58,7 +66,7 @@ def build_evaluation_summary_section(layout: PDFLayout, evaluation_summary_objec
         # evaluation_summary_content.append(Paragraph("SCORE DISTRIBUTION:", layout.styles.heading_style))
         
         # for i, score in enumerate(evaluation_summary_object.criteria_scores):
-        #     if i < len(criteria_list):  # Make sure we don't exceed the criteria_list list
+        #     if i <b len(criteria_list):  # Make sure we don't exceed the criteria_list list
         #         evaluation_summary_content.append(Paragraph(
         #             f"<b>{criteria_list[i]}:</b> {score}/10", 
         #             layout.styles.normal_style
@@ -76,28 +84,27 @@ def build_recommendation_section(layout: PDFLayout, overall_recommendation):
     return overall_recommendation_content
 
 def build_appendix_section(layout: PDFLayout, appendix_object):
-    appendix_content = []
-    appendix_content.append(PageBreak())  
-    appendix_content.append(Paragraph("CHAT HISTORY:", layout.styles.heading_style))
+    appendix_content = [] 
+    appendix_content.append(Paragraph("APPENDIX:", layout.styles.heading_style))
+    appendix_content.append(Paragraph(f"<b>CHAT HISTORY:</b>", layout.styles.normal_style))
     for chat_history_record in appendix_object.chat_history:
         for key in chat_history_record.keys():
             appendix_content.append(Paragraph(f"<b>{key}:</b> {chat_history_record[key]}", layout.styles.normal_style))
         appendix_content.append(Spacer(1, layout.spacing.alter_paragraph))
-    
     appendix_content.append(Spacer(1, layout.spacing.alter_paragraph))
     
-    appendix_content.append(Paragraph("CODE SNIPPET:", layout.styles.heading_style))
-    for code_snippet in appendix_object.code_snippet:
-        appendix_content.append(Paragraph(code_snippet, layout.styles.normal_style))
-        
-        # Format code with preserved whitespace and line breaks
-        code_text =code_snippet.replace('\n', '<br/>').replace(' ', '&nbsp;')
-        appendix_content.append(Paragraph(code_text, layout.styles.code_style))
-        appendix_content.append(Spacer(1, layout.spacing.alter_code))
+    if appendix_object.code_snippet is not None: 
+        appendix_content.append(Paragraph("<b>CODE SNIPPET:</b>", layout.styles.normal_style))
+        for code_snippet in appendix_object.code_snippet:
+            appendix_content.append(Paragraph(code_snippet, layout.styles.normal_style))
+            # Format code with preserved whitespace and line breaks
+            code_text = code_snippet.replace('\n', '<br/>').replace(' ', '&nbsp;')
+            appendix_content.append(Paragraph(code_text, layout.styles.code_style))
+            appendix_content.append(Spacer(1, layout.spacing.alter_code))
         
     
     appendix_content.append(Spacer(1, layout.spacing.alter_paragraph))
-    appendix_content.append(Paragraph("VIDEO URL:", layout.styles.heading_style))
-    appendix_content.append(Paragraph(appendix_object.video_url, layout.styles.normal_style))
+    appendix_content.append(Paragraph(f"<b>VIDEO URL:</b> {appendix_object.video_url}", layout.styles.normal_style))
+    # appendix_content.append(Paragraph(appendix_object.video_url, layout.styles.normal_style))
     
     return appendix_content

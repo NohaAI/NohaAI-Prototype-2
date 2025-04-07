@@ -4,8 +4,8 @@ from datetime import datetime
 from typing import List
 from src.utils import helper
 from src.services.workflows.evaluation_summary_generator import generate_evaluation_summary
-from src.schemas.interview_evaluation import HeaderObject, CandidateDetailItem, EvaluationSummaryObject, OverallRecommendationObject, InterviewEvaluationDataObject, AppendixObject
-from src.services.workflows.overall_recommendation_generator import generate_overall_recommendation
+from src.schemas.interview_evaluation import HeaderObject, CandidateDetailItem, EvaluationSummaryObject, OverallRecommendationObject, InterviewEvaluationDataObject, AppendixObject, InterviewSummaryObject
+from src.services.workflows.interview_summary_and_recommendation_generator import generate_interview_summary_and_recommendation
 
 def create_criteria_list(assessment):
     assessment_record = assessment[0] #pick any assessment_payload since all have the same criteria
@@ -45,6 +45,13 @@ def create_candidate_details_object(session_state) -> List[CandidateDetailItem]:
     ]
     return candidate_details_object
 
+def create_interview_summary_object(interview_summary) -> InterviewSummaryObject:
+    
+    return OverallRecommendationObject (
+        title =  "INTERVIEW SUMMARY:",
+        content =  interview_summary
+    )
+
 def create_evaluation_summary_object_list(session_state, chat_history, assessment_payloads, criteria_list) -> List[EvaluationSummaryObject]:
     evaluation_summary_object_list = []
     
@@ -61,10 +68,8 @@ def create_evaluation_summary_object_list(session_state, chat_history, assessmen
         evaluation_summary_object_list.append(evaluation_object)
     return evaluation_summary_object_list
 
-def create_overall_recommendation_object(evaluation_summary_object_list, criteria_list) -> OverallRecommendationObject:
+def create_overall_recommendation_object(overall_recommendation) -> OverallRecommendationObject:
     
-    overall_recommendation = generate_overall_recommendation(evaluation_summary_object_list, criteria_list)
-
     return OverallRecommendationObject (
         title =  "OVERALL RECOMMENDATION:",
         content =  overall_recommendation
@@ -86,10 +91,7 @@ def create_appendix_object(candidate_name, chat_history ,code_snippet, video_url
 
 def prepare_interview_evaluation_data(session_state, chat_history, assessment_payloads,code_snippet = None) -> InterviewEvaluationDataObject:
     try:
-        if not code_snippet or code_snippet == []:
-            code_snippet = []
-            for i in range(len(assessment_payloads)):
-                code_snippet.append("NO CODE SNIPPET PROVIDED")
+        
         criteria_list = create_criteria_list(assessment_payloads) #helper func to get the list of criteria
         #TODO: DB can be used instead of a helper func
         header_object = create_header_object()
@@ -102,11 +104,14 @@ def prepare_interview_evaluation_data(session_state, chat_history, assessment_pa
         
         if assessment_payloads[0]["assessment_payloads"][-1]["final_score"] == 0:
             overall_recommendation_object = OverallRecommendationObject (title =  "OVERALL RECOMMENDATION:", content = None)
+            interview_summary_object = InterviewSummaryObject (title =  "INTERVIEW SUMMARY:", content = None)
         else:
-            overall_recommendation_object = create_overall_recommendation_object(evaluation_summary_object_list, criteria_list) 
-        
+            overall_summary_and_recommendation_dict = generate_interview_summary_and_recommendation(evaluation_summary_object_list, criteria_list) 
+            interview_summary_object = create_interview_summary_object(overall_summary_and_recommendation_dict['interview_summary'])
+            overall_recommendation_object = create_overall_recommendation_object(overall_summary_and_recommendation_dict['overall_recommendation'])
         return InterviewEvaluationDataObject( 
-            header_object =  header_object, 
+            header_object =  header_object,
+            interview_summary_object = interview_summary_object, 
             candidate_details_object =  candidate_details_object,
             evaluation_summary_object_list =  evaluation_summary_object_list,
             overall_recommendation_object =  overall_recommendation_object,

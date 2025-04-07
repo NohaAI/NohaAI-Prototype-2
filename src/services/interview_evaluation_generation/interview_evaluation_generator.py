@@ -4,7 +4,7 @@ from reportlab.platypus import SimpleDocTemplate
 import io
 from src.services.interview_evaluation_generation.interview_evaluation_format import get_interview_evaluation_format
 from src.services.interview_evaluation_generation.evaluation_report_format_expt import get_interview_evaluation_format_expt
-from src.services.interview_evaluation_generation.evaluation_report_layout import build_candidate_details_section, build_evaluation_summary_section, build_header_section, build_recommendation_section, build_appendix_section
+from src.services.interview_evaluation_generation.evaluation_report_layout import build_candidate_details_section, build_evaluation_summary_section, build_header_section, build_recommendation_section, build_appendix_section, build_interview_summary_section
 from datetime import datetime
 from src.utils import helper
 
@@ -32,12 +32,18 @@ def create_evaluation_report_buffer(interview_evaluation_data_object):
     # Build content in the following sequence:
     interview_evaluation_content = []
     interview_evaluation_content.extend(build_header_section(layout, interview_evaluation_data_object.header_object))
+
     interview_evaluation_content.extend(build_candidate_details_section(layout, interview_evaluation_data_object.candidate_details_object))
-    
+
+    if interview_evaluation_data_object.interview_summary_object.content != None:
+        interview_evaluation_content.extend(build_interview_summary_section(layout, interview_evaluation_data_object.interview_summary_object))
+
     for evaluation_summary_object in interview_evaluation_data_object.evaluation_summary_object_list:
         interview_evaluation_content.extend(build_evaluation_summary_section(layout, evaluation_summary_object))
+
     if interview_evaluation_data_object.overall_recommendation_object.content != None:
         interview_evaluation_content.extend(build_recommendation_section(layout, interview_evaluation_data_object.overall_recommendation_object))
+        
     interview_evaluation_content.extend(build_appendix_section(layout, interview_evaluation_data_object.appendix_object))
     # Generate and save PDF
     doc.build(interview_evaluation_content)
