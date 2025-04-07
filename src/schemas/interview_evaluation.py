@@ -60,6 +60,13 @@ class OverallRecommendationObject:
    
     title: str  # The section header (e.g., "OVERALL RECOMMENDATION").
     content: Union[str,None]  # The final recommendation based on the candidate's evaluation.
+@dataclass
+class InterviewSummaryObject:
+   
+    """summary of candidate's interview"""
+   
+    title: str  # The section header (e.g., "INTERVIEW SUMMARY").
+    content: Union[str,None]  # The summary of candidate's interview
 
 @dataclass
 class InterviewEvaluationDataObject:
@@ -67,6 +74,7 @@ class InterviewEvaluationDataObject:
     """Encapsulates the complete interview evaluation, including header, candidate details, evaluation summaries, and recommendations."""
    
     header_object: HeaderObject
+    interview_summary_object: InterviewSummaryObject
     candidate_details_object: List[CandidateDetailItem]
     evaluation_summary_object_list: List[EvaluationSummaryObject]
     overall_recommendation_object: List[OverallRecommendationObject]
