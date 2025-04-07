@@ -1,52 +1,65 @@
 from langchain_core.prompts import ChatPromptTemplate
 
-def generate_evaluation_summary_prompt_template_current():
-  
-  prompt="""
+def generate_evaluation_summary_prompt_template():
+  prompt = """
     Given:
     prompt_question: {question}
     prompt_chat_history: {chat_history}
     prompt_criteria_list: {criteria_list}
+    prompt_criteria_scores: {criteria_scores}
+    prompt_question_score: {question_score}
 
-    Create a comprehensive evaluation report analyzing the candidate's performance on the given question. Return ONLY a valid Python dictionary with no additional text, markdown formatting, explanations, or quotes before or after. The dictionary must have the following structure:
+    Create a comprehensive evaluation report analyzing the candidate's performance on the given question.
+
+    Understanding the parameters:
+    - prompt_question: The technical question posed to the candidate
+    - prompt_chat_history: The complete conversation including the candidate's solution attempt
+    - prompt_criteria_list: The evaluation criteria being used to assess performance
+    - prompt_criteria_scores: Numerical scores for each criterion
+    - prompt_question_score: Overall numerical score for the question  
 
     For each criterion in the prompt_criteria_list, create a shortened label by:
     - Using key nouns and adjectives from the criterion
     - Capitalizing the first letter of each major word
     - Keeping the label concise (2-4 words)
 
-    {{
-        "evaluation_summary": {{
-            "SHORT_CRITERION_LABEL": {{
-                "Summary": "A detailed paragraph (3-5 sentences) summarizing how the candidate performed regarding this criterion, including specific examples from their response.",
-                "Strengths": "A thorough description (3-5 sentences) of the candidate's strengths for this criterion, with concrete examples of what they did well.",
-                "Weaknesses": "A comprehensive analysis (3-5 sentences) of the candidate's weaknesses or areas for improvement for this criterion, with specific examples.",
-                "Judgment": "A balanced and nuanced assessment (3-5 sentences) of their overall performance for this criterion, including specific recommendations for improvement."
-            }},
-            "SHORT_CRITERION_LABEL":{{
-                "Summary": "...",
-                "Strengths": "...",
-                "Weaknesses": "...",
-                "Judgment": "..."
-            }},
-            ...
-        }}
-    }}
+    The evaluation process should follow these steps:
+
+    1. FIRST, carefully analyze prompt_chat_history to identify the candidate's solution attempt. Extract specific details about their approach, algorithm, code, or explanations.
+
+    2. Review the prompt_criteria_scores (if available) to understand quantitative assessments for each criterion.
 
     Important formatting requirements:
+        
+    1. Base your evaluation SOLELY on what is present in the prompt_chat_history
+    2. If prompt_criteria_scores are available, ensure your feedback aligns with these scores
+
+    Your evaluation report should be returned as a dictionary with the following structure:
+
+    Return a dictionary with EXACTLY this structure:
+
+    {{
+        "evaluation_summary": 
+            {{
+            "summary":"PARAGRAPH 1 providing an objective overview of how the candidate addressed all the criteria.",
+            "strengths_weakness" : "PARAGRAPH 2 highlighting the candidate's specific strengths and weaknesses based on the criteria and their solution attempt."
+            }}
+    }}
+
+    IMPORTANT:
+    1.DO NOT include or reference any numerical scores or percentages in the evaluation text, even if they are provided in prompt_criteria_scores or prompt_question_score. 
+
+    Important formatting requirements:
+    
     1. Format the output as a proper Python dictionary that can be directly evaluated
     2. Do not include any text outside the dictionary
     3. Do not use triple quotes, markdown formatting, or code blocks
     4. Ensure the output can be directly parsed by Python's eval() function
-    5. Provide detailed, substantive content in each section (3-5 sentences minimum)
-    6. Include specific examples from the candidate's responses in your evaluation
-    7. Ensure evaluations are descriptive, analytical, and actionable
-      """
-  generate_evaluation_summary_prompt=ChatPromptTemplate.from_template(template=prompt)
-  return generate_evaluation_summary_prompt
-
-def generate_evaluation_summary_prompt_template():
-  prompt = """
+    5. Base your evaluation SOLELY on what is present in the prompt_chat_history
+    6. If prompt_criteria_scores are available, ensure your feedback aligns with these scores
+    
+    """
+  prompt_current = """
     Given:
     prompt_question: {question}
     prompt_chat_history: {chat_history}

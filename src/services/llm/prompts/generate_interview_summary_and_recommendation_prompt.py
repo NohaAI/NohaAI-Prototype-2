@@ -1,8 +1,33 @@
 from langchain_core.prompts import ChatPromptTemplate
 
-def generate_overall_recommendation_prompt_template():
-  
-    prompt="""
+def generate_interview_summary_and_recommendation_template():
+    prompt = """
+    Given: 
+    prompt_evaluation_summary_list: {evaluation_summary_list}
+    prompt_criteria_list: {criteria_list}
+
+    Analyze the candidate's performance on DSA questions and provide a structured assessment.
+
+    For each question in evaluation_summary_list:
+    1. Extract key points from the existing evaluation_summary
+    2. Reference the question_score provided
+    3. Calculate the average score across all questions (for your reference only)
+
+    Return a dictionary in the following format:
+    {{
+        "interview_summary": "A brief 50-100 word summary of the candidate's performance across all questions, noting any patterns, strengths, and weaknesses observed during the interview",
+        "overall_recommendation": "A personalized 50-100 word verdict that addresses whether you would recommend hiring the candidate, with brief justification for your recommendation. Use natural language appropriate for a hiring manager while maintaining a professional tone."
+    }}
+    The assessment should provide a thoughtful, human-like conclusion about the candidate's suitability without disclosing any numerical scores.
+
+    Important formatting requirements:
+    
+    1. Format the output as a proper Python dictionary that can be directly evaluated
+    2. Do not include any text outside the dictionary
+    3. Do not use triple quotes, markdown formatting, or code blocks
+
+    """
+    prompt_current="""
     Given: 
     prompt_evaluation_summary_list: {evaluation_summary_list}
     prompt_criteria_list: {criteria_list}

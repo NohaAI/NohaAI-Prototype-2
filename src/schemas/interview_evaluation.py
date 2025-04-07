@@ -44,9 +44,14 @@ class EvaluationSummaryObject:
     question_number: int  # The number of the question in the interview.
     question: str  # The actual question asked.
     evaluation_summary: Union[str, Dict[str, Dict[str, str]]]  # Detailed evaluation including summary, strengths, weaknesses, and judgment.
-    code_snippet: str  # The candidate's code solution for the question.
     question_score: int  # Score awarded for this question.
     criteria_scores: List[float]  # Scores for individual evaluation criteria.
+
+@dataclass
+class AppendixObject:
+    code_snippet: List[str]  # The candidate's code solution for the question.
+    chat_history: List[Dict]
+    video_url : str
 
 @dataclass
 class OverallRecommendationObject:
@@ -55,6 +60,13 @@ class OverallRecommendationObject:
    
     title: str  # The section header (e.g., "OVERALL RECOMMENDATION").
     content: Union[str,None]  # The final recommendation based on the candidate's evaluation.
+@dataclass
+class InterviewSummaryObject:
+   
+    """summary of candidate's interview"""
+   
+    title: str  # The section header (e.g., "INTERVIEW SUMMARY").
+    content: Union[str,None]  # The summary of candidate's interview
 
 @dataclass
 class InterviewEvaluationDataObject:
@@ -62,10 +74,11 @@ class InterviewEvaluationDataObject:
     """Encapsulates the complete interview evaluation, including header, candidate details, evaluation summaries, and recommendations."""
    
     header_object: HeaderObject
+    interview_summary_object: InterviewSummaryObject
     candidate_details_object: List[CandidateDetailItem]
     evaluation_summary_object_list: List[EvaluationSummaryObject]
     overall_recommendation_object: List[OverallRecommendationObject]
-
+    appendix_object: AppendixObject
 #DATA CLASSES FOR PDF LAYOUT
 
 @dataclass
