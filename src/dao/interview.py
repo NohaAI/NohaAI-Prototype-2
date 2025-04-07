@@ -194,7 +194,7 @@ async def update_interview(interview_id: int, interview: InterviewRequest):
             """
             updated_interview = execute_query(conn, update_query, params, commit=True)
             if not updated_interview:
-                error.logger(f"Interview with ID {interview_id} not found in the database")
+                logger.error(f"Interview with ID {interview_id} not found in the database")
                 raise InterviewNotFoundException(interview_id)
 
             # Return the updated interview details
