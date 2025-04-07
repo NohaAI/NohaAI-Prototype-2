@@ -29,6 +29,11 @@ def generate_evaluation_summary_prompt_template():
 
     2. Review the prompt_criteria_scores (if available) to understand quantitative assessments for each criterion.
 
+    3. For EACH criterion in prompt_criteria_list, determine whether:
+       - The candidate addressed it proactively without interviewer prompting
+       - The candidate only addressed it after being prompted by the interviewer
+       - The candidate failed to adequately address it even after prompting
+
     Important formatting requirements:
         
     1. Base your evaluation SOLELY on what is present in the prompt_chat_history
@@ -41,13 +46,14 @@ def generate_evaluation_summary_prompt_template():
     {{
         "evaluation_summary": 
             {{
-            "summary":"PARAGRAPH 1 providing an objective overview of how the candidate addressed all the criteria.",
+            "summary":"PARAGRAPH 1 providing an objective overview of how the candidate addressed all the criteria. For each criterion, explicitly mention whether they proactively addressed it or only after prompting.",
             "strengths_weakness" : "PARAGRAPH 2 highlighting the candidate's specific strengths and weaknesses based on the criteria and their solution attempt."
             }}
     }}
 
     IMPORTANT:
-    1.DO NOT include or reference any numerical scores or percentages in the evaluation text, even if they are provided in prompt_criteria_scores or prompt_question_score. 
+    1. DO NOT include or reference any numerical scores or percentages in the evaluation text, even if they are provided in prompt_criteria_scores or prompt_question_score. 
+    2. In the summary, for each criterion, explicitly state whether the candidate handled it without prompting or only after being prompted by the interviewer.
 
     Important formatting requirements:
     
@@ -57,7 +63,6 @@ def generate_evaluation_summary_prompt_template():
     4. Ensure the output can be directly parsed by Python's eval() function
     5. Base your evaluation SOLELY on what is present in the prompt_chat_history
     6. If prompt_criteria_scores are available, ensure your feedback aligns with these scores
-    
     """
   prompt_current = """
     Given:
