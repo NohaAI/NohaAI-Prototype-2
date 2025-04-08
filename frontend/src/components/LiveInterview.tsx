@@ -104,7 +104,11 @@ const LiveInterview = ({ name, onCancelCall, isRecording, stopRecording, startRe
         <div className="md:w-[474px] h-[45vh]">
           <div className="relative bg-[#1F1F1F] rounded-lg p-4 flex flex-col justify-center items-center h-full">
             {isAudioPlaying && <ScaleLoader color="white" className="absolute right-4 top-4" />}
-            <img src="noha.png" alt="Noha AI" className="w-[226px] h-[226px] object-cover" />
+            <img
+              src="noha.png"
+              alt="Noha AI"
+              className="w-[60%] md:w-[50%] lg:w-[40%] h-auto object-contain"
+            />
             <p className="text-white mt-2 absolute left-3 bottom-2">Noha</p>
           </div>
         </div>
