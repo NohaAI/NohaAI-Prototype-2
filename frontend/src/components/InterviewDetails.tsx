@@ -33,8 +33,8 @@ const InterviewDetails: React.FC<InterviewDetailsProps> = ({ onSubmit }) => {
     };
 
     return (
-        <>
-            <div className="fixed inset-0 flex justify-center bg-gradient-to-br from-[#3600FF] to-[#361899] p-6">
+        <div className="min-h-screen bg-gradient-to-br from-[#3600FF] to-[#361899]">
+            <div className="flex justify-center p-6">
                 {/* Close Button */}
                 <button onClick={() => router.back()} className="absolute right-4 top-4 text-white">
                     <X size={24} />
@@ -106,7 +106,7 @@ const InterviewDetails: React.FC<InterviewDetailsProps> = ({ onSubmit }) => {
                     </form>
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 
