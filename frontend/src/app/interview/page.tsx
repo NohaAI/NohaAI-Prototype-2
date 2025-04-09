@@ -164,7 +164,6 @@ const MyPage = () => {
         }
     }, [])
     
-    const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
     const voicesLoadedRef = useRef<boolean>(false);
     
     const speakText = (text: string, info?: any) => {
@@ -190,8 +189,6 @@ const MyPage = () => {
             );
             if (femaleVoice) utterance.voice = femaleVoice;
     
-            // Keep ref alive
-            utteranceRef.current = utterance;
     
             utterance.onstart = () => {
                 console.log("Speech started");
