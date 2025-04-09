@@ -155,53 +155,75 @@ const MyPage = () => {
         ]);
     };
 
+    useEffect(()=>{
+
+        return () =>{
+            if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+                window.speechSynthesis.cancel();
+            }
+        }
+    }, [])
+    
+    const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+    const voicesLoadedRef = useRef<boolean>(false);
+    
     const speakText = (text: string, info?: any) => {
-            
-        if (!window.speechSynthesis) {
-            console.error("Speech synthesis is not supported in this browser.");
+        if (!window.speechSynthesis || !text?.trim()) {
+            console.warn("Speech synthesis is not supported or empty text.");
             return;
         }
-        window.speechSynthesis.cancel(); // Stop any ongoing speech
-
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = "en-US";
-        utterance.rate = 0.9;
-        utterance.pitch = 1.2;
-
-        const voices = window.speechSynthesis.getVoices();
-        // Try to find a female voice
-        const femaleVoice = voices.find((voice) =>  voice.name.toLowerCase().includes("female") || voice.name.toLowerCase().includes("samantha"))
-        if (femaleVoice) {
-            utterance.voice = femaleVoice;
-        } else if (voices.length > 0) {
-            utterance.voice = voices[0]; // Fallback to any available voice
-        }
-
-        console.log('femaleVoice', femaleVoice)
-
-        utterance.onstart = () =>{
-            console.log("Speech started");
-            setIsAudioPlaying(true)
-        }
-
-        utterance.onend = () => {
-            console.log("Speech finished");
-            setIsAudioPlaying(false)
-            if(info?.termination) {
-                disconnect2()
-                stopRecording();
-                setCallEnded(true);
+    
+        const speak = () => {
+            if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+                window.speechSynthesis.cancel();
             }
+    
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = "en-US";
+            utterance.rate = 0.9;
+            utterance.pitch = 1.2;
+    
+            const voices = window.speechSynthesis.getVoices();
+            const femaleVoice = voices.find(v => 
+                v.name.toLowerCase().includes("female") ||
+                v.name.toLowerCase().includes("samantha")
+            );
+            if (femaleVoice) utterance.voice = femaleVoice;
+    
+            // Keep ref alive
+            utteranceRef.current = utterance;
+    
+            utterance.onstart = () => {
+                console.log("Speech started");
+                setIsAudioPlaying(true);
+            };
+    
+            utterance.onend = () => {
+                console.log("Speech finished");
+                setIsAudioPlaying(false);
+                if (info?.termination) {
+                    disconnect2();
+                    stopRecording();
+                    setCallEnded(true);
+                }
+            };
+    
+            window.speechSynthesis.speak(utterance);
         };
-
-        if (voices.length === 0) {
+    
+        // Wait for voices if not yet loaded
+        const voices = window.speechSynthesis.getVoices();
+        if (voices.length === 0 && !voicesLoadedRef.current) {
+            console.log("Voices not ready yet, setting onvoiceschanged...");
             window.speechSynthesis.onvoiceschanged = () => {
-                speakText(text, info);
+                voicesLoadedRef.current = true;
+                window.speechSynthesis.onvoiceschanged = null;
+                speak();
             };
         } else {
-            window.speechSynthesis.speak(utterance);
+            speak();
         }
-};
+    };
 
     const handleSubmit = async (data: { name: string; email: string, live_code: string }) => {
         console.log("Form submitted with data:", typeof(data.live_code));
