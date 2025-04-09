@@ -164,6 +164,7 @@ const MyPage = () => {
         }
     }, [])
     
+    const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
     const voicesLoadedRef = useRef<boolean>(false);
     
     const speakText = (text: string, info?: any) => {
@@ -189,14 +190,27 @@ const MyPage = () => {
             );
             if (femaleVoice) utterance.voice = femaleVoice;
     
+            // Keep ref alive
+            utteranceRef.current = utterance;
     
             utterance.onstart = () => {
                 console.log("Speech started");
                 setIsAudioPlaying(true);
             };
     
-     
+            const estimatedDuration = text.split(" ").length * 500;
+            const timeoutFallback = setTimeout(() => {
+                console.warn("Speech onend fallback fired");
+                setIsAudioPlaying(false);
+                if (info?.termination) {
+                    disconnect2();
+                    stopRecording();
+                    setCallEnded(true);
+                }
+            }, estimatedDuration + 2000); // buffer
+    
             utterance.onend = () => {
+                clearTimeout(timeoutFallback);
                 console.log("Speech finished");
                 setIsAudioPlaying(false);
                 if (info?.termination) {
@@ -219,10 +233,10 @@ const MyPage = () => {
                 speak();
             };
         } else {
-            console.log("Voices ready, speaking immediately.");
             speak();
         }
     };
+    
     
 
     const handleSubmit = async (data: { name: string; email: string, live_code: string }) => {
