@@ -7,6 +7,7 @@ import { Menu, X } from "lucide-react";
 import UseCase from "./UseCase";
 import Press from "./Press";
 import About from "./About";
+import Contact from "./Contact";
 
 const Section1: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -31,6 +32,7 @@ const Section1: React.FC = () => {
             {/* <a href="#" className="hover:text-gray-300">Product</a> */}
             <a href="#use-case" className="hover:text-gray-300">Use cases</a>
             <a href="#press" className="hover:text-gray-300">Press</a>
+            <a href="#contact" className="hover:text-gray-300">Contact</a>
             <a href="#about" className="hover:text-gray-300">About</a>
           </div>
 
@@ -111,6 +113,10 @@ const Section1: React.FC = () => {
 
       <section id="press" className="py-16 px-6">
         <Press/>
+      </section>
+
+      <section id="contact" className="py-16 px-6">
+        <Contact/>
       </section>
 
       <section id="about" className="py-16 px-6">
