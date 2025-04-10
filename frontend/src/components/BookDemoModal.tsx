@@ -21,11 +21,12 @@ const BookDemoModal = ({ onClose, handleSubmit }: any) => {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
         <div className="relative bg-white rounded-xl p-6 w-full max-w-md shadow-lg">
-          <h2 className="text-xl font-semibold mb-4">Book a Demo</h2>
+          <h2 className="text-xl text-center font-semibold mb-4 underline decoration-green-400">Book a Demo</h2>
           <form onSubmit={handleFormSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Name</label>
+            <label className="block text-sm text-gray-700 font-bold">Name</label>
             <input
+              autoFocus
               type="text"
               name="name"
               required
@@ -36,7 +37,7 @@ const BookDemoModal = ({ onClose, handleSubmit }: any) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <label className="block text-sm font-bold text-gray-700">Email</label>
             <input
               type="email"
               name="email"
@@ -48,7 +49,7 @@ const BookDemoModal = ({ onClose, handleSubmit }: any) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Contact Number</label>
+            <label className="block text-sm font-bold text-gray-700">Contact Number</label>
             <input
               type="tel"
               name="contact"
