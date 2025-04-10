@@ -32,15 +32,30 @@ const Press = () => {
 
       {/* Event Images Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        {["event1.jpg", "event2.jpg", "event3.jpg"].map((src, index) => (
-          <div key={index} className="rounded-lg overflow-hidden shadow-md">
+          <div className="rounded-lg overflow-hidden shadow-md">
             <img
-              src={`/${src}`}
-              alt={`Event ${index + 1}`}
+              src="/press/press1.png"
               className="w-full h-60 object-cover"
             />
           </div>
-        ))}
+          <div className="rounded-lg overflow-hidden shadow-md">
+            <img
+              src="/press/press2.png"
+              className="w-full h-60 object-cover"
+            />
+          </div>
+          <div className="rounded-lg overflow-hidden shadow-md">
+            <img
+              src="/press/press3.png"
+              className="w-full h-60 object-cover"
+            />
+          </div>
+          <div className="rounded-lg overflow-hidden shadow-md">
+            <img
+              src="/press/press4.png"
+              className="w-full h-60 object-cover"
+            />
+          </div>
       </div>
     </section>
   );
