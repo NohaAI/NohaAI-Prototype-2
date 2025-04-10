@@ -9,7 +9,12 @@ const NavBar = () => {
 
   const handleSubmit = (data: any) => {
     console.log(data);  
+    onClose();
   };
+
+  const onClose = () => {
+    setShowModal(false);
+  }
 
   return (
     <>
@@ -65,7 +70,7 @@ const NavBar = () => {
       )}
 
       {/* Book a Demo Modal */}
-      {showModal && <BookDemoModal handleSubmit={handleSubmit} onClose={() => setShowModal(false)} />}
+      {showModal && <BookDemoModal handleSubmit={handleSubmit} onClose={onClose} />}
     </>
   );
 };
