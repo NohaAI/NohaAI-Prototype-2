@@ -8,6 +8,7 @@ import UseCase from "./UseCase";
 import Press from "./Press";
 import About from "./About";
 import Contact from "./Contact";
+import Footer from "./Footer";
 
 const Section1: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -39,10 +40,12 @@ const Section1: React.FC = () => {
           <div className="hidden md:flex space-x-4 pr-6">
             {/* <button className="px-8 py-3 text-black font-semibold rounded-full bg-gradient-to-r from-[#77FFF1] to-[#0B9284] ">
               Try Noha
-            </button>
-            <button className="px-5 py-2 border border-[#77FFF1] text-white rounded-full shadow-md">
-              Login
             </button> */}
+            <Link href={"/book-demo"}>
+              <button className="px-5 py-2 border border-[#77FFF1] text-white rounded-full shadow-md">
+                Book a demo
+              </button>
+            </Link>
           </div>
 
           <button onClick={() => setIsOpen(!isOpen)} className="md:hidden text-white">
@@ -63,11 +66,13 @@ const Section1: React.FC = () => {
                   Try Noha
                 </button>
               </li> */}
-              {/* <li>
-                <button className="w-full px-5 py-2 border border-[#77FFF1] text-white rounded-full shadow-md mt-2">
-                  Login
-                </button>
-              </li> */}
+              <li>
+                <Link href={"/book-demo"}>
+                  <button className="w-full px-5 py-2 border border-[#77FFF1] text-white rounded-full shadow-md mt-2">
+                    Book a demo
+                  </button>
+                </Link>
+              </li>
             </ul>
           </div>
         )}
@@ -108,20 +113,22 @@ const Section1: React.FC = () => {
       </div>
 
       <section id="use-case" className="py-16 px-6">
-        <UseCase/>
+        <UseCase />
       </section>
 
-      <section id="press" className="py-16 px-6">
-        <Press/>
+      <section id="press" className="py-1 px-6">
+        <Press />
       </section>
 
-      <section id="contact" className="py-16 px-6">
+      <section id="about" className="py-1 px-6">
+        <About />
+      </section>
+
+      {/* <section id="contact" className="py-16 px-6">
         <Contact/>
-      </section>
+      </section> */}
 
-      <section id="about" className="py-16 px-6">
-        <About/>
-      </section>
+      <Footer />
 
     </>
   );
