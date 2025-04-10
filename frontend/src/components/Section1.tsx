@@ -4,6 +4,9 @@ import Link from "next/link";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
+import UseCase from "./UseCase";
+import Press from "./Press";
+import About from "./About";
 
 const Section1: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -100,26 +103,19 @@ const Section1: React.FC = () => {
             />
           </div>
         </div>
-
       </div>
 
-
       <section id="use-case" className="py-16 px-6">
-        <h2 className="text-2xl font-bold text-black mb-4">Use Case</h2>
-        <p className="text-black">We're building AI that conducts technical interviews…</p>
+        <UseCase/>
       </section>
 
       <section id="press" className="py-16 px-6">
-        <h2 className="text-2xl font-bold text-black mb-4">Press</h2>
-        <p className="text-black">We’re building AI that conducts technical interviews…</p>
+        <Press/>
       </section>
-
 
       <section id="about" className="py-16 px-6">
-        <h2 className="text-2xl font-bold text-black mb-4">About Us</h2>
-        <p className="text-black">We're building AI that conducts technical interviews…</p>
+        <About/>
       </section>
-
 
     </>
   );
