@@ -62,7 +62,7 @@ const BookDemo = () => {
 
           <button
             type="submit"
-            className="w-full py-3 text-white font-semibold bg-[#361899] rounded-md hover:bg-[#2a1377] transition"
+            className="w-full py-3 text-white font-semibold rounded-md bg-gradient-to-r from-[#77FFF1] to-[#0B9284]"
           >
             Submit
           </button>
