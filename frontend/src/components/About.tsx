@@ -10,21 +10,23 @@ const About = () => {
           {/* Founder 1 */}
           <div className="flex flex-col items-center">
             <img
-              src="/founder1.jpg"
+              src="/arun.png"
               alt="Founder 1"
               className="w-40 h-40 object-cover rounded-full shadow-md mb-4"
             />
-            <p className="text-black font-medium">Arun Panayappan</p>
-          </div>
+            <p className="text-black text-lg font-semibold">Arun Panayappan</p> 
+            <p className="text-gray-500"> Co-Founder & CEO </p>
+         </div>
   
           {/* Founder 2 */}
           <div className="flex flex-col items-center">
             <img
-              src="/founder2.jpg"
+              src="/ram.png"
               alt="Founder 2"
               className="w-40 h-40 object-cover rounded-full shadow-md mb-4"
             />
-            <p className="text-black font-medium">Rama Krishnan</p>
+            <p className="text-black text-lg font-semibold">Rama Krishnan</p>
+            <p> Co-Founder & COO </p>
           </div>
         </div>
       </section>

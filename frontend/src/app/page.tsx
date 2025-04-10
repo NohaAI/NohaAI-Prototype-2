@@ -41,7 +41,7 @@ export default function Home() {
           />
 
         }
-      {screen === 3 && <FrontPage2 />}
+      {screen === 3 && <FrontPage />}
     </div>
 
     <div className="block md:hidden">
