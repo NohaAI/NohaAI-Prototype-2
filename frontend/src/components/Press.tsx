@@ -5,17 +5,17 @@ const Press = () => {
     <section className="px-6 py-16 bg-[#f9f9ff]">
       {/* Heading + Icon */}
       <div className="flex flex-col items-center mb-8">
-       <div className="flex flex-row gap-4">
-            <h2 className="text-3xl font-bold text-black mb-2">Press</h2>
-            <Newspaper className="text-[#361899]" size={32} />
-       </div>
+        <div className="flex flex-row items-center gap-4">
+          <h2 className="text-3xl font-bold text-black mb-2">Press</h2>
+          <Newspaper className="text-[#361899]" size={32} />
+        </div>
         <p className="text-gray-700 text-center max-w-xl mt-4">
-          Featured on Major Starups Programms
+          Featured on Major Startup Programs
         </p>
       </div>
 
       {/* YouTube Video */}
-      <div className="flex justify-center">
+      <div className="flex justify-center mb-12">
         <div className="w-full max-w-3xl aspect-video rounded-lg overflow-hidden shadow-lg">
           <iframe
             width="100%"
@@ -28,6 +28,19 @@ const Press = () => {
             className="w-full h-full"
           />
         </div>
+      </div>
+
+      {/* Event Images Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        {["event1.jpg", "event2.jpg", "event3.jpg"].map((src, index) => (
+          <div key={index} className="rounded-lg overflow-hidden shadow-md">
+            <img
+              src={`/${src}`}
+              alt={`Event ${index + 1}`}
+              className="w-full h-60 object-cover"
+            />
+          </div>
+        ))}
       </div>
     </section>
   );
