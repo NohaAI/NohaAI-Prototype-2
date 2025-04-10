@@ -19,8 +19,8 @@ const BookDemoModal = ({ onClose, handleSubmit }: any) => {
     }
       
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
-        <div className="relative bg-white rounded-xl p-6 w-full max-w-md shadow-lg">
+      <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 ">
+        <div className="relative bg-white rounded-xl p-6    sm:w-[95%] max-w-max shadow-lg">
           <h2 className="text-xl text-center font-semibold mb-4 underline decoration-green-400">Book a Demo</h2>
           <form onSubmit={handleFormSubmit} className="space-y-6">
           <div>
