@@ -14,7 +14,7 @@ const About = () => {
               alt="Founder 1"
               className="w-40 h-40 object-cover rounded-full shadow-md mb-4"
             />
-            <p className="text-black font-medium">Alex Johnson</p>
+            <p className="text-black font-medium">Arun Panayappan</p>
           </div>
   
           {/* Founder 2 */}
@@ -24,7 +24,7 @@ const About = () => {
               alt="Founder 2"
               className="w-40 h-40 object-cover rounded-full shadow-md mb-4"
             />
-            <p className="text-black font-medium">Taylor Singh</p>
+            <p className="text-black font-medium">Rama Krishnan</p>
           </div>
         </div>
       </section>
