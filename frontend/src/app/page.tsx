@@ -45,7 +45,7 @@ export default function Home() {
     </div>
 
     <div className="block md:hidden">
-      <FrontPage2 />
+      <FrontPage />
     </div>
     </>
   );
