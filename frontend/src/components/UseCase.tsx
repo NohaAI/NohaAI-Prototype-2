@@ -14,44 +14,63 @@ const UseCase = () => {
         </p>
       </div>
 
-      {/* Use Case Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
-        {/* Use Case 1 */}
-        <div className="flex flex-col items-center text-center p-6 rounded-2xl shadow-md hover:shadow-lg transition bg-[#f5f7ff]">
-          <Briefcase size={36} className="text-[#361899] mb-4" />
-          <h3 className="text-lg font-semibold text-black mb-2">Enterprise Hiring</h3>
-          <p className="text-sm text-gray-600">
-            Scale interviews across teams and departments with consistency.
-          </p>
+      <div className="flex justify-center my-10">
+          <div className="flex flex-col lg:flex-row gap-10 items-center justify-center lg:items-center bg-blue-50 p-6 lg:p-12 rounded-3xl w-full lg:w-[900px] h-auto lg:h-[400px]">
+            <div className="lg:w-1/2 mt-6 lg:mt-0 flex justify-end">
+              <div className="bg-white w-[300px] h-[250px] lg:w-[350px] lg:h-[300px] rounded-3xl"></div>
+            </div>
+           
+            <div className="lg:w-[305px] flex flex-col justify-center">
+              <h2 className="text-[22px]  text-black mb-4">
+                How Noha helps to conduct interview drives for technology product organizations?
+              </h2>
+              <button className="w-[132px] h-[50px] px-3 text-center bg-gradient-to-r from-[#0D99FF] to-[#0A5992] text-white text-[14px] rounded-full">
+                Watch a demo
+              </button>
+            </div>
+
+          
+          </div>
         </div>
 
-        {/* Use Case 2 */}
-        <div className="flex flex-col items-center text-center p-6 rounded-2xl shadow-md hover:shadow-lg transition bg-[#f5f7ff]">
-          <Users size={36} className="text-[#361899] mb-4" />
-          <h3 className="text-lg font-semibold text-black mb-2">Recruiting Agencies</h3>
-          <p className="text-sm text-gray-600">
-            Pre-screen candidates with real-time technical interviews.
-          </p>
+        <div className="flex justify-center my-10">
+          <div className="flex flex-col lg:flex-row gap-10 items-center justify-center lg:items-center bg-blue-50 p-6 lg:p-12 rounded-3xl w-full lg:w-[900px] h-auto lg:h-[400px]">
+            <div className="lg:w-[305px] flex flex-col justify-center">
+              <h2 className="text-[22px]  text-black mb-4">
+                How Noha helps to conduct interview drives for technology product organizations?
+              </h2>
+              <button className="w-[132px] h-[50px] px-3 text-center bg-gradient-to-r from-[#0D99FF] to-[#0A5992] text-white text-[14px] rounded-full">
+                Watch a demo
+              </button>
+            </div>
+           
+            <div className="lg:w-1/2 mt-6 lg:mt-0 flex justify-end">
+              <div className="bg-white w-[300px] h-[250px] lg:w-[350px] lg:h-[300px] rounded-3xl"></div>
+            </div>
+          
+          </div>
         </div>
 
-        {/* Use Case 3 */}
-        <div className="flex flex-col items-center text-center p-6 rounded-2xl shadow-md hover:shadow-lg transition bg-[#f5f7ff]">
-          <Code2 size={36} className="text-[#361899] mb-4" />
-          <h3 className="text-lg font-semibold text-black mb-2">Engineering Teams</h3>
-          <p className="text-sm text-gray-600">
-            Let Noha handle technical screening so you focus on building.
-          </p>
+        <div className="flex justify-center my-10">
+          <div className="flex flex-col lg:flex-row gap-10 items-center justify-center lg:items-center bg-blue-50 p-6 lg:p-12 rounded-3xl w-full lg:w-[900px] h-auto lg:h-[400px]">
+            <div className="lg:w-1/2 mt-6 lg:mt-0 flex justify-end">
+              <div className="bg-white w-[300px] h-[250px] lg:w-[350px] lg:h-[300px] rounded-3xl"></div>
+            </div>
+           
+            <div className="lg:w-[305px] flex flex-col justify-center">
+              <h2 className="text-[22px]  text-black mb-4">
+                How Noha helps to conduct interview drives for technology product organizations?
+              </h2>
+              <button className="w-[132px] h-[50px] px-3 text-center bg-gradient-to-r from-[#0D99FF] to-[#0A5992] text-white text-[14px] rounded-full">
+                Watch a demo
+              </button>
+            </div>
+
+          
+          </div>
         </div>
 
-        {/* Use Case 4 */}
-        <div className="flex flex-col items-center text-center p-6 rounded-2xl shadow-md hover:shadow-lg transition bg-[#f5f7ff]">
-          <Globe size={36} className="text-[#361899] mb-4" />
-          <h3 className="text-lg font-semibold text-black mb-2">Remote Hiring</h3>
-          <p className="text-sm text-gray-600">
-            Assess global talent efficiently with automated, unbiased interviews.
-          </p>
-        </div>
-      </div>
+     
     </section>
   );
 };

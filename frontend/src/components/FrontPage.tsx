@@ -48,6 +48,7 @@ export default function FrontPage() {
 
         </div>
       </section> */}
+
       {/* <section className="bg-white text-gray-900 px-6 lg:px-20 py-12">
         <div className="mx-[15%] flex flex-col lg:flex-row items-center lg:items-center justify-between gap-10">
           <img src="image (10).webp" alt="Your image description" className="lg:w-1/2 w-full h-64 lg:h-96 object-cover rounded-lg" />
@@ -199,9 +200,9 @@ export default function FrontPage() {
 
           
           </div>
-        </div> */}
+        </div>
 
-        {/* <div className="flex justify-center my-10">
+        <div className="flex justify-center my-10">
           <div className="flex flex-col lg:flex-row gap-10 items-center justify-center lg:items-center bg-blue-50 p-6 lg:p-12 rounded-3xl w-full lg:w-[900px] h-auto lg:h-[400px]">
             <div className="lg:w-[305px] flex flex-col justify-center">
               <h2 className="text-[22px]  text-black mb-4">
@@ -217,9 +218,9 @@ export default function FrontPage() {
             </div>
           
           </div>
-        </div> */}
+        </div>
 
-        {/* <div className="flex justify-center my-10">
+        <div className="flex justify-center my-10">
           <div className="flex flex-col lg:flex-row gap-10 items-center justify-center lg:items-center bg-blue-50 p-6 lg:p-12 rounded-3xl w-full lg:w-[900px] h-auto lg:h-[400px]">
             <div className="lg:w-1/2 mt-6 lg:mt-0 flex justify-end">
               <div className="bg-white w-[300px] h-[250px] lg:w-[350px] lg:h-[300px] rounded-3xl"></div>
