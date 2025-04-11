@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { X, Menu } from "lucide-react";
 import { useState } from "react";
 import BookDemoModal from "@/components/BookDemoModal"; // make sure this path is correct
+import Link from "next/link";
 
 const NavBar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -35,12 +36,14 @@ const NavBar = () => {
         </div>
 
         <div className="hidden md:flex space-x-4 pr-6">
-          <button
-            onClick={() => setShowModal(true)}
-            className="px-5 py-2 border border-[#77FFF1] text-white rounded-full shadow-md"
-          >
-            Book a demo
-          </button>
+          <Link href={"book-demo"}>
+            <button
+                // onClick={() => setShowModal(true)}
+                className="px-5 py-2 border border-[#77FFF1] text-white rounded-full shadow-md"
+            >
+                Book a demo
+            </button>
+          </Link>
         </div>
 
         <button onClick={() => setIsOpen(!isOpen)} className="md:hidden text-white">
@@ -55,15 +58,18 @@ const NavBar = () => {
             <li><a href="#press" className="hover:text-gray-300">Press</a></li>
             <li><a href="#about" className="hover:text-gray-300">About</a></li>
             <li>
-              <button
-                onClick={() => {
-                  setIsOpen(false);
-                  setShowModal(true);
-                }}
-                className="w-full px-5 py-2 border border-[#77FFF1] text-white rounded-full shadow-md mt-2"
-              >
-                Book a demo
-              </button>
+                <Link href={"book-demo"}>
+                    <button
+                        // onClick={() => {
+                        //   setIsOpen(false);
+                        //   setShowModal(true);
+                        // }}
+                        className="w-full px-5 py-2 border border-[#77FFF1] text-white rounded-full shadow-md mt-2"
+                    >
+                        Book a demo
+                    </button>
+                
+                </Link>
             </li>
           </ul>
         </div>
