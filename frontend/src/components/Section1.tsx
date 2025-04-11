@@ -10,6 +10,7 @@ import About from "./About";
 import Contact from "./Contact";
 import Footer from "./Footer";
 import NavBar from "./NavBar";
+import ContactUs from "./ContactUs";
 
 const Section1: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -66,13 +67,9 @@ const Section1: React.FC = () => {
         <Press />
       </section>
 
-      <section id="about" className="py-1 px-6">
-        <About />
+      <section id="contact" className="py-16 px-6">
+        <ContactUs/>
       </section>
-
-      {/* <section id="contact" className="py-16 px-6">
-        <Contact/>
-      </section> */}
 
       <Footer />
 

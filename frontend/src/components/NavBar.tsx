@@ -29,16 +29,15 @@ const NavBar = () => {
         <div className="text-white text-lg font-semibold px-6">Noha.ai</div>
 
         <div className="hidden md:flex space-x-8 text-white">
-          <a href="#use-case" className="hover:text-gray-300">Use cases</a>
+          <a href="#about" className="hover:text-gray-300">About Us</a>
+          <a href="#use-case" className="hover:text-gray-300">Use Cases</a>
           <a href="#press" className="hover:text-gray-300">Press</a>
           <a href="#contact" className="hover:text-gray-300">Contact</a>
-          <a href="#about" className="hover:text-gray-300">About</a>
         </div>
 
         <div className="hidden md:flex space-x-4 pr-6">
           <Link href={"book-demo"}>
             <button
-                // onClick={() => setShowModal(true)}
                 className="px-5 py-2 border border-[#77FFF1] text-white rounded-full shadow-md"
             >
                 Book a demo
@@ -54,16 +53,12 @@ const NavBar = () => {
       {isOpen && (
         <div className="md:hidden w-full max-w-6xl bg-[#3224A2] rounded-lg mt-3 p-4 text-center">
           <ul className="space-y-4 text-white">
+            <li><a href="#about" className="hover:text-gray-300">About Us</a></li>
             <li><a href="#use-case" className="hover:text-gray-300">Use cases</a></li>
             <li><a href="#press" className="hover:text-gray-300">Press</a></li>
-            <li><a href="#about" className="hover:text-gray-300">About</a></li>
             <li>
                 <Link href={"book-demo"}>
                     <button
-                        // onClick={() => {
-                        //   setIsOpen(false);
-                        //   setShowModal(true);
-                        // }}
                         className="w-full px-5 py-2 border border-[#77FFF1] text-white rounded-full shadow-md mt-2"
                     >
                         Book a demo
