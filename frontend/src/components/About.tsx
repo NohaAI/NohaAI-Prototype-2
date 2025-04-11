@@ -13,7 +13,7 @@ const About = () => {
                     />
                     <p className="text-[#361899] text-xl font-semibold">Arun Panayappan</p>
                     <p className="text-lg text-gray-800 mb-2">Co-Founder & CEO</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-md text-gray-600">
                         Over 25 years of IT experience building products for companies like Google and Amazon.
                         Holds 3 papers and 4 patents in artificial intelligence and expert systems.
                     </p>
@@ -28,7 +28,7 @@ const About = () => {
                     />
                     <p className="text-[#361899] text-xl font-semibold">Rama Krishnan</p>
                     <p className="text-lg text-gray-800 mb-2">Co-Founder & COO</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-md text-gray-600">
                         An IIM alumnus with over 18 years of experience in talent acquisition. Most recently served
                         as the HR Head at Yellow.ai, scaling the company from 10 to 1,000+ employees globally.
                         Previously worked with Amazon, VMware, and Yahoo.

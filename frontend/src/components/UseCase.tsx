@@ -9,7 +9,7 @@ const UseCase = () => {
         <div className="flex flex-row gap-4">
           <h2 className="text-3xl font-bold text-black mb-2 underline decoration-green-400 underline-offset-4">Use Cases</h2>
         </div>
-        <p className="text-gray-700 text-center max-w-xl">
+        <p className="text-gray-700 text-center max-w-xl text-md">
           Noha.ai adapts to a variety of technical hiring needs across industries.
         </p>
       </div>
