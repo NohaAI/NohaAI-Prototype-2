@@ -3,23 +3,24 @@ import Feedback from "@/components/Feedback";
 import InterviewDetails from "@/components/InterviewDetails";
 import LiveInterview from "@/components/LiveInterview";
 import axios from "axios";
-import { useEffect, useRef, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import Head from 'next/head';
+import { div } from "framer-motion/client";
 // import { io } from "socket.io-client";
 
- 
+
 const MyPage = () => {
 
     const [interviewStarted, setInterviewStarted] = useState<boolean>(false);
     const [details, setDetails] = useState({} as any);
     const [callEnded, setCallEnded] = useState(false);
     const [backendServiceLink] = useState(
-	        process.env.NEXT_PUBLIC_BACKEND_URL
-        );
+        process.env.NEXT_PUBLIC_BACKEND_URL
+    );
     const [userSocket, setUserSocket] = useState<any>(null);
     const [chats, setChats] = useState<Array<any>>([]);
-    
+
     const [isMicOn, setIsMicOn] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
     const [transcribedText, setTranscribedText] = useState("");
@@ -30,7 +31,7 @@ const MyPage = () => {
 
     const recognitionRef = useRef<any>(null);
     const [isSilence, setIsSilence] = useState<boolean | null>(null)
-    
+
     const [errorMsg, setErrorMsg] = useState<string>("");
 
     // const startConnection = async (userDetails: any) => {
@@ -59,7 +60,7 @@ const MyPage = () => {
 
 
     useEffect(() => {
-        if(errorMsg){
+        if (errorMsg) {
             toast(errorMsg, {
                 position: 'top-center',
                 autoClose: 5000,
@@ -75,34 +76,34 @@ const MyPage = () => {
 
             console.log('start connection', connectRes)
             console.log('initialize data', initializeRes)
-            
+
             setChatMetaData(initializeRes.data)
             setInterviewStarted(true);
-          
+
             updateChats(initializeRes.data.session_state.bot_dialogue);
             speakText(initializeRes.data.session_state.bot_dialogue)
 
         } catch (error: any) {
             let errorMessage = "Unknown error occurred";
-        
+
             // Check if the error has a response (API error)
             if (error.response && error.response.data && error.response.data.detail) {
                 errorMessage = error.response.data.detail; // Extract the "detail" field
             } else if (error.message) {
                 errorMessage = error.message;
             }
-        
+
             setErrorMsg(errorMessage);
             console.error("Error in startConnection2:", errorMessage);
             throw error;
-        }        
+        }
     };
-    
-    const disconnect2 = async() =>{
+
+    const disconnect2 = async () => {
         try {
             const res = await axios.post(`${backendServiceLink}/terminate`, {
-                session_state: chatMetaData.session_state, 
-                chat_history : chatMetaData.chat_history, 
+                session_state: chatMetaData.session_state,
+                chat_history: chatMetaData.chat_history,
                 assessment: chatMetaData.assessment
             });
             console.log('terminate', res)
@@ -111,9 +112,9 @@ const MyPage = () => {
         }
     }
 
-    useEffect(()=>{
-        return ()=>{
-            if(interviewStarted) disconnect2()
+    useEffect(() => {
+        return () => {
+            if (interviewStarted) disconnect2()
         }
     }, [])
 
@@ -129,18 +130,18 @@ const MyPage = () => {
             chatMetaData.session_state.candidate_dialogue = data.text;
             const lastIndex = chatMetaData.chat_history.length - 1;
             if (lastIndex >= 0) {  // Ensure chat_history is not empty
-                 chatMetaData.chat_history[lastIndex].candidate_dialogue = data.text;
+                chatMetaData.chat_history[lastIndex].candidate_dialogue = data.text;
             }
             console.log("rms=>:chatMetaData:", chatMetaData);
 
             const res = await axios.post(`${backendServiceLink}/chat`, chatMetaData);
             setNohaResponseProcessing(false)
             console.log("Received Noha backend AI response", res.data);
-            
+
             setChatMetaData(res.data)
             updateChats(res.data.session_state.bot_dialogue);
-            
-            speakText(res.data.session_state.bot_dialogue, { termination:  res.data.session_state.termination })
+
+            speakText(res.data.session_state.bot_dialogue, { termination: res.data.session_state.termination })
 
 
         } catch (error) {
@@ -156,7 +157,7 @@ const MyPage = () => {
     };
 
     const speakText = (text: string, info?: any) => {
-            
+
         if (!window.speechSynthesis) {
             console.error("Speech synthesis is not supported in this browser.");
             return;
@@ -170,7 +171,7 @@ const MyPage = () => {
 
         const voices = window.speechSynthesis.getVoices();
         // Try to find a female voice
-        const femaleVoice = voices.find((voice) =>  voice.name.toLowerCase().includes("female") || voice.name.toLowerCase().includes("samantha"))
+        const femaleVoice = voices.find((voice) => voice.name.toLowerCase().includes("female") || voice.name.toLowerCase().includes("samantha"))
         if (femaleVoice) {
             utterance.voice = femaleVoice;
         } else if (voices.length > 0) {
@@ -179,7 +180,7 @@ const MyPage = () => {
 
         console.log('femaleVoice', femaleVoice)
 
-        utterance.onstart = () =>{
+        utterance.onstart = () => {
             console.log("Speech started");
             setIsAudioPlaying(true)
         }
@@ -187,7 +188,7 @@ const MyPage = () => {
         utterance.onend = () => {
             console.log("Speech finished");
             setIsAudioPlaying(false)
-            if(info?.termination) {
+            if (info?.termination) {
                 disconnect2()
                 stopRecording();
                 setCallEnded(true);
@@ -201,13 +202,13 @@ const MyPage = () => {
         } else {
             window.speechSynthesis.speak(utterance);
         }
-};
+    };
 
     const handleSubmit = async (data: { name: string; email: string, live_code: string }) => {
-        console.log("Form submitted with data:", typeof(data.live_code));
+        console.log("Form submitted with data:", typeof (data.live_code));
         setDetails({ ...data });
         // startConnection(data);
-        await startConnection2({...data})
+        await startConnection2({ ...data })
     };
 
     // const onCancelCall = () => {
@@ -216,7 +217,7 @@ const MyPage = () => {
     //     userSocket?.disconnect();
     // };
 
-    const onCancelCall2 = () =>{
+    const onCancelCall2 = () => {
         window?.speechSynthesis?.cancel()
         stopRecording();
         setCallEnded(true);
@@ -227,31 +228,31 @@ const MyPage = () => {
         setIsMicOn(true);
         setIsRecording(true);
         setIsProcessing(true); // Show dot on mic icon
-    
+
         if (!("webkitSpeechRecognition" in window)) {
             alert("Your browser does not support speech recognition. Please try Chrome.");
             return;
         }
-    
+
         const recognition = new (window as any).webkitSpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
         recognition.lang = "en-US";
         recognition.maxAlternatives = 3; // Get up to 3 alternative transcriptions
-    
+
         let silenceTimeout: NodeJS.Timeout; // Timer for detecting silence
-    
+
         recognition.onresult = (event: any) => {
             clearTimeout(silenceTimeout); // Reset timer on speech
             console.log("No silence"); // Log when speech is detected
             setIsSilence(false)
 
             let finalTranscript = "";
-    
+
             for (let i = event.resultIndex; i < event.results.length; i++) {
                 if (event.results[i].isFinal) {
                     const alternatives = event.results[i]; // Get all alternatives
-    
+
                     // Find the alternative with the highest confidence
                     let bestAlternative = alternatives[0]; // Default to the first
                     for (let j = 1; j < alternatives.length; j++) {
@@ -259,9 +260,9 @@ const MyPage = () => {
                             bestAlternative = alternatives[j];
                         }
                     }
-    
+
                     finalTranscript += bestAlternative.transcript + " "; // Pick the most confident result
-    
+
                     // Log all alternatives and their confidence scores
                     console.log("Alternatives:");
                     for (let j = 0; j < alternatives.length; j++) {
@@ -270,26 +271,26 @@ const MyPage = () => {
                     console.log(`✅ Selected: "${bestAlternative.transcript}" (Confidence: ${bestAlternative.confidence})`);
                 }
             }
-    
+
             setTranscribedText((prev) => prev + finalTranscript);
-    
+
             // Restart the silence detection timer
             silenceTimeout = setTimeout(() => {
                 console.log("Silence"); // Log silence after 3 seconds of inactivity
                 setIsSilence(true)
             }, 500); // Adjust time to define "silence" period
         };
-    
+
         recognition.onend = () => {
             console.log("Recognition ended, processing final text...");
             setIsProcessing(false); // Hide dot when processing is done
             clearTimeout(silenceTimeout); // Ensure timer is cleared when recognition stops
         };
-    
+
         recognitionRef.current = recognition;
         recognition.start();
-    };    
-    
+    };
+
     const stopRecording = () => {
         setIsRecording(false);
         setIsMicOn(false);
@@ -321,41 +322,77 @@ const MyPage = () => {
         // }
     };
 
+    useEffect(() => {
+        checkBrowserCompatibility()
+    }, [])
+
+    const [isBrowserCompatibile, setIsBrowserCompatibile] = useState<boolean | null>(null);
+    const checkBrowserCompatibility = () => {
+        const userAgent = navigator.userAgent;
+
+        if (userAgent.includes("Chrome") && !userAgent.includes("Edg") && !userAgent.includes("OPR")) {
+            setIsBrowserCompatibile(true);
+        } else {
+            setIsBrowserCompatibile(false);
+        }
+    }
+
     return (
         <>
-        <title>Noha AI Interview</title>
-        <ToastContainer/>
-        {/* Display on medium and large devices */}
-        <div className="hidden lg:block">
-            {!callEnded && (
-            !interviewStarted ? (
-                <InterviewDetails onSubmit={handleSubmit} />
-            ) : (
-                <LiveInterview
-                    chats={chats}
-                    name={details.name}
-                    onCancelCall={onCancelCall2}
-                    userSocket={userSocket}
-                    isMicOn={isMicOn}
-                    startRecording={startRecording}
-                    stopRecording={stopRecording}
-                    isRecording={isRecording}
-                    nohaResponseProcessing={nohaResponseProcessing}
-                    isProcessing={isProcessing}
-                    isAudioPlaying={isAudioPlaying}
-                    isSilence={isSilence}
-                />
-            )
-            )}
-            {callEnded && <Feedback sendFeedback={sendFeedback} />}
-        </div>
-            
-        {/* Display on small devices */}
-        <div className="block lg:hidden flex items-center justify-center h-screen bg-gray-100">
-            <p className="text-center text-2xl font-bold text-gray-800 p-4">
-            This application is supported on desktops only.
-            </p>
-        </div>        
+
+            {
+                isBrowserCompatibile === null &&
+                <div className="bg-blue-50 border border-blue-200 text-blue-800 px-6 py-4 rounded-xl shadow-sm text-center">
+                    Checking browser compatibility...
+                </div>
+            }
+            {
+                isBrowserCompatibile === false &&
+                <div className="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-xl shadow-sm text-center space-y-2">
+                    <p className="font-semibold text-lg">This app is only supported in Chrome Browser on desktop</p>
+                    <p className="text-sm">
+                        For now, only Chrome on desktop is supported. Mobile devices and other browsers will be supported in the future.
+                        Please open this link in Chrome for the best experience.
+                    </p>
+                </div>
+            }
+
+            {isBrowserCompatibile === true && <>
+                <title>Noha AI Interview</title>
+                <ToastContainer />
+                {/* Display on medium and large devices */}
+                <div className="hidden lg:block">
+                    {!callEnded && (
+                        !interviewStarted ? (
+                            <InterviewDetails onSubmit={handleSubmit} />
+                        ) : (
+                            <LiveInterview
+                                chats={chats}
+                                name={details.name}
+                                onCancelCall={onCancelCall2}
+                                userSocket={userSocket}
+                                isMicOn={isMicOn}
+                                startRecording={startRecording}
+                                stopRecording={stopRecording}
+                                isRecording={isRecording}
+                                nohaResponseProcessing={nohaResponseProcessing}
+                                isProcessing={isProcessing}
+                                isAudioPlaying={isAudioPlaying}
+                                isSilence={isSilence}
+                            />
+                        )
+                    )}
+                    {callEnded && <Feedback sendFeedback={sendFeedback} />}
+                </div>
+
+                {/* Display on small devices */}
+                <div className="block lg:hidden flex items-center justify-center h-screen bg-gray-100">
+                    <p className="text-center text-2xl font-bold text-gray-800 p-4">
+                        This application is supported on desktops only.
+                    </p>
+                </div>
+            </>}
+
         </>
     );
 };
