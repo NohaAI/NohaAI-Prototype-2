@@ -2,18 +2,14 @@
 
 import Link from "next/link";
 import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { Menu, X } from "lucide-react";
 import UseCase from "./UseCase";
 import Press from "./Press";
 import About from "./About";
-import Contact from "./Contact";
 import Footer from "./Footer";
 import NavBar from "./NavBar";
 import ContactUs from "./ContactUs";
 
 const Section1: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
@@ -57,6 +53,10 @@ const Section1: React.FC = () => {
             </div>
           </div>
         </div>
+      </section>
+
+      <section id="about" className="py-16 px-6">
+        <About />
       </section>
 
       <section id="use-case" className="py-16 px-6">

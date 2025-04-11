@@ -6,7 +6,7 @@ const Press = () => {
       {/* Heading + Icon */}
       <div className="flex flex-col items-center mb-8">
         <div className="flex flex-row items-center gap-4">
-          <h2 className="text-3xl font-bold text-black mb-2 underline decoration-green-400">Press</h2>
+          <h2 className="text-3xl font-bold text-black mb-2 underline decoration-green-400 underline-offset-4">Press</h2>
         </div>
         <p className="text-gray-700 text-center max-w-xl mt-4">
           Featured on Major Startup Programs

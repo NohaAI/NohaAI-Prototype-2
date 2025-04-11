@@ -1,7 +1,7 @@
 const ContactUs = () => {
     return (
       <section id="contact" className="px-6 py-16 bg-[#f4f4fc] text-center">
-        <h2 className="text-3xl font-bold text-[#361899] mb-4 underline underline-offset-4">
+        <h2 className="text-3xl font-bold text-[#361899] mb-4 underline decoration-green-400 underline-offset-4">
           Contact Us
         </h2>
         <p className="text-gray-700 text-lg">

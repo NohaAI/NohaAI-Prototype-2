@@ -1,7 +1,7 @@
 const About = () => {
     return (
         <section className="px-6 py-16 bg-white">
-            <h2 className="text-3xl font-bold text-center text-black mb-6 underline decoration-green-400">The Founders</h2>
+            <h2 className="text-3xl font-bold text-center text-black mb-6 underline decoration-green-400 underline-offset-4">The Founders</h2>
 
             <div className="flex flex-col md:flex-row items-start justify-center gap-16 md:gap-24 px-6 mt-4">
                 {/* Founder 1 */}
